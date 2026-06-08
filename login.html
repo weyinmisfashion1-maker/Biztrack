@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>BizTrack — Secure Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --gold:#C9982A;--gold-lt:#E8BE6A;--ink:#141009;--ink2:#2A2215;
+  --cream:#FAF6EF;--cream2:#F3EDE0;--cream3:#EAE1CC;--text:#1C1509;
+  --muted:#7A6E58;--border:#DDD4BE;--r:14px;--r-sm:10px;
+  --ff-head:'Playfair Display',Georgia,serif;--ff-body:'Outfit',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:var(--text);display:flex;align-items:center;justify-content:center;padding:1rem}
+.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(20,16,9,.08);overflow:hidden;animation:fadeIn .5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.auth-header{background:var(--ink);color:var(--cream);padding:2.5rem 2rem;text-align:center}
+.brand{font-family:var(--ff-head);font-size:1.8rem;color:var(--gold);letter-spacing:.05em;text-decoration:none}
+.auth-h1{margin-top:.75rem;font-size:1.5rem;font-weight:600}
+.auth-body{padding:2.5rem 2rem}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.08em}
+.field input{width:100%;border:1.5px solid var(--border);border-radius:12px;background:var(--cream);padding:1rem;font-size:.95rem;transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--gold);background:#fff}
+.btn-auth{width:100%;border:none;background:var(--gold);color:var(--ink);padding:1.1rem;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .15s,background .15s}
+.btn-auth:hover{background:var(--gold-lt);transform:translateY(-1px)}
+.btn-auth:active{transform:translateY(0)}
+.toggle-row{margin-top:1.5rem;text-align:center;font-size:.88rem;color:var(--muted)}
+.toggle-row a{color:var(--gold);font-weight:700;text-decoration:none;cursor:pointer}
+.status{margin-top:1.25rem;padding:.85rem;border-radius:10px;font-size:.85rem;display:none}
+.status.err{background:#FCEAEA;color:#B53030;border:1px solid #F8D7D7}
+.status.ok{background:#E4F2EB;color:#1E6641;border:1px solid #D1E9DE}
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="auth-header">
+    <a href="/" class="brand">BizTrack</a>
+    <h1 class="auth-h1" id="auth-title">Welcome back</h1>
+  </div>
+  <div class="auth-body">
+    <!-- Login Form -->
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">Business Email</label>
+        <input type="email" id="login-email" required placeholder="name@business.com" />
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <input type="password" id="login-pass" required placeholder="••••••••" />
+      </div>
+      <button type="submit" class="btn-auth">Sign In to Dashboard</button>
+      <div class="toggle-row">
+        New to BizTrack? <a onclick="toggleAuth('signup')">Create an Account</a>
+      </div>
+    </form>
+
+    <!-- Register Form -->
+    <form id="signup-form" style="display:none">
+      <div class="field">
+        <label for="reg-biz">Business Name</label>
+        <input type="text" id="reg-biz" required placeholder="e.g. Acme Ventures" />
+      </div>
+      <div class="field">
+        <label for="reg-email">Business Email</label>
+        <input type="email" id="reg-email" required placeholder="name@business.com" />
+      </div>
+      <div class="field">
+        <label for="reg-pass">Password</label>
+        <input type="password" id="reg-pass" required placeholder="Create a password" />
+      </div>
+      <button type="submit" class="btn-auth">Register Business</button>
+      <div class="toggle-row">
+        Already have an account? <a onclick="toggleAuth('login')">Sign In</a>
+      </div>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<script>
+const getEl = id => document.getElementById(id);
+const statusEl = getEl('status');
+
+function toggleAuth(mode) {
+  const isLogin = mode === 'login';
+  getEl('login-form').style.display = isLogin ? 'block' : 'none';
+  getEl('signup-form').style.display = isLogin ? 'none' : 'block';
+  getEl('auth-title').textContent = isLogin ? 'Welcome back' : 'Start your business account';
+  statusEl.style.display = 'none';
+}
+
+async function handleAuth(endpoint, payload) {
+  statusEl.style.display = 'none';
+  try {
+    const res = await fetch('/api/' + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Authentication failed');
+    
+    if (endpoint === 'login') {
+      localStorage.setItem('bt_user', payload.email);
+      localStorage.setItem('bt_biz', data.businessName);
+      statusEl.className = 'status ok';
+      statusEl.textContent = 'Success! Redirecting...';
+      statusEl.style.display = 'block';
+      setTimeout(() => window.location.href = '/', 800);
+    } else {
+      statusEl.className = 'status ok';
+      statusEl.textContent = 'Registration successful! You can now log in.';
+      statusEl.style.display = 'block';
+      setTimeout(() => toggleAuth('login'), 1500);
+    }
+  } catch (err) {
+    statusEl.className = 'status err';
+    statusEl.textContent = err.message;
+    statusEl.style.display = 'block';
+  }
+}
+
+getEl('login-form').onsubmit = e => {
+  e.preventDefault();
+  handleAuth('login', {
+    email: getEl('login-email').value,
+    password: getEl('login-pass').value
+  });
+};
+
+getEl('signup-form').onsubmit = e => {
+  e.preventDefault();
+  handleAuth('register', {
+    businessName: getEl('reg-biz').value,
+    email: getEl('reg-email').value,
+    password: getEl('reg-pass').value
+  });
+};
+
+// Auto-check if already logged in
+if (localStorage.getItem('bt_user')) window.location.href = '/';
+</script>
+</body>
+</html>

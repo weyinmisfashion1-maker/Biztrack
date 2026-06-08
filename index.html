@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="description" content="BizTrack — Daily sales, expenses, inventory and invoices for Nigerian small business owners"/>
+<title>BizTrack — Nigeria Business Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ===================== DESIGN TOKENS ===================== */
+:root{
+  --gold:#C9982A;--gold-lt:#E8BE6A;--gold-soft:rgba(201,152,42,.1);
+  --ink:#141009;--ink2:#2A2215;--ink3:#4A3F2F;
+  --cream:#FAF6EF;--cream2:#F3EDE0;--cream3:#EAE1CC;
+  --text:#1C1509;--muted:#7A6E58;--border:#DDD4BE;
+  --green:#1E6641;--green-bg:#E4F2EB;
+  --red:#B53030;--red-bg:#FCEAEA;
+  --blue-bg:#EAF0FD;--blue:#2A4EA6;
+  --r:12px;--r-sm:8px;--r-xs:6px;
+  --sh:0 2px 16px rgba(20,16,9,.08);
+  --ff-head:'Playfair Display',Georgia,serif;
+  --ff-body:'Outfit',system-ui,sans-serif;
+  --fw-light:300;--fw:400;--fw-med:500;--fw-semi:600;--fw-bold:700;
+}
+
+/* ===================== RESET ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--ff-body);background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh}
+button,input,select,textarea{font-family:var(--ff-body)}
+button{cursor:pointer}
+img{max-width:100%;display:block}
+ul{list-style:none}
+
+/* ===================== ACCESSIBILITY ===================== */
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:3px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes glow{
+  0%,100%{box-shadow:0 0 0 0 rgba(201,152,42,.3)}
+  50%{box-shadow:0 0 0 8px rgba(201,152,42,0)}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{
+  from{opacity:0;transform:translateX(-50%) translateY(16px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* ===================== HERO SECTION ===================== */
+#hero{
+  background:var(--ink);
+  color:var(--cream);
+  position:relative;
+  overflow:hidden;
+}
+.hero-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.875rem 1.25rem;
+  border-bottom:1px solid rgba(201,152,42,.18);
+  position:sticky;top:0;z-index:50;
+  background:var(--ink2);
+}
+.brand{
+  font-family:var(--ff-head);font-size:1.3rem;
+  color:var(--gold);letter-spacing:.04em;text-decoration:none;
+}
+.brand span{font-style:italic;font-weight:400;color:var(--gold-lt)}
+.hero-nav-tag{font-size:.65rem;color:rgba(250,246,239,.35);letter-spacing:.1em;text-transform:uppercase}
+
+.hero-body{
+  padding:2.5rem 1.25rem 3rem;
+  background:
+    radial-gradient(ellipse 70% 60% at 10% 90%,rgba(201,152,42,.15) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 50% at 90% 10%,rgba(201,152,42,.08) 0%,transparent 65%),
+    var(--ink);
+  text-align:center;
+}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:rgba(201,152,42,.12);border:1px solid rgba(201,152,42,.25);
+  border-radius:999px;padding:.3rem .9rem;
+  font-size:.68rem;font-weight:var(--fw-semi);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold-lt);
+  margin-bottom:1.25rem;
+  animation:fadeSlideUp .5s ease both;
+}
+.pill-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gold);animation:glow 2s ease infinite;flex-shrink:0;
+}
+.hero-h1{
+  font-family:var(--ff-head);font-size:clamp(2rem,8vw,3.2rem);
+  font-weight:700;line-height:1.12;color:var(--cream);
+  margin-bottom:.75rem;
+  animation:fadeSlideUp .55s .08s ease both;
+}
+.hero-h1 em{color:var(--gold);font-style:italic}
+.hero-p{
+  font-size:.95rem;font-weight:var(--fw-light);
+  color:rgba(250,246,239,.6);max-width:320px;
+  margin:0 auto 2rem;
+  animation:fadeSlideUp .55s .16s ease both;
+}
+.hero-actions{
+  display:flex;flex-direction:column;gap:.75rem;align-items:center;
+  animation:fadeSlideUp .55s .24s ease both;
+}
+/* == PRIMARY BUTTON (required id) == */
+#btn-primary{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r-sm);
+  padding:.85rem 2rem;font-size:.95rem;font-weight:var(--fw-bold);
+  letter-spacing:.02em;transition:background .18s,transform .18s,box-shadow .18s;
+  width:100%;max-width:280px;justify-content:center;
+}
+#btn-primary:hover{background:var(--gold-lt);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,152,42,.4)}
+#btn-primary:active{transform:translateY(0)}
+.btn-ghost{
+  background:transparent;color:rgba(250,246,239,.65);
+  border:1px solid rgba(250,246,239,.2);border-radius:var(--r-sm);
+  padding:.75rem 1.5rem;font-size:.88rem;font-weight:var(--fw-med);
+  transition:border-color .15s,color .15s;
+  width:100%;max-width:280px;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+.hero-metrics{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(201,152,42,.12);
+  border-top:1px solid rgba(201,152,42,.12);
+  border-radius:0;margin-top:2.5rem;
+  animation:fadeSlideUp .55s .32s ease both;
+}
+.hero-metric{background:var(--ink);padding:1rem .5rem;text-align:center}
+.hero-metric:first-child{border-radius:0 0 0 var(--r)}
+.hero-metric:last-child{border-radius:0 0 var(--r) 0}
+.hm-val{
+  display:block;font-family:var(--ff-head);font-size:1.2rem;
+  font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem;
+}
+.hm-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(250,246,239,.35)}
+
+/* ===================== MAIN SECTION ===================== */
+#main-content{max-width:680px;margin:0 auto;padding:1.25rem 1rem 3rem}
+
+/* == INSIGHTS PANEL (required id) == */
+#insights-panel{
+  display:grid;grid-template-columns:1fr 1fr;gap:.625rem;
+  margin-bottom:1.25rem;
+}
+.insight{
+  background:var(--cream2);border:1px solid var(--border);
+  border-radius:var(--r);padding:.875rem 1rem;
+  border-left:3px solid var(--gold);position:relative;overflow:hidden;
+  animation:fadeSlideUp .4s ease both;
+}
+.insight:nth-child(1){animation-delay:.05s}
+.insight:nth-child(2){animation-delay:.1s;border-left-color:var(--red)}
+.insight:nth-child(3){animation-delay:.15s;border-left-color:var(--green)}
+.insight:nth-child(4){animation-delay:.2s;border-left-color:var(--blue)}
+.insight::after{
+  content:'';position:absolute;top:-12px;right:-12px;
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(201,152,42,.06);pointer-events:none;
+}
+.insight:nth-child(2)::after{background:rgba(181,48,48,.06)}
+.insight:nth-child(3)::after{background:rgba(30,102,65,.06)}
+.insight-lbl{font-size:.62rem;font-weight:var(--fw-semi);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.3rem}
+.insight-val{font-family:var(--ff-head);font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.1}
+.insight-sub{font-size:.68rem;color:var(--muted);margin-top:.2rem}
+
+/* == TABS == */
+.tabs{
+  display:flex;background:var(--cream2);border:1px solid var(--border);
+  border-radius:var(--r);padding:.25rem;gap:.2rem;
+  margin-bottom:1.125rem;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:max-content;border:none;
+  background:transparent;border-radius:calc(var(--r) - 4px);
+  padding:.5rem .7rem;font-size:.75rem;font-weight:var(--fw-med);
+  color:var(--muted);transition:all .15s;white-space:nowrap;
+}
+.tab.on{background:var(--ink);color:var(--gold);font-weight:var(--fw-semi)}
+.tab:hover:not(.on){background:var(--cream3);color:var(--text)}
+
+.profile-banner{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:.75rem;
+  margin:0 auto 1.25rem;
+  max-width:680px;
+  padding:1rem 1.15rem;
+  border-radius:var(--r);
+  background:rgba(249,245,236,.95);
+  border:1px solid rgba(221,212,190,.9);
+  box-shadow:var(--sh);
+}
+.profile-banner h3{
+  font-family:var(--ff-head);font-size:1.05rem;margin-bottom:.35rem;color:var(--ink)
+}
+.profile-banner .profile-card{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;
+}
+.profile-banner .profile-item{
+  background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:.85rem;line-height:1.45;
+}
+.profile-banner .profile-label{
+  display:block;font-size:.72rem;font-weight:600;color:var(--muted);
+  margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.08em;
+}
+.profile-banner .profile-value{
+  font-size:.95rem;font-weight:600;color:var(--ink);
+}
+
+/* == PANELS == */
+.panel{display:none;animation:fadeSlideUp .22s ease both}
+.panel.on{display:block}
+
+/* == CARD == */
+.card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--r);padding:1.25rem;
+  box-shadow:var(--sh);margin-bottom:1rem;
+}
+.card-h{
+  font-family:var(--ff-head);font-size:1.05rem;font-weight:700;
+  color:var(--text);margin-bottom:1rem;
+}
+
+/* == FORM FIELDS == */
+.field{margin-bottom:.875rem}
+.field label{
+  display:block;font-size:.65rem;font-weight:var(--fw-semi);
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:.35rem;
+}
+.req-mark{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{
+  width:100%;padding:.7rem .9rem;
+  background:var(--cream);border:1.5px solid var(--border);
+  border-radius:var(--r-sm);color:var(--text);font-size:.9rem;
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:.7}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,152,42,.14);
+  background:#fff;
+}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6E58' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .9rem center;
+  padding-right:2.2rem;cursor:pointer;
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* == ITEMS == */
+.items-legend{
+  font-size:.65rem;font-weight:var(--fw-semi);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem;
+}
+.items-col-head{
+  display:grid;grid-template-columns:3fr 1fr 2fr;
+  gap:.4rem;margin-bottom:.3rem;
+}
+.items-col-head span{font-size:.6rem;font-weight:var(--fw-semi);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.item-row{display:grid;grid-template-columns:3fr 1fr 2fr;gap:.4rem;margin-bottom:.4rem}
+.item-row input{margin:0}
+.add-row{
+  width:100%;padding:.55rem;background:transparent;
+  border:1.5px dashed var(--border);border-radius:var(--r-sm);
+  color:var(--muted);font-size:.8rem;transition:all .15s;margin-top:.15rem;
+}
+.add-row:hover{border-color:var(--gold);color:var(--gold)}
+
+/* == TOTALS == */
+.totals{
+  background:var(--cream2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:.875rem;margin:.875rem 0;
+}
+.tot-row{
+  display:flex;justify-content:space-between;
+  font-size:.84rem;color:var(--muted);margin-bottom:.3rem;
+}
+.tot-row:last-child{margin-bottom:0}
+.tot-row.big{
+  font-family:var(--ff-head);font-size:1.05rem;font-weight:700;
+  color:var(--gold);border-top:1px solid var(--border);
+  padding-top:.55rem;margin-top:.35rem;
+}
+.neg{color:var(--red)}
+
+/* == SUBMIT BTN == */
+.btn-save{
+  width:100%;padding:.85rem;background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r-sm);font-size:.95rem;font-weight:var(--fw-bold);
+  letter-spacing:.02em;transition:background .18s,transform .18s,box-shadow .18s;
+}
+.btn-save:hover{background:var(--gold-lt);transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,152,42,.35)}
+.btn-save:active{transform:translateY(0)}
+
+/* == LIST ROOT (required id) == */
+#list-root,#exp-list,#inv-list{list-style:none}
+.li{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:.75rem;padding:.875rem 1rem;
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--r-sm);margin-bottom:.5rem;
+  transition:border-color .15s;
+}
+.li:hover{border-color:var(--gold)}
+.li-body{flex:1;min-width:0}
+.li-name{font-weight:var(--fw-semi);font-size:.9rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-sub{font-size:.72rem;color:var(--muted);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-right{text-align:right;flex-shrink:0}
+.li-amt{font-family:var(--ff-head);font-size:1rem;font-weight:700;color:var(--gold)}
+.li-amt.red{color:var(--red)}
+.badge{
+  display:inline-block;font-size:.58rem;font-weight:var(--fw-bold);
+  padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;
+  letter-spacing:.05em;margin-top:.25rem;
+}
+.b-pend{background:rgba(201,152,42,.12);color:#7A5800}
+.b-done{background:var(--green-bg);color:var(--green)}
+.b-fail{background:var(--red-bg);color:var(--red)}
+.b-exp{background:var(--red-bg);color:var(--red)}
+.b-inv{background:var(--blue-bg);color:var(--blue)}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.88rem}
+.empty-ico{font-size:2rem;margin-bottom:.5rem}
+
+/* == INVOICE PREVIEW == */
+#invoice-view{
+  display:none;background:#fff;border:1px solid #eee;
+  border-radius:4px;padding:3rem 2.5rem;margin-top:.75rem;color:#1a1a1a;
+  box-shadow:0 10px 30px rgba(0,0,0,0.05);
+  font-family:'Outfit', sans-serif;
+}
+.inv-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:3px solid var(--gold);padding-bottom:1.5rem;margin-bottom:2rem;
+}
+.inv-logo-placeholder{
+  width:60px;height:60px;background:#f8f8f8;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;
+}
+.inv-logo-img{max-width:100px;max-height:60px;object-fit:contain}
+.inv-biz-info{max-width:60%}
+.inv-biz-name{font-family:var(--ff-head);font-size:1.75rem;font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:.25rem}
+.inv-biz-details{font-size:.85rem;color:#555;line-height:1.4}
+
+.inv-meta{text-align:right}
+.inv-title{font-family:var(--ff-head);font-size:2.5rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.5rem;text-transform:uppercase}
+.inv-ref-row{font-size:.9rem;color:#1a1a1a;margin-bottom:.25rem;display:flex;justify-content:flex-end;gap:1rem}
+.inv-ref-label{font-weight:600;color:var(--muted);text-transform:uppercase;font-size:.7rem;letter-spacing:1px}
+
+.inv-billing{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2.5rem}
+.inv-bill-box h4{font-size:.7rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:.75rem;border-bottom:1px solid #eee;padding-bottom:.5rem}
+.inv-bill-to-name{font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.25rem}
+.inv-bill-to-addr{font-size:.88rem;color:#555}
+
+.inv-tbl{width:100%;border-collapse:collapse;margin-bottom:2rem}
+.inv-tbl th{
+  background:var(--ink);color:white;text-align:left;padding:1rem;
+  font-size:.75rem;text-transform:uppercase;letter-spacing:1px;
+}
+.inv-tbl th:nth-child(2),.inv-tbl th:nth-child(3),.inv-tbl th:nth-child(4){text-align:right}
+.inv-tbl td{padding:1rem;border-bottom:1px solid #eee;font-size:.95rem}
+.inv-tbl td:nth-child(2),.inv-tbl td:nth-child(3),.inv-tbl td:nth-child(4){text-align:right}
+.inv-tbl tr:last-child td{border-bottom:2px solid var(--gold)}
+
+.inv-summary-grid{display:grid;grid-template-columns:1fr 280px;gap:2rem}
+.inv-bank-box{background:#fdfaf3;padding:1.25rem;border-radius:8px;border-left:4px solid var(--gold)}
+.inv-bank-title{font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.inv-bank-row{font-size:.85rem;margin-bottom:.2rem;display:flex;gap:.5rem}
+.inv-bank-label{font-weight:600;color:var(--muted);width:100px;flex-shrink:0}
+
+.inv-totals-box{font-size:1rem}
+.inv-tot-row{display:flex;justify-content:space-between;padding:.5rem 0;color:#555}
+.inv-tot-grand{
+  margin-top:.5rem;padding:1rem 0;border-top:2px solid var(--gold);
+  display:flex;justify-content:space-between;font-weight:800;font-size:1.4rem;color:var(--ink);
+}
+
+.inv-footer{
+  margin-top:3rem;padding-top:1.5rem;border-top:1px solid #eee;
+  text-align:center;font-size:.85rem;color:var(--muted);font-style:italic;
+}
+.btn-print{
+  width:100%;padding:.75rem;background:var(--ink);color:var(--cream);
+  border:none;border-radius:var(--r-sm);font-size:.9rem;font-weight:var(--fw-semi);
+  margin-top:.75rem;transition:opacity .15s;
+}
+.btn-print:hover{opacity:.82}
+
+/* == REPORT TABLE == */
+.rtbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.rtbl th{
+  padding:.5rem .625rem;text-align:left;
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);border-bottom:1.5px solid var(--gold);
+}
+.rtbl td{padding:.55rem .625rem;border-bottom:1px solid var(--border);color:var(--ink3)}
+.rtbl tr.tot td{background:var(--ink);color:#FAF6EF;font-weight:var(--fw-semi)}
+.rtbl tr:hover:not(.tot) td{background:var(--cream2)}
+.pos{color:var(--green);font-weight:var(--fw-semi)}
+.neg2{color:var(--red);font-weight:var(--fw-semi)}
+
+/* == TAX CARD GRID == */
+.tax-grid{display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:1rem}
+.tg-item{}
+.tg-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.tg-val{font-family:var(--ff-head);font-size:1.1rem;font-weight:700;color:var(--text)}
+.tg-val.gold{color:var(--gold)}
+.tg-val.purple{color:#5B3FA0}
+.tax-note{
+  font-size:.75rem;color:var(--muted);padding:.75rem;
+  background:var(--cream2);border-radius:var(--r-sm);
+  border-left:3px solid var(--gold);
+}
+
+/* == TOAST == */
+#toast{
+  position:fixed;bottom:1.25rem;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--gold);
+  padding:.6rem 1.25rem;border-radius:999px;
+  font-size:.83rem;font-weight:var(--fw-semi);
+  border:1px solid rgba(201,152,42,.25);
+  pointer-events:none;opacity:0;z-index:999;
+  transition:opacity .25s,transform .25s;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===================== FOOTER SECTION ===================== */
+#site-footer{
+  background:var(--ink2);color:rgba(250,246,239,.45);
+  text-align:center;padding:2rem 1.25rem 2.5rem;
+  font-size:.78rem;line-height:1.7;
+}
+.footer-brand{
+  font-family:var(--ff-head);font-size:1.1rem;
+  color:var(--gold);margin-bottom:.35rem;
+}
+.footer-flow{
+  display:flex;align-items:center;justify-content:center;
+  gap:.5rem;font-size:.68rem;margin-bottom:.75rem;
+  color:rgba(250,246,239,.3);
+}
+.footer-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.4}
+.footer-tax{
+  font-size:.7rem;color:rgba(250,246,239,.28);
+  max-width:360px;margin:.5rem auto 0;
+}
+.footer-copy{margin-top:.875rem;font-size:.65rem;opacity:.3}
+
+/* ===================== RESPONSIVE BREAKPOINTS (mobile-first) ===================== */
+@media(min-width:460px){
+  .hero-body{padding:3rem 1.5rem 3.5rem}
+  #main-content{padding:1.5rem 1.25rem 3rem}
+  #insights-panel{gap:.75rem}
+}
+@media(min-width:600px){
+  #insights-panel{grid-template-columns:repeat(4,1fr)}
+  .hero-h1{font-size:2.9rem}
+  .card{padding:1.5rem}
+}
+@media(min-width:680px){
+  .hero-top{padding:.875rem 1.5rem}
+}
+
+@media print{
+  #hero,.tabs,.btn-save,.add-row,
+  #panel-sales,#panel-expense,#panel-inventory,#panel-report,
+  #site-footer,#toast,#invoice-actions{display:none!important}
+  #panel-invoice,#invoice-view{display:block!important}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO SECTION -->
+<section id="hero" aria-label="Welcome banner">
+
+  <header class="hero-top" role="banner">
+    <a href="#hero" class="brand" aria-label="BizTrack homepage">Biz<em>Track</em></a>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <span id="user-display" style="font-size:.75rem;color:rgba(250,246,239,.6)"></span>
+      <button onclick="window.signOut()" style="background:transparent;border:1px solid rgba(201,152,42,.4);color:var(--gold);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:600;cursor:pointer">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="hero-body">
+    <div class="hero-pill" aria-hidden="true">
+      <span class="pill-dot"></span>Built for Nigerian Business Owners
+    </div>
+
+    <h1 class="hero-h1">Your business,<br><em>tracked daily.</em></h1>
+
+    <p class="hero-p">
+      Record every sale, expense &amp; invoice in seconds.
+      Know your profit. Know your FIRS tax. All in ₦.
+    </p>
+
+    <div class="hero-actions">
+      <button id="btn-primary" onclick="document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="Start tracking your business">
+        Start Tracking ↓
+      </button>
+      <button class="btn-ghost" onclick="switchTab('profile')" aria-label="Edit business details">
+        Business Details
+      </button>
+      <button class="btn-ghost" onclick="switchTab('report')" aria-label="View your financial reports">
+        View Reports
+      </button>
+    </div>
+
+    <div class="hero-metrics" role="region" aria-label="Live business snapshot">
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-rev" aria-label="Total revenue">₦0</span>
+        <span class="hm-lbl">Revenue</span>
+      </div>
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-profit" aria-label="Net profit">₦0</span>
+        <span class="hm-lbl">Profit</span>
+      </div>
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-count" aria-label="Number of sales">0</span>
+        <span class="hm-lbl">Sales</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- MAIN SECTION -->
+<main id="main-content" role="main" tabindex="-1" aria-label="Business management workspace">
+
+  <section id="profile-banner" class="profile-banner" aria-label="Business profile information" style="display:none"></section>
+
+  <!-- INSIGHTS PANEL (required id) -->
+  <section id="insights-panel" aria-label="Financial overview">
+    <article class="insight" aria-label="Total revenue">
+      <div class="insight-lbl">Revenue</div>
+      <div class="insight-val" id="ins-rev">₦0.00</div>
+      <div class="insight-sub" id="ins-rev-sub">0 sales</div>
+    </article>
+    <article class="insight" aria-label="Total expenses">
+      <div class="insight-lbl">Expenses</div>
+      <div class="insight-val" id="ins-exp">₦0.00</div>
+      <div class="insight-sub" id="ins-exp-sub">0 entries</div>
+    </article>
+    <article class="insight" aria-label="Net profit">
+      <div class="insight-lbl">Net Profit</div>
+      <div class="insight-val" id="ins-profit">₦0.00</div>
+      <div class="insight-sub" id="ins-profit-sub">Revenue − Expenses</div>
+    </article>
+    <article class="insight" aria-label="FIRS tax estimate">
+      <div class="insight-lbl">FIRS Tax Est.</div>
+      <div class="insight-val" id="ins-tax">₦0.00</div>
+      <div class="insight-sub" id="ins-tax-sub">0% — Exempt</div>
+    </article>
+  </section>
+
+  <!-- TABS -->
+  <nav class="tabs" role="tablist" aria-label="App sections">
+    <button class="tab on" role="tab" id="tab-sales"     aria-selected="true"  aria-controls="panel-sales"     onclick="switchTab('sales')"    >Record Sale</button>
+    <button class="tab"    role="tab" id="tab-expense"   aria-selected="false" aria-controls="panel-expense"   onclick="switchTab('expense')"  >Expense</button>
+    <button class="tab"    role="tab" id="tab-inventory" aria-selected="false" aria-controls="panel-inventory" onclick="switchTab('inventory')" >Inventory</button>
+    <button class="tab"    role="tab" id="tab-invoice"   aria-selected="false" aria-controls="panel-invoice"   onclick="switchTab('invoice')"  >Invoice</button>
+    <button class="tab"    role="tab" id="tab-report"    aria-selected="false" aria-controls="panel-report"    onclick="switchTab('report')"   >Report</button>
+    <button class="tab"    role="tab" id="tab-profile"   aria-selected="false" aria-controls="panel-profile"   onclick="switchTab('profile')"  >Details</button>
+  </nav>
+
+  <!-- PANEL: DAILY SALE -->
+  <section id="panel-sales" class="panel on" role="tabpanel" aria-labelledby="tab-sales">
+    <div class="card">
+      <h2 class="card-h">New Sale Record</h2>
+      <form id="form-sale" novalidate>
+
+        <div class="row2">
+          <div class="field">
+            <label for="sale-date">Date of Sale <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="date" id="sale-date" name="sale-date" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="sale-status">Delivery Status</label>
+            <select id="sale-status" name="sale-status">
+              <option value="Pending">Pending</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cust-name">Customer Full Name <span class="req-mark" aria-hidden="true">*</span></label>
+          <input type="text" id="cust-name" name="cust-name" placeholder="e.g. Amaka Okonkwo" required aria-required="true" autocomplete="off"/>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="cust-phone">Phone / Contact <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="tel" id="cust-phone" name="cust-phone" placeholder="+234 800 000 0000" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="cust-address">Delivery Address</label>
+            <input type="text" id="cust-address" name="cust-address" placeholder="Street, City" autocomplete="off"/>
+          </div>
+        </div>
+
+        <fieldset style="border:none;padding:0;margin-bottom:.875rem">
+          <legend class="items-legend">Items Purchased <span class="req-mark" aria-hidden="true">*</span></legend>
+          <div class="items-col-head" aria-hidden="true">
+            <span>Item Name</span><span>Qty</span><span>Unit Price (₦)</span>
+          </div>
+          <div id="items-rows">
+            <div class="item-row">
+              <input type="text"   id="item-name-0"  name="item-name-0"  class="iname"  placeholder="Item name"  aria-label="Item name"/>
+              <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1"/>
+              <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01"/>
+            </div>
+          </div>
+          <button type="button" class="add-row" onclick="addItemRow()" aria-label="Add another item line">+ Add another item</button>
+        </fieldset>
+
+        <div class="row2">
+          <div class="field">
+            <label for="sale-delivery-fee">Delivery Fee</label>
+            <input type="number" id="sale-delivery-fee" name="sale-delivery-fee" placeholder="0.00" min="0" step="0.01" value="0" oninput="calcTotals()"/>
+          </div>
+          <div class="field">
+            <label for="sale-disc">Discount (%)</label>
+            <input type="number" id="sale-disc" name="sale-disc" placeholder="0" min="0" max="100" value="0" oninput="calcTotals()"/>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="sale-delivery">Expected Delivery</label>
+            <input type="date" id="sale-delivery" name="sale-delivery"/>
+          </div>
+          <div class="field">
+            <label for="cust-feedback">Customer Feedback</label>
+            <textarea id="cust-feedback" name="cust-feedback" placeholder="Feedback after delivery (optional)…" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="totals" aria-live="polite" aria-label="Sale totals">
+          <div class="tot-row"><span>Delivery Fee</span><span id="tot-delivery">₦0.00</span></div>
+          <div class="tot-row"><span>Subtotal</span><span id="tot-sub">₦0.00</span></div>
+          <div class="tot-row"><span class="neg">Discount</span><span class="neg" id="tot-disc">- ₦0.00</span></div>
+          <div class="tot-row big"><span>Total</span><span id="tot-total">₦0.00</span></div>
+        </div>
+
+        <button type="submit" class="btn-save">Save Sale Record</button>
+      </form>
+    </div>
+
+    <section aria-labelledby="sales-list-hd">
+      <h2 id="sales-list-hd" class="card-h" style="margin-bottom:.75rem">Recent Sales</h2>
+      <ul id="list-root" aria-label="Recorded sales" aria-live="polite"></ul>
+    </section>
+  </section>
+
+  <!-- PANEL: EXPENSE -->
+  <section id="panel-expense" class="panel" role="tabpanel" aria-labelledby="tab-expense">
+    <div class="card">
+      <h2 class="card-h">Record Daily Expense</h2>
+      <form id="form-expense" novalidate>
+
+        <div class="row2">
+          <div class="field">
+            <label for="exp-date">Date <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="date" id="exp-date" name="exp-date" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="exp-type">Expense Type <span class="req-mark" aria-hidden="true">*</span></label>
+            <select id="exp-type" name="exp-type" required aria-required="true">
+              <option value="">Select type…</option>
+              <option>Materials / Raw goods</option>
+              <option>Transport / Logistics</option>
+              <option>Rent</option>
+              <option>Salaries / Wages</option>
+              <option>Utilities</option>
+              <option>Marketing</option>
+              <option>Equipment</option>
+              <option>Packaging</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="exp-desc">Description</label>
+          <input type="text" id="exp-desc" name="exp-desc" placeholder="Brief description of the expense" autocomplete="off"/>
+        </div>
+
+        <div class="field">
+          <label for="exp-amount">Amount (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+          <input type="number" id="exp-amount" name="exp-amount" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+        </div>
+
+        <button type="submit" class="btn-save">Save Expense</button>
+      </form>
+    </div>
+
+    <section aria-labelledby="exp-list-hd">
+      <h2 id="exp-list-hd" class="card-h" style="margin-bottom:.75rem">Recent Expenses</h2>
+      <ul id="exp-list" aria-label="Recorded expenses" aria-live="polite"></ul>
+    </section>
+  </section>
+
+  <!-- PANEL: INVENTORY -->
+  <section id="panel-inventory" class="panel" role="tabpanel" aria-labelledby="tab-inventory">
+    <div class="card">
+      <h2 class="card-h">Add Product to Inventory</h2>
+      <form id="form-inventory" novalidate>
+
+        <div class="row2">
+          <div class="field">
+            <label for="inv-name">Product Name <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="inv-name" name="inv-name" placeholder="e.g. Ankara Fabric" required aria-required="true" autocomplete="off"/>
+          </div>
+          <div class="field">
+            <label for="inv-category">Category</label>
+            <input type="text" id="inv-category" name="inv-category" placeholder="e.g. Fabrics" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="inv-qty">Qty in Stock <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="number" id="inv-qty" name="inv-qty" placeholder="0" min="0" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="inv-unit">Unit of Measure</label>
+            <input type="text" id="inv-unit" name="inv-unit" placeholder="pieces, yards, kg…"/>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="inv-cost">Cost Price (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="number" id="inv-cost" name="inv-cost" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="inv-sell">Selling Price (₦)</label>
+            <input type="number" id="inv-sell" name="inv-sell" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save">Add to Inventory</button>
+      </form>
+    </div>
+
+    <section aria-labelledby="inv-list-hd">
+      <h2 id="inv-list-hd" class="card-h" style="margin-bottom:.75rem">Stock List</h2>
+      <ul id="inv-list" aria-label="Inventory items" aria-live="polite"></ul>
+    </section>
+  </section>
+
+  <!-- PANEL: INVOICE -->
+  <section id="panel-invoice" class="panel" role="tabpanel" aria-labelledby="tab-invoice">
+    <div class="card">
+      <h2 class="card-h">Invoice Designer</h2>
+
+      <div class="field">
+        <label for="biz-logo-upload">Business Logo</label>
+        <div style="display:flex;gap:1rem;align-items:center">
+          <input type="file" id="biz-logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
+          <button type="button" class="btn-ghost" style="width:auto;padding:.5rem 1rem" onclick="document.getElementById('biz-logo-upload').click()">Upload Logo</button>
+          <div id="logo-preview-wrap" style="width:50px;height:50px;border:1px solid var(--border);border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--cream)">
+            <span style="font-size:.6rem;color:var(--muted)">No Logo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs" style="margin-top:1rem;background:var(--cream3)">
+        <button class="tab on" id="tab-inv-sale" onclick="toggleInvMode('sale')">From Sale</button>
+        <button class="tab" id="tab-inv-manual" onclick="toggleInvMode('manual')">Manual Entry</button>
+      </div>
+
+      <!-- Mode: From Sale -->
+      <div id="inv-mode-sale">
+        <div class="field">
+          <label for="inv-sale-sel">Select Sale to Invoice <span class="req-mark" aria-hidden="true">*</span></label>
+          <select id="inv-sale-sel" name="inv-sale-sel" onchange="previewInvoice()" aria-label="Choose a recorded sale to invoice">
+            <option value="">Choose a sale…</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mode: Manual -->
+      <div id="inv-mode-manual" style="display:none">
+        <div class="field">
+          <label for="man-cust-name">Customer Name</label>
+          <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()"/>
+        </div>
+        <div class="field">
+          <label for="man-cust-addr">Customer Address (Optional)</label>
+          <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()"/>
+        </div>
+        
+        <fieldset style="border:none;padding:0;margin-bottom:.875rem">
+          <legend class="items-legend">Invoice Items</legend>
+          <div id="man-items-rows">
+            <div class="item-row">
+              <input type="text"   class="m-iname"  placeholder="Item name"  oninput="previewInvoice()"/>
+              <input type="number" class="m-iqty"   placeholder="1" value="1" oninput="previewInvoice()"/>
+              <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()"/>
+            </div>
+          </div>
+          <button type="button" class="add-row" onclick="addManualItemRow()">+ Add Item</button>
+        </fieldset>
+
+        <div class="row2">
+          <div class="field">
+            <label for="man-delivery">Delivery Fee</label>
+            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()"/>
+          </div>
+          <div class="field">
+            <label for="man-discount">Discount (%)</label>
+            <input type="number" id="man-discount" value="0" oninput="previewInvoice()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
+    
+    <div id="invoice-actions" style="display:none;margin-top:1.5rem;gap:.75rem">
+      <button class="btn-print" style="flex:1;margin-top:0" onclick="window.print()">Print Invoice / PDF</button>
+      <button class="btn-save" style="flex:1" onclick="window.saveInvoiceAsImage()">Save as Image (PNG)</button>
+    </div>
+  </section>
+
+  <!-- PANEL: REPORT -->
+  <section id="panel-report" class="panel" role="tabpanel" aria-labelledby="tab-report">
+    <div class="card" id="report-card" aria-live="polite"></div>
+    <div class="card" id="tax-card" aria-live="polite"></div>
+  </section>
+
+  <!-- PANEL: PROFILE -->
+  <section id="panel-profile" class="panel" role="tabpanel" aria-labelledby="tab-profile">
+    <div class="card">
+      <h2 class="card-h">Business Details</h2>
+      <form id="form-profile" novalidate>
+        <div class="field">
+          <label for="prof-biz-name">Business Name <span class="req-mark" aria-hidden="true">*</span></label>
+          <input type="text" id="prof-biz-name" required />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="prof-phone">Phone Number</label>
+            <input type="tel" id="prof-phone" />
+          </div>
+          <div class="field">
+            <label for="prof-loc">Location / Address</label>
+            <input type="text" id="prof-loc" />
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="prof-bank">Bank Name</label>
+            <input type="text" id="prof-bank" />
+          </div>
+          <div class="field">
+            <label for="prof-acc-num">Account Number</label>
+            <input type="text" id="prof-acc-num" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="prof-acc-name">Account Name</label>
+          <input type="text" id="prof-acc-name" />
+        </div>
+        <button type="submit" class="btn-save">Update Business Details</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER SECTION -->
+<footer id="site-footer" role="contentinfo">
+  <div class="footer-brand">BizTrack</div>
+  <div class="footer-flow" aria-hidden="true">
+    <span>Daily Records</span>
+    <span class="footer-dot"></span>
+    <span>Monthly Totals</span>
+    <span class="footer-dot"></span>
+    <span>Annual Report</span>
+  </div>
+  <p>Built for Nigerian small business owners · All values in ₦</p>
+  <p class="footer-tax">
+    Tax estimates use FIRS SME rates: 0% below ₦25M · 20% on ₦25M–₦100M · 30% above ₦100M.
+    Consult a licensed accountant for official filings.
+  </p>
+  <p class="footer-copy">&copy; 2026 BizTrack · No data leaves your device</p>
+</footer>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- app.js linked at bottom (template constraint) -->
+<script src="app.js"></script>
+
+</body>
+</html>
