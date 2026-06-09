@@ -1,10 +1,9 @@
 /**
- * app.js — BizTrack frontend logic with Authentication & Multi-user support.
+ * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
 'use strict';
 
-const API_BASE = '/api';
 const FIRS = { low: 25000000, high: 100000000, rateMid: 0.20, rateTop: 0.30 };
 let S = { sales: [], expenses: [], stock: [] };
 let itemCount = 1;
@@ -14,7 +13,7 @@ let INVOICE_MODE = 'sale';
 const getEl = id => document.getElementById(id);
 const fmt = n => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const todayISO = () => new Date().toISOString().slice(0, 10);
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const uid = () => 'bt-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const esc = s => String(s || '')
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -22,56 +21,73 @@ const esc = s => String(s || '')
   .replace(/"/g, '&quot;');
 
 /* --- AUTHENTICATION --- */
-function checkAuth() {
-  const user = localStorage.getItem('bt_user');
-  if (!user) {
-    window.location.href = '/login.html';
+async function checkAuth() {
+  try {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error || !session) {
+      window.location.assign('/login.html');
+      return null;
+    }
+    const display = getEl('user-display');
+    if (display) display.textContent = session.user.email;
+    document.body.style.opacity = '1';
+    return session.user;
+  } catch (e) {
+    window.location.assign('/login.html');
     return null;
   }
-  const display = getEl('user-display');
-  if (display) display.textContent = user;
-  return user;
 }
 
-function signOut() {
-  localStorage.clear();
-  window.location.href = '/login.html';
-}
-
-/* --- API CORE --- */
-async function fetchJson(url, options = {}) {
-  const user = localStorage.getItem('bt_user');
-  if (!options.headers) options.headers = {};
-  options.headers['Content-Type'] = 'application/json';
-  if (user) options.headers['X-User-Email'] = user;
-
-  const res = await fetch(url, options);
-  if (res.status === 401) return signOut();
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Network error');
+async function signOut() {
+  try {
+    const { error } = await sb.auth.signOut();
+    if (error) console.error('Sign out error:', error);
+  } catch (e) {
+    console.error('Sign out exception:', e);
   }
-  return res.json();
+  window.location.assign('/login.html');
 }
 
+/* --- SUPABASE DATA LAYER --- */
 async function loadProfile() {
   try {
-    return await fetchJson(`${API_BASE}/profile`);
-  } catch (err) { return null; }
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return null;
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Profile load error:', error);
+      return null;
+    }
+    return data;
+  } catch (e) {
+    console.error('Profile fetch exception:', e);
+    return null;
+  }
 }
 
 async function loadData() {
-  const data = await fetchJson(`${API_BASE}/data`);
-  S.sales = Array.isArray(data.sales) ? data.sales : [];
-  S.expenses = Array.isArray(data.expenses) ? data.expenses : [];
-  S.stock = Array.isArray(data.stock) ? data.stock : [];
-}
+  try {
+    const [sales, expenses, stock] = await Promise.all([
+      sb.from('sales').select('*').order('date', { ascending: false }),
+      sb.from('expenses').select('*').order('date', { ascending: false }),
+      sb.from('stock').select('*').order('name', { ascending: true })
+    ]);
 
-async function postRecord(endpoint, payload) {
-  return fetchJson(`${API_BASE}/${endpoint}`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+    if (sales.error) console.error('Sales error', sales.error);
+    if (expenses.error) console.error('Expenses error', expenses.error);
+    if (stock.error) console.error('Stock error', stock.error);
+
+    S.sales = sales.data || [];
+    S.expenses = expenses.data || [];
+    S.stock = stock.data || [];
+  } catch (e) {
+    console.error('Data load exception:', e);
+  }
 }
 
 function toast(message) {
@@ -97,12 +113,12 @@ function switchTab(name) {
 
 function populateProfileForm() {
   if (!PROFILE) return;
-  getEl('prof-biz-name').value = PROFILE.businessName || '';
-  getEl('prof-phone').value = PROFILE.phoneNumber || '';
+  getEl('prof-biz-name').value = PROFILE.business_name || '';
+  getEl('prof-phone').value = PROFILE.phone_number || '';
   getEl('prof-loc').value = PROFILE.location || '';
-  getEl('prof-bank').value = PROFILE.bankName || '';
-  getEl('prof-acc-num').value = PROFILE.accountNumber || '';
-  getEl('prof-acc-name').value = PROFILE.accountName || '';
+  getEl('prof-bank').value = PROFILE.bank_name || '';
+  getEl('prof-acc-num').value = PROFILE.account_number || '';
+  getEl('prof-acc-name').value = PROFILE.account_name || '';
 }
 
 /* --- SALES --- */
@@ -168,7 +184,7 @@ function _renderSalesList() {
   const statusFilter = getEl('input-filter-status')?.value || '';
   let items = S.sales.slice();
   if (searchText) {
-    items = items.filter(record => record.customerName.toLowerCase().includes(searchText)
+    items = items.filter(record => record.customer_name.toLowerCase().includes(searchText)
       || record.items.some(item => item.name.toLowerCase().includes(searchText)));
   }
   if (statusFilter) items = items.filter(record => record.status === statusFilter);
@@ -183,7 +199,7 @@ function _renderSalesList() {
     return `
       <li class="li">
         <div class="li-body">
-          <div class="li-name">${esc(record.customerName)}</div>
+          <div class="li-name">${esc(record.customer_name)}</div>
           <div class="li-sub">${record.date} · ${itemsSummary}</div>
         </div>
         <div class="li-right">
@@ -206,7 +222,7 @@ function _renderExpensesList() {
     <li class="li">
       <div class="li-body">
         <div class="li-name">${esc(expense.type)}</div>
-        <div class="li-sub">${expense.date}${expense.desc ? ' · ' + esc(expense.desc) : ''}</div>
+        <div class="li-sub">${expense.date}${expense.description ? ' · ' + esc(expense.description) : ''}</div>
       </div>
       <div class="li-right">
         <div class="li-amt red">${fmt(expense.amount)}</div>
@@ -230,8 +246,8 @@ function _renderStockList() {
         <div class="li-sub">${product.category ? esc(product.category) + ' · ' : ''}Qty: ${product.qty}${product.unit ? ' ' + esc(product.unit) : ''}</div>
       </div>
       <div class="li-right">
-        <div style="font-size:.7rem;color:var(--muted)">Cost: ${fmt(product.costPrice)}</div>
-        <div class="li-amt">${product.sellingPrice ? fmt(product.sellingPrice) : '—'}</div>
+        <div style="font-size:.7rem;color:var(--muted)">Cost: ${fmt(product.cost_price)}</div>
+        <div class="li-amt">${product.selling_price ? fmt(product.selling_price) : '—'}</div>
         <span class="badge b-inv">Stock</span>
       </div>
     </li>`).join('');
@@ -239,8 +255,8 @@ function _renderStockList() {
 
 /* --- INSIGHTS --- */
 function renderInsights() {
-  const revenue = S.sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-  const expenses = S.expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+  const revenue = S.sales.reduce((sum, sale) => sum + (Number(sale.total) || 0), 0);
+  const expenses = S.expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const profit = revenue - expenses;
   let taxRate = 0;
   if (revenue >= FIRS.high) taxRate = FIRS.rateTop;
@@ -248,24 +264,23 @@ function renderInsights() {
   const tax = profit > 0 ? profit * taxRate : 0;
 
   getEl('ins-rev').textContent = fmt(revenue);
-  getEl('ins-rev-sub').textContent = `${S.sales.length} sales`;
+  getEl('ins-rev-sub').textContent = `${S.sales.length} sale${S.sales.length === 1 ? '' : 's'}`;
   getEl('ins-exp').textContent = fmt(expenses);
-  getEl('ins-exp-sub').textContent = `${S.expenses.length} entries`;
+  getEl('ins-exp-sub').textContent = `${S.expenses.length} entr${S.expenses.length === 1 ? 'y' : 'ies'}`;
   getEl('ins-profit').textContent = fmt(profit);
+  getEl('ins-profit-sub').textContent = profit >= 0 ? 'Positive ✓' : 'Loss ✗';
   getEl('ins-tax').textContent = fmt(tax);
+  getEl('ins-tax-sub').textContent = taxRate === 0 ? 'Exempt < ₦25M' : `${taxRate * 100}% FIRS`;
 }
 
 function updateHeroStats() {
-  const today = todayISO();
-  const todaySales = S.sales.filter(sale => sale.date === today);
-  const todayExpenses = S.expenses.filter(expense => expense.date === today);
-  const revenue = todaySales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-  const expenses = todayExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+  const revenue = S.sales.reduce((sum, sale) => sum + (Number(sale.total) || 0), 0);
+  const expenses = S.expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const profit = revenue - expenses;
 
   getEl('hm-rev').textContent = fmt(revenue);
   getEl('hm-profit').textContent = fmt(profit);
-  getEl('hm-count').textContent = String(todaySales.length);
+  getEl('hm-count').textContent = String(S.sales.length);
 }
 
 function renderReport() {
@@ -322,7 +337,7 @@ function populateInvoiceSel() {
   const sel = getEl('inv-sale-sel');
   if (!sel) return;
   const current = sel.value;
-  sel.innerHTML = '<option value="">Choose a sale…</option>' + S.sales.map(sale => `<option value="${sale.id}">${esc(sale.date + ' — ' + sale.customerName)}</option>`).join('');
+  sel.innerHTML = '<option value="">Choose a sale…</option>' + S.sales.map(sale => `<option value="${sale.id}">${esc(sale.date + ' — ' + sale.customer_name)}</option>`).join('');
   sel.value = current;
   if (current) previewInvoice();
 }
@@ -364,11 +379,13 @@ async function handleLogoUpload(event) {
   const reader = new FileReader();
   reader.onload = async (e) => {
     const base64 = e.target.result;
-    if (!PROFILE) PROFILE = {};
-    PROFILE.logo = base64;
-    renderLogoPreview();
     try {
-      await postRecord('profile', PROFILE);
+      const { data: { user } } = await sb.auth.getUser();
+      if (!PROFILE) PROFILE = { id: user.id };
+      PROFILE.logo = base64;
+      renderLogoPreview();
+      const { error } = await sb.from('profiles').upsert(PROFILE);
+      if (error) throw error;
       toast('✅ Logo saved!');
       previewInvoice();
     } catch (err) { toast('⚠️ Save failed.'); }
@@ -409,7 +426,7 @@ function previewInvoice() {
     const subtotal = subtotalNoFee + deliveryFee;
     const discount = parseFloat(getEl('man-discount')?.value) || 0;
     const discountAmt = subtotal * discount / 100;
-    data = { id: 'MAN-' + uid().slice(-5).toUpperCase(), date: todayISO(), customerName: getEl('man-cust-name')?.value || 'Valued Customer', address: getEl('man-cust-addr')?.value || '', items, deliveryFee, discount, discountAmt, subtotal, total: subtotal - discountAmt };
+    data = { id: 'MAN-' + uid().slice(-5).toUpperCase(), date: todayISO(), customer_name: getEl('man-cust-name')?.value || 'Valued Customer', address: getEl('man-cust-addr')?.value || '', items, deliveryFee, discount, discountAmt, subtotal, total: subtotal - discountAmt };
   }
 
   const view = getEl('invoice-view');
@@ -420,12 +437,12 @@ function previewInvoice() {
     return;
   }
 
-  const bizName = PROFILE?.businessName || 'My Business';
+  const bizName = PROFILE?.business_name || 'My Business';
   const bizAddr = PROFILE?.location || '';
-  const bizPhone = PROFILE?.phoneNumber || '';
-  const bizAccName = PROFILE?.accountName || '';
-  const bizAccNum = PROFILE?.accountNumber || '';
-  const bizBank = PROFILE?.bankName || '';
+  const bizPhone = PROFILE?.phone_number || '';
+  const bizAccName = PROFILE?.account_name || '';
+  const bizAccNum = PROFILE?.account_number || '';
+  const bizBank = PROFILE?.bank_name || '';
   const logoHtml = PROFILE?.logo ? `<img src="${PROFILE.logo}" class="inv-logo-img" alt="Logo">` : `<div class="inv-logo-placeholder">Logo</div>`;
   
   const rows = data.items.map(item => `<tr><td><strong>${esc(item.name)}</strong></td><td>${item.qty}</td><td>${fmt(item.price)}</td><td>${fmt(item.qty * item.price)}</td></tr>`).join('');
@@ -433,9 +450,9 @@ function previewInvoice() {
   view.innerHTML = `
     <div class="inv-header">
       <div class="inv-biz-info">${logoHtml}<div class="inv-biz-name">${esc(bizName)}</div><div class="inv-biz-details">${bizAddr ? `<div>${esc(bizAddr)}</div>` : ''}${bizPhone ? `<div>Tel: ${esc(bizPhone)}</div>` : ''}</div></div>
-      <div class="inv-meta"><div class="inv-title">Invoice</div><div class="inv-ref-row"><span class="inv-ref-label">Invoice No:</span> <span>#${data.id.slice(-6).toUpperCase()}</span></div><div class="inv-ref-row"><span class="inv-ref-label">Date:</span> <span>${data.date}</span></div></div>
+      <div class="inv-meta"><div class="inv-title">Invoice</div><div class="inv-ref-row"><span class="inv-ref-label">Invoice No:</span> <span>#${data.id.toString().slice(-6).toUpperCase()}</span></div><div class="inv-ref-row"><span class="inv-ref-label">Date:</span> <span>${data.date}</span></div></div>
     </div>
-    <div class="inv-billing"><div class="inv-bill-box"><h4>Bill To</h4><div class="inv-bill-to-name">${esc(data.customerName)}</div><div class="inv-bill-to-addr">${esc(data.address || '')}</div></div><div class="inv-bill-box"><h4>Status</h4><div style="font-weight:700;color:var(--gold)">DUE ON RECEIPT</div></div></div>
+    <div class="inv-billing"><div class="inv-bill-box"><h4>Bill To</h4><div class="inv-bill-to-name">${esc(data.customer_name)}</div><div class="inv-bill-to-addr">${esc(data.address || '')}</div></div><div class="inv-bill-box"><h4>Status</h4><div style="font-weight:700;color:var(--gold)">DUE ON RECEIPT</div></div></div>
     <table class="inv-tbl"><thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="inv-summary-grid"><div class="inv-bank-box"><div class="inv-bank-title">Bank Transfer</div><div class="inv-bank-row"><span class="inv-bank-label">Bank:</span> <span>${esc(bizBank || '—')}</span></div><div class="inv-bank-row"><span class="inv-bank-label">Account Name:</span> <span>${esc(bizAccName || '—')}</span></div><div class="inv-bank-row"><span class="inv-bank-label">Account No:</span> <span style="font-weight:700;letter-spacing:1px">${esc(bizAccNum || '—')}</span></div></div>
     <div class="inv-totals-box"><div class="inv-tot-row"><span>Subtotal</span><span>${fmt(data.items.reduce((sum, item) => sum + item.qty * item.price, 0))}</span></div>${data.deliveryFee > 0 ? `<div class="inv-tot-row"><span>Delivery</span><span>${fmt(data.deliveryFee)}</span></div>` : ''}${data.discountAmt > 0 ? `<div class="inv-tot-row" style="color:var(--red)"><span>Discount (${data.discount}%)</span><span>-${fmt(data.discountAmt)}</span></div>` : ''}<div class="inv-tot-grand"><span>Total</span><span>${fmt(data.total)}</span></div></div></div>
@@ -452,8 +469,8 @@ function renderProfileBanner(profile) {
   banner.innerHTML = `
     <div style="display:flex;gap:1.5rem;align-items:center">
        ${profile.logo ? `<img src="${profile.logo}" style="width:60px;height:60px;border-radius:var(--r-xs);object-fit:contain;background:#fff;border:1px solid var(--border)" />` : ''}
-       <div style="flex:1"><h3 style="margin:0">${esc(profile.businessName)}</h3><div style="font-size:.8rem;color:var(--muted)">${esc(profile.location)}</div></div>
-       <div style="text-align:right"><div style="font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase">Bank Account</div><div style="font-size:.9rem;font-weight:600">${esc(profile.accountNumber)}</div><div style="font-size:.7rem;color:var(--muted)">${esc(profile.bankName)}</div></div>
+       <div style="flex:1"><h3 style="margin:0">${esc(profile.business_name)}</h3><div style="font-size:.8rem;color:var(--muted)">${esc(profile.location)}</div></div>
+       <div style="text-align:right"><div style="font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase">Bank Account</div><div style="font-size:.9rem;font-weight:600">${esc(profile.account_number)}</div><div style="font-size:.7rem;color:var(--muted)">${esc(profile.bank_name)}</div></div>
     </div>`;
 }
 
@@ -469,18 +486,21 @@ function renderAll() {
 function wireForms() {
   getEl('form-profile')?.addEventListener('submit', async event => {
     event.preventDefault();
-    const payload = {
-      businessName: getEl('prof-biz-name').value.trim(),
-      phoneNumber: getEl('prof-phone').value.trim(),
-      location: getEl('prof-loc').value.trim(),
-      bankName: getEl('prof-bank').value.trim(),
-      accountNumber: getEl('prof-acc-num').value.trim(),
-      accountName: getEl('prof-acc-name').value.trim(),
-      logo: PROFILE?.logo || null
-    };
-    if (!payload.businessName) return toast('⚠️ Business Name is required');
     try {
-      await postRecord('profile', payload);
+      const { data: { user } } = await sb.auth.getUser();
+      const payload = {
+        id: user.id,
+        business_name: getEl('prof-biz-name').value.trim(),
+        phone_number: getEl('prof-phone').value.trim(),
+        location: getEl('prof-loc').value.trim(),
+        bank_name: getEl('prof-bank').value.trim(),
+        account_number: getEl('prof-acc-num').value.trim(),
+        account_name: getEl('prof-acc-name').value.trim(),
+        logo: PROFILE?.logo || null
+      };
+      if (!payload.business_name) return toast('⚠️ Business Name is required');
+      const { error } = await sb.from('profiles').upsert(payload);
+      if (error) throw error;
       PROFILE = payload;
       renderProfileBanner(PROFILE);
       toast('✅ Business details updated!');
@@ -490,29 +510,72 @@ function wireForms() {
 
   getEl('form-sale')?.addEventListener('submit', async event => {
     event.preventDefault();
-    const items = getItems();
-    const payload = { id: uid(), date: getEl('sale-date')?.value || todayISO(), customerName: getEl('cust-name').value.trim(), contact: getEl('cust-phone').value.trim(), address: getEl('cust-address')?.value || '', items, deliveryFee: parseFloat(getEl('sale-delivery-fee')?.value) || 0, discount: parseFloat(getEl('sale-disc')?.value) || 0, subtotal: 0, total: 0, status: getEl('sale-status')?.value || 'Pending', createdAt: new Date().toISOString() };
-    payload.subtotal = payload.items.reduce((s, i) => s + i.qty * i.price, 0) + payload.deliveryFee;
-    payload.discountAmt = payload.subtotal * payload.discount / 100;
-    payload.total = payload.subtotal - payload.discountAmt;
-    try { await postRecord('sales', payload); await loadData(); renderAll(); event.target.reset(); resetItemRows(); toast('✅ Sale saved!'); } catch (err) { toast('⚠️ Error'); }
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      const items = getItems();
+      const payload = { 
+        user_id: user.id,
+        date: getEl('sale-date')?.value || todayISO(), 
+        customer_name: getEl('cust-name').value.trim(), 
+        contact: getEl('cust-phone').value.trim(), 
+        address: getEl('cust-address')?.value || '', 
+        items, 
+        delivery_fee: parseFloat(getEl('sale-delivery-fee')?.value) || 0, 
+        discount: parseFloat(getEl('sale-disc')?.value) || 0, 
+        total: 0, 
+        status: getEl('sale-status')?.value || 'Pending'
+      };
+      const subtotal = payload.items.reduce((s, i) => s + i.qty * i.price, 0) + payload.delivery_fee;
+      const discountAmt = subtotal * payload.discount / 100;
+      payload.total = subtotal - discountAmt;
+      
+      const { error } = await sb.from('sales').insert([payload]);
+      if (error) throw error;
+      await loadData(); renderAll(); event.target.reset(); resetItemRows(); toast('✅ Sale saved!'); 
+    } catch (err) { toast('⚠️ Error saving sale'); }
   });
 
   getEl('form-expense')?.addEventListener('submit', async event => {
     event.preventDefault();
-    const payload = { id: uid(), date: getEl('exp-date')?.value || todayISO(), type: getEl('exp-type').value, desc: getEl('exp-desc').value, amount: parseFloat(getEl('exp-amount').value), createdAt: new Date().toISOString() };
-    try { await postRecord('expenses', payload); await loadData(); renderAll(); event.target.reset(); toast('✅ Expense saved!'); } catch (err) { toast('⚠️ Error'); }
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      const payload = { 
+        user_id: user.id,
+        date: getEl('exp-date')?.value || todayISO(), 
+        type: getEl('exp-type').value, 
+        description: getEl('exp-desc').value, 
+        amount: parseFloat(getEl('exp-amount').value) 
+      };
+      const { error } = await sb.from('expenses').insert([payload]);
+      if (error) throw error;
+      await loadData(); renderAll(); event.target.reset(); toast('✅ Expense saved!'); 
+    } catch (err) { toast('⚠️ Error saving expense'); }
   });
 
   getEl('form-inventory')?.addEventListener('submit', async event => {
     event.preventDefault();
-    const payload = { id: uid(), name: getEl('inv-name').value.trim(), category: getEl('inv-category').value, qty: parseFloat(getEl('inv-qty').value), unit: getEl('inv-unit').value, costPrice: parseFloat(getEl('inv-cost').value), sellingPrice: parseFloat(getEl('inv-sell').value), added: todayISO() };
-    try { await postRecord('stock', payload); await loadData(); renderAll(); event.target.reset(); toast('✅ Stock added!'); } catch (err) { toast('⚠️ Error'); }
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      const payload = { 
+        user_id: user.id,
+        name: getEl('inv-name').value.trim(), 
+        category: getEl('inv-category').value, 
+        qty: parseFloat(getEl('inv-qty').value), 
+        unit: getEl('inv-unit').value, 
+        cost_price: parseFloat(getEl('inv-cost').value), 
+        selling_price: parseFloat(getEl('inv-sell').value), 
+        added: todayISO() 
+      };
+      const { error } = await sb.from('stock').insert([payload]);
+      if (error) throw error;
+      await loadData(); renderAll(); event.target.reset(); toast('✅ Stock added!'); 
+    } catch (err) { toast('⚠️ Error saving inventory'); }
   });
 }
 
 async function init() {
-  if (!checkAuth()) return;
+  const user = await checkAuth();
+  if (!user) return;
   try {
     await loadData();
     PROFILE = await loadProfile();
@@ -524,6 +587,10 @@ async function init() {
   wireForms();
   getEl('input-search')?.addEventListener('input', _renderSalesList);
   getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
+
+  document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
+  getEl('sale-disc')?.addEventListener('input', calcTotals);
+  getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
 }
 
 document.addEventListener('DOMContentLoaded', init);

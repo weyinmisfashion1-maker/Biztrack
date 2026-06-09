@@ -27,7 +27,7 @@
 /* ===================== RESET ===================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--ff-body);background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh}
+body{font-family:var(--ff-body);background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh;opacity:0;transition:opacity .3s}
 button,input,select,textarea{font-family:var(--ff-body)}
 button{cursor:pointer}
 img{max-width:100%;display:block}
@@ -917,7 +917,14 @@ ul{list-style:none}
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  // Initialize Supabase
+  const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 <!-- app.js linked at bottom (template constraint) -->
 <script src="app.js"></script>
 

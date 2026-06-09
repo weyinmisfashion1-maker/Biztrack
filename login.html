@@ -30,7 +30,8 @@ body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:v
 .btn-auth:active{transform:translateY(0)}
 .toggle-row{margin-top:1.5rem;text-align:center;font-size:.88rem;color:var(--muted)}
 .toggle-row a{color:var(--gold);font-weight:700;text-decoration:none;cursor:pointer}
-.status{margin-top:1.25rem;padding:.85rem;border-radius:10px;font-size:.85rem;display:none}
+.forgot-link{display:block;text-align:right;margin-top:-0.75rem;margin-bottom:1.25rem;font-size:.8rem;color:var(--gold);font-weight:600;text-decoration:none;cursor:pointer}
+.status{margin-top:1.25rem;padding:.85rem;border-radius:10px;font-size:.85rem;display:none;line-height:1.4}
 .status.err{background:#FCEAEA;color:#B53030;border:1px solid #F8D7D7}
 .status.ok{background:#E4F2EB;color:#1E6641;border:1px solid #D1E9DE}
 </style>
@@ -52,6 +53,7 @@ body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:v
         <label for="login-pass">Password</label>
         <input type="password" id="login-pass" required placeholder="••••••••" />
       </div>
+      <a class="forgot-link" onclick="toggleAuth('forgot')">Forgot Password?</a>
       <button type="submit" class="btn-auth">Sign In to Dashboard</button>
       <div class="toggle-row">
         New to BizTrack? <a onclick="toggleAuth('signup')">Create an Account</a>
@@ -78,72 +80,118 @@ body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:v
       </div>
     </form>
 
+    <!-- Forgot Password Form -->
+    <form id="forgot-form" style="display:none">
+      <div class="field">
+        <label for="forgot-email">Recovery Email</label>
+        <input type="email" id="forgot-email" required placeholder="Enter your email address" />
+      </div>
+      <button type="submit" class="btn-auth">Send Reset Link</button>
+      <div class="toggle-row">
+        Remember your password? <a onclick="toggleAuth('login')">Back to Login</a>
+      </div>
+    </form>
+
     <div id="status" class="status"></div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const getEl = id => document.getElementById(id);
 const statusEl = getEl('status');
 
 function toggleAuth(mode) {
-  const isLogin = mode === 'login';
-  getEl('login-form').style.display = isLogin ? 'block' : 'none';
-  getEl('signup-form').style.display = isLogin ? 'none' : 'block';
-  getEl('auth-title').textContent = isLogin ? 'Welcome back' : 'Start your business account';
+  const forms = ['login-form', 'signup-form', 'forgot-form'];
+  forms.forEach(f => getEl(f).style.display = 'none');
+  
+  getEl(mode + '-form').style.display = 'block';
+  
+  const titles = {
+    login: 'Welcome back',
+    signup: 'Start your business account',
+    forgot: 'Reset your password'
+  };
+  getEl('auth-title').textContent = titles[mode];
   statusEl.style.display = 'none';
 }
 
-async function handleAuth(endpoint, payload) {
+function showStatus(msg, isOk = false) {
+  statusEl.className = 'status ' + (isOk ? 'ok' : 'err');
+  statusEl.textContent = msg;
+  statusEl.style.display = 'block';
+}
+
+getEl('login-form').onsubmit = async e => {
+  e.preventDefault();
   statusEl.style.display = 'none';
+  const email = getEl('login-email').value;
+  const password = getEl('login-pass').value;
+
   try {
-    const res = await fetch('/api/' + endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    showStatus('Success! Redirecting...', true);
+    setTimeout(() => window.location.href = '/', 800);
+  } catch (err) {
+    showStatus(err.message);
+  }
+};
+
+getEl('signup-form').onsubmit = async e => {
+  e.preventDefault();
+  statusEl.style.display = 'none';
+  const businessName = getEl('reg-biz').value;
+  const email = getEl('reg-email').value;
+  const password = getEl('reg-pass').value;
+
+  try {
+    const { data, error } = await sb.auth.signUp({ 
+      email, 
+      password,
+      options: { data: { business_name: businessName } }
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Authentication failed');
+    if (error) throw error;
     
-    if (endpoint === 'login') {
-      localStorage.setItem('bt_user', payload.email);
-      localStorage.setItem('bt_biz', data.businessName);
-      statusEl.className = 'status ok';
-      statusEl.textContent = 'Success! Redirecting...';
-      statusEl.style.display = 'block';
+    if (data.user && data.session) {
+      await sb.from('profiles').upsert({ id: data.user.id, business_name: businessName });
+      showStatus('Account created! Redirecting...', true);
       setTimeout(() => window.location.href = '/', 800);
     } else {
-      statusEl.className = 'status ok';
-      statusEl.textContent = 'Registration successful! You can now log in.';
-      statusEl.style.display = 'block';
-      setTimeout(() => toggleAuth('login'), 1500);
+      showStatus('Registration successful! Please check your email for a confirmation link.', true);
     }
   } catch (err) {
-    statusEl.className = 'status err';
-    statusEl.textContent = err.message;
-    statusEl.style.display = 'block';
+    showStatus(err.message);
   }
-}
-
-getEl('login-form').onsubmit = e => {
-  e.preventDefault();
-  handleAuth('login', {
-    email: getEl('login-email').value,
-    password: getEl('login-pass').value
-  });
 };
 
-getEl('signup-form').onsubmit = e => {
+getEl('forgot-form').onsubmit = async e => {
   e.preventDefault();
-  handleAuth('register', {
-    businessName: getEl('reg-biz').value,
-    email: getEl('reg-email').value,
-    password: getEl('reg-pass').value
-  });
+  statusEl.style.display = 'none';
+  const email = getEl('forgot-email').value;
+
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login.html',
+    });
+    if (error) throw error;
+    showStatus('Password reset link sent! Please check your email inbox.', true);
+  } catch (err) {
+    showStatus(err.message);
+  }
 };
 
-// Auto-check if already logged in
-if (localStorage.getItem('bt_user')) window.location.href = '/';
+// Check if already logged in
+(async () => {
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data?.session) window.location.href = '/';
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
