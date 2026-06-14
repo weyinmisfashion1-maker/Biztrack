@@ -284,24 +284,25 @@ function updateHeroStats() {
 }
 
 function renderReport() {
-  const revenue = S.sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-  const expenses = S.expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+  const revenue = S.sales.reduce((sum, sale) => sum + (Number(sale.total) || 0), 0);
+  const expenses = S.expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const profit = revenue - expenses;
   let taxRate = 0;
   if (revenue >= FIRS.high) taxRate = FIRS.rateTop;
   else if (revenue >= FIRS.low) taxRate = FIRS.rateMid;
+  const tax = profit > 0 ? profit * taxRate : 0;
 
   const months = {};
   S.sales.forEach(sale => {
-    const month = (sale.date || '').slice(0, 7);
+    const month = (sale.date || 'Unknown').slice(0, 7);
     if (!months[month]) months[month] = { rev: 0, exp: 0, count: 0 };
-    months[month].rev += sale.total || 0;
+    months[month].rev += Number(sale.total) || 0;
     months[month].count += 1;
   });
   S.expenses.forEach(exp => {
-    const month = (exp.date || '').slice(0, 7);
+    const month = (exp.date || 'Unknown').slice(0, 7);
     if (!months[month]) months[month] = { rev: 0, exp: 0, count: 0 };
-    months[month].exp += parseFloat(exp.amount) || 0;
+    months[month].exp += Number(exp.amount) || 0;
   });
 
   const sorted = Object.entries(months).sort(([a], [b]) => a.localeCompare(b));
@@ -329,6 +330,19 @@ function renderReport() {
     reportCard.innerHTML = `
       <h2 class="card-h">Monthly Breakdown</h2>
       <div style="overflow-x:auto"><table class="rtbl"><thead><tr><th>Month</th><th>Sales</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  const taxCard = getEl('tax-card');
+  if (taxCard) {
+    taxCard.innerHTML = `
+      <h2 class="card-h">Tax Estimation (FIRS)</h2>
+      <div class="tax-grid">
+        <div class="tg-item"><div class="tg-lbl">Annual Revenue</div><div class="tg-val gold">${fmt(revenue)}</div></div>
+        <div class="tg-item"><div class="tg-lbl">Tax Rate</div><div class="tg-val purple">${taxRate * 100}%</div></div>
+        <div class="tg-item"><div class="tg-lbl">Estimated Tax</div><div class="tg-val">${fmt(tax)}</div></div>
+        <div class="tg-item"><div class="tg-lbl">After-Tax Profit</div><div class="tg-val">${fmt(profit - tax)}</div></div>
+      </div>
+      <div class="tax-note">Note: Based on Nigerian FIRS rates for SMEs. 0% if revenue < ₦25M.</div>`;
   }
 }
 
@@ -465,12 +479,19 @@ function previewInvoice() {
 function renderProfileBanner(profile) {
   const banner = getEl('profile-banner');
   if (!banner || !profile) return;
-  banner.style.display = 'grid';
+  banner.style.display = 'block';
   banner.innerHTML = `
-    <div style="display:flex;gap:1.5rem;align-items:center">
-       ${profile.logo ? `<img src="${profile.logo}" style="width:60px;height:60px;border-radius:var(--r-xs);object-fit:contain;background:#fff;border:1px solid var(--border)" />` : ''}
-       <div style="flex:1"><h3 style="margin:0">${esc(profile.business_name)}</h3><div style="font-size:.8rem;color:var(--muted)">${esc(profile.location)}</div></div>
-       <div style="text-align:right"><div style="font-size:.7rem;font-weight:700;color:var(--gold);text-transform:uppercase">Bank Account</div><div style="font-size:.9rem;font-weight:600">${esc(profile.account_number)}</div><div style="font-size:.7rem;color:var(--muted)">${esc(profile.bank_name)}</div></div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+       ${profile.logo ? `<img src="${profile.logo}" style="width:50px;height:50px;border-radius:var(--r-xs);object-fit:contain;background:#fff;border:1px solid var(--border);flex-shrink:0" />` : ''}
+       <div style="flex:1;min-width:150px">
+         <h3 style="margin:0;font-size:1rem">${esc(profile.business_name)}</h3>
+         <div style="font-size:.75rem;color:var(--muted)">${esc(profile.location)}</div>
+       </div>
+       <div style="min-width:140px;margin-top:0.25rem">
+         <div style="font-size:.65rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.05em">Bank Account</div>
+         <div style="font-size:.85rem;font-weight:600;word-break:break-all">${esc(profile.account_number)}</div>
+         <div style="font-size:.65rem;color:var(--muted)">${esc(profile.bank_name)}</div>
+       </div>
     </div>`;
 }
 

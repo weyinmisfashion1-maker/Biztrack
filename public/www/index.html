@@ -194,16 +194,16 @@ ul{list-style:none}
 .tab:hover:not(.on){background:var(--cream3);color:var(--text)}
 
 .profile-banner{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:.75rem;
+  display:block;
+  width:100%;
   margin:0 auto 1.25rem;
   max-width:680px;
-  padding:1rem 1.15rem;
+  padding:12px;
   border-radius:var(--r);
   background:rgba(249,245,236,.95);
   border:1px solid rgba(221,212,190,.9);
   box-shadow:var(--sh);
+  overflow:hidden;
 }
 .profile-banner h3{
   font-family:var(--ff-head);font-size:1.05rem;margin-bottom:.35rem;color:var(--ink)
@@ -521,10 +521,10 @@ ul{list-style:none}
       <button id="btn-primary" onclick="document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="Start tracking your business">
         Start Tracking ↓
       </button>
-      <button class="btn-ghost" onclick="switchTab('profile')" aria-label="Edit business details">
+      <button class="btn-ghost" onclick="switchTab('profile'); document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="Edit business details">
         Business Details
       </button>
-      <button class="btn-ghost" onclick="switchTab('report')" aria-label="View your financial reports">
+      <button class="btn-ghost" onclick="switchTab('report'); document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="View your financial reports">
         View Reports
       </button>
     </div>
