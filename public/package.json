@@ -1,0 +1,17 @@
+{
+  "name": "biztrack-ng",
+  "version": "1.0.0",
+  "description": "Daily sales, expenses, and inventory manager for Nigerian SME owners.",
+  "main": "app.js",
+  "scripts": {
+    "start": "powershell.exe -File server.ps1",
+    "build": "copy index.html www/; copy login.html www/; copy app.js www/; npx.cmd cap copy",
+    "open-android": "npx.cmd cap open android"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
+  }
+}

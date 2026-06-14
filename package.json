@@ -1,0 +1,17 @@
+{
+  "name": "biztrack-backend",
+  "version": "1.0.0",
+  "description": "BizTrack.ng backend server for sales, expenses, inventory, and invoice data.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.4",
+    "pg": "^8.11.2"
+  },
+  "devDependencies": {
+    "vercel": "^54.6.1"
+  }
+}

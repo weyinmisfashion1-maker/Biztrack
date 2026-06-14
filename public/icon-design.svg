@@ -1,0 +1,39 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="200" fill="#141009"/>
+  
+  <!-- Subtle Gradient Accent -->
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C9982A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8BE6A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Circular Border/Frame -->
+  <circle cx="512" cy="512" r="420" fill="none" stroke="#C9982A" stroke-width="20" stroke-dasharray="10,20" opacity="0.3"/>
+
+  <!-- Icon Graphic: Combined Bar Chart, Growth Line, and Money -->
+  <g transform="translate(162, 162) scale(0.7)">
+    <!-- Bars -->
+    <rect x="100" y="600" width="140" height="300" rx="20" fill="#FAF6EF" opacity="0.8"/>
+    <rect x="300" y="450" width="140" height="450" rx="20" fill="#C9982A"/>
+    <rect x="500" y="250" width="140" height="650" rx="20" fill="#FAF6EF"/>
+    
+    <!-- Coins (Money Props) -->
+    <circle cx="780" cy="700" r="80" fill="#C9982A"/>
+    <circle cx="780" cy="700" r="60" fill="none" stroke="#141009" stroke-width="8"/>
+    <text x="780" y="730" font-family="Arial" font-size="90" font-weight="bold" fill="#141009" text-anchor="middle">₦</text>
+
+    <circle cx="850" cy="820" r="70" fill="#FAF6EF"/>
+    <circle cx="850" cy="820" r="50" fill="none" stroke="#141009" stroke-width="6"/>
+    <text x="850" y="845" font-family="Arial" font-size="70" font-weight="bold" fill="#141009" text-anchor="middle">₦</text>
+    
+    <!-- Rising Arrow Line -->
+    <path d="M 50 850 L 250 650 L 450 700 L 850 150" fill="none" stroke="#FAF6EF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 750 150 L 850 150 L 850 250" fill="none" stroke="#FAF6EF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Text: BIZTRACK.NG -->
+  <text x="512" y="900" font-family="Playfair Display, serif" font-size="100" font-weight="bold" fill="#C9982A" text-anchor="middle" letter-spacing="5">BIZTRACK.NG</text>
+</svg>

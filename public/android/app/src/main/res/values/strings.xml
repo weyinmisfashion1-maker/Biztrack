@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BizTrack.ng</string>
+    <string name="title_activity_main">BizTrack.ng</string>
+    <string name="package_name">com.biztrack.ng</string>
+    <string name="custom_url_scheme">com.biztrack.ng</string>
+</resources>

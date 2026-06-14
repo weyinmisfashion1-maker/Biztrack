@@ -1,0 +1,8 @@
+{
+  "appId": "com.biztrack.ng",
+  "appName": "BizTrack.ng",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

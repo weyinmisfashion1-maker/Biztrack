@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>BizTrack.ng — Secure Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --gold:#C9982A;--gold-lt:#E8BE6A;--ink:#141009;--ink2:#2A2215;
+  --cream:#FAF6EF;--cream2:#F3EDE0;--cream3:#EAE1CC;--text:#1C1509;
+  --muted:#7A6E58;--border:#DDD4BE;--r:14px;--r-sm:10px;
+  --ff-head:'Playfair Display',Georgia,serif;--ff-body:'Outfit',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:var(--text);display:flex;align-items:center;justify-content:center;padding:1rem}
+.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(20,16,9,.08);overflow:hidden;animation:fadeIn .5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.auth-header{background:var(--ink);color:var(--cream);padding:2.5rem 2rem;text-align:center}
+.brand{font-family:var(--ff-head);font-size:1.8rem;color:var(--gold);letter-spacing:.05em;text-decoration:none}
+.auth-h1{margin-top:.75rem;font-size:1.5rem;font-weight:600}
+.auth-body{padding:2.5rem 2rem}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.08em}
+.field input{width:100%;border:1.5px solid var(--border);border-radius:12px;background:var(--cream);padding:1rem;font-size:.95rem;transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--gold);background:#fff}
+.btn-auth{width:100%;border:none;background:var(--gold);color:var(--ink);padding:1.1rem;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .15s,background .15s}
+.btn-auth:hover{background:var(--gold-lt);transform:translateY(-1px)}
+.btn-auth:active{transform:translateY(0)}
+.toggle-row{margin-top:1.5rem;text-align:center;font-size:.88rem;color:var(--muted)}
+.toggle-row a{color:var(--gold);font-weight:700;text-decoration:none;cursor:pointer}
+.forgot-link{display:block;text-align:right;margin-top:-0.75rem;margin-bottom:1.25rem;font-size:.8rem;color:var(--gold);font-weight:600;text-decoration:none;cursor:pointer}
+.status{margin-top:1.25rem;padding:.85rem;border-radius:10px;font-size:.85rem;display:none;line-height:1.4}
+.status.err{background:#FCEAEA;color:#B53030;border:1px solid #F8D7D7}
+.status.ok{background:#E4F2EB;color:#1E6641;border:1px solid #D1E9DE}
+.pass-wrap{position:relative}
+.toggle-pass{
+  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:transparent;border:none;color:var(--muted);
+  cursor:pointer;padding:.5rem;display:flex;align-items:center;opacity:.7;transition:opacity .2s;
+}
+.toggle-pass:hover{opacity:1}
+</style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="auth-header">
+    <a href="/" class="brand">BizTrack.ng</a>
+    <h1 class="auth-h1" id="auth-title">Welcome back</h1>
+  </div>
+  <div class="auth-body">
+    <!-- Login Form -->
+    <form id="login-form">
+      <div class="field">
+        <label for="login-email">Business Email</label>
+        <input type="email" id="login-email" required placeholder="name@business.com" />
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <div class="pass-wrap">
+          <input type="password" id="login-pass" required placeholder="••••••••" />
+          <button type="button" class="toggle-pass" onclick="togglePass('login-pass')" aria-label="Toggle password visibility">👁️</button>
+        </div>
+      </div>
+      <a class="forgot-link" onclick="toggleAuth('forgot')">Forgot Password?</a>
+      <button type="submit" class="btn-auth">Sign In to Dashboard</button>
+      <div class="toggle-row">
+        New to BizTrack.ng? <a onclick="toggleAuth('signup')">Create an Account</a>
+      </div>
+    </form>
+
+    <!-- Register Form -->
+    <form id="signup-form" style="display:none">
+      <div class="field">
+        <label for="reg-biz">Business Name</label>
+        <input type="text" id="reg-biz" required placeholder="e.g. Acme Ventures" />
+      </div>
+      <div class="field">
+        <label for="reg-email">Business Email</label>
+        <input type="email" id="reg-email" required placeholder="name@business.com" />
+      </div>
+      <div class="field">
+        <label for="reg-pass">Password</label>
+        <div class="pass-wrap">
+          <input type="password" id="reg-pass" required placeholder="Create a password" />
+          <button type="button" class="toggle-pass" onclick="togglePass('reg-pass')" aria-label="Toggle password visibility">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-auth">Register Business</button>
+      <div class="toggle-row">
+        Already have an account? <a onclick="toggleAuth('login')">Sign In</a>
+      </div>
+    </form>
+
+    <!-- Forgot Password Form -->
+    <form id="forgot-form" style="display:none">
+      <div class="field">
+        <label for="forgot-email">Recovery Email</label>
+        <input type="email" id="forgot-email" required placeholder="Enter your email address" />
+      </div>
+      <button type="submit" class="btn-auth">Send Reset Link</button>
+      <div class="toggle-row">
+        Remember your password? <a onclick="toggleAuth('login')">Back to Login</a>
+      </div>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const getEl = id => document.getElementById(id);
+const statusEl = getEl('status');
+
+function togglePass(id) {
+  const el = getEl(id);
+  const btn = el.nextElementSibling;
+  if (el.type === 'password') {
+    el.type = 'text';
+    btn.textContent = '🔒';
+  } else {
+    el.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+function toggleAuth(mode) {
+  const forms = ['login-form', 'signup-form', 'forgot-form'];
+  forms.forEach(f => getEl(f).style.display = 'none');
+  
+  getEl(mode + '-form').style.display = 'block';
+  
+  const titles = {
+    login: 'Welcome back',
+    signup: 'Start your business account',
+    forgot: 'Reset your password'
+  };
+  getEl('auth-title').textContent = titles[mode];
+  statusEl.style.display = 'none';
+}
+
+function showStatus(msg, isOk = false) {
+  statusEl.className = 'status ' + (isOk ? 'ok' : 'err');
+  statusEl.textContent = msg;
+  statusEl.style.display = 'block';
+}
+
+getEl('login-form').onsubmit = async e => {
+  e.preventDefault();
+  statusEl.style.display = 'none';
+  const email = getEl('login-email').value;
+  const password = getEl('login-pass').value;
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    showStatus('Success! Redirecting...', true);
+    setTimeout(() => window.location.href = '/', 800);
+  } catch (err) {
+    showStatus(err.message);
+  }
+};
+
+getEl('signup-form').onsubmit = async e => {
+  e.preventDefault();
+  statusEl.style.display = 'none';
+  const businessName = getEl('reg-biz').value;
+  const email = getEl('reg-email').value;
+  const password = getEl('reg-pass').value;
+
+  try {
+    const { data, error } = await sb.auth.signUp({ 
+      email, 
+      password,
+      options: { data: { business_name: businessName } }
+    });
+    if (error) throw error;
+    
+    if (data.user && data.session) {
+      await sb.from('profiles').upsert({ id: data.user.id, business_name: businessName });
+      showStatus('Account created! Redirecting...', true);
+      setTimeout(() => window.location.href = '/', 800);
+    } else {
+      showStatus('Registration successful! Please check your email for a confirmation link.', true);
+    }
+  } catch (err) {
+    showStatus(err.message);
+  }
+};
+
+getEl('forgot-form').onsubmit = async e => {
+  e.preventDefault();
+  statusEl.style.display = 'none';
+  const email = getEl('forgot-email').value;
+
+  try {
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login.html',
+    });
+    if (error) throw error;
+    showStatus('Password reset link sent! Please check your email inbox.', true);
+  } catch (err) {
+    showStatus(err.message);
+  }
+};
+
+// Check if already logged in
+(async () => {
+  try {
+    const { data } = await sb.auth.getSession();
+    if (data?.session) window.location.href = '/';
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
+ait sb.auth.getSession();
+    if (data?.session) window.location.href = '/';
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
