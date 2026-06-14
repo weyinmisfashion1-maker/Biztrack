@@ -14,8 +14,28 @@
   --ff-head:'Playfair Display',Georgia,serif;--ff-body:'Outfit',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:var(--text);display:flex;align-items:center;justify-content:center;padding:1rem}
-.auth-card{width:100%;max-width:440px;background:#fff;border:1px solid var(--border);border-radius:24px;box-shadow:0 24px 60px rgba(20,16,9,.08);overflow:hidden;animation:fadeIn .5s ease both}
+body{
+  width: 100%;
+  min-height: 100vh;
+  font-family: var(--ff-body);
+  background: var(--cream);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  margin: 0;
+}
+.auth-card{
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(20,16,9,.08);
+  overflow: hidden;
+  animation: fadeIn .5s ease both;
+}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .auth-header{background:var(--ink);color:var(--cream);padding:2.5rem 2rem;text-align:center}
 .brand{font-family:var(--ff-head);font-size:1.8rem;color:var(--gold);letter-spacing:.05em;text-decoration:none}
@@ -41,6 +61,13 @@ body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:v
   cursor:pointer;padding:.5rem;display:flex;align-items:center;opacity:.7;transition:opacity .2s;
 }
 .toggle-pass:hover{opacity:1}
+
+/* Mobile full width adjustment */
+@media (max-width: 480px) {
+  body { padding: 0; }
+  .auth-card { border-radius: 0; border: none; min-height: 100vh; display: flex; flex-direction: column; }
+  .auth-body { flex: 1; }
+}
 </style>
 </head>
 <body>
@@ -111,123 +138,125 @@ body{min-height:100vh;font-family:var(--ff-body);background:var(--cream);color:v
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+(function() {
+  const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const getEl = id => document.getElementById(id);
-const statusEl = getEl('status');
+  const getEl = id => document.getElementById(id);
+  const statusEl = getEl('status');
 
-function togglePass(id) {
-  const el = getEl(id);
-  const btn = el.nextElementSibling;
-  if (el.type === 'password') {
-    el.type = 'text';
-    btn.textContent = '🔒';
-  } else {
-    el.type = 'password';
-    btn.textContent = '👁️';
-  }
-}
-
-function toggleAuth(mode) {
-  const forms = ['login-form', 'signup-form', 'forgot-form'];
-  forms.forEach(f => getEl(f).style.display = 'none');
-  
-  getEl(mode + '-form').style.display = 'block';
-  
-  const titles = {
-    login: 'Welcome back',
-    signup: 'Start your business account',
-    forgot: 'Reset your password'
-  };
-  getEl('auth-title').textContent = titles[mode];
-  statusEl.style.display = 'none';
-}
-
-function showStatus(msg, isOk = false) {
-  statusEl.className = 'status ' + (isOk ? 'ok' : 'err');
-  statusEl.textContent = msg;
-  statusEl.style.display = 'block';
-}
-
-getEl('login-form').onsubmit = async e => {
-  e.preventDefault();
-  statusEl.style.display = 'none';
-  const email = getEl('login-email').value;
-  const password = getEl('login-pass').value;
-
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) {
-      console.error('Login error:', error);
-      throw new Error(error.message || 'Invalid login credentials');
-    }
-    showStatus('Success! Redirecting...', true);
-    setTimeout(() => window.location.href = '/', 800);
-  } catch (err) {
-    showStatus('⚠️ Login Failed: ' + err.message);
-  }
-};
-
-getEl('signup-form').onsubmit = async e => {
-  e.preventDefault();
-  statusEl.style.display = 'none';
-  const businessName = getEl('reg-biz').value;
-  const email = getEl('reg-email').value;
-  const password = getEl('reg-pass').value;
-
-  try {
-    const { data, error } = await sb.auth.signUp({ 
-      email, 
-      password,
-      options: { 
-        data: { business_name: businessName },
-        emailRedirectTo: window.location.origin + '/login.html'
-      }
-    });
-    if (error) {
-      console.error('Signup error:', error);
-      throw new Error(error.message);
-    }
-    
-    if (data.user && data.session) {
-      await sb.from('profiles').upsert({ id: data.user.id, business_name: businessName });
-      showStatus('Account created! Redirecting...', true);
-      setTimeout(() => window.location.href = '/', 800);
+  window.togglePass = function(id) {
+    const el = getEl(id);
+    const btn = el.nextElementSibling;
+    if (el.type === 'password') {
+      el.type = 'text';
+      btn.textContent = '🔒';
     } else {
-      showStatus('Registration successful! Please check your email (' + email + ') for a confirmation link.', true);
+      el.type = 'password';
+      btn.textContent = '👁️';
     }
-  } catch (err) {
-    showStatus('⚠️ Registration Failed: ' + err.message);
+  };
+
+  window.toggleAuth = function(mode) {
+    const forms = ['login-form', 'signup-form', 'forgot-form'];
+    forms.forEach(f => getEl(f).style.display = 'none');
+    
+    getEl(mode + '-form').style.display = 'block';
+    
+    const titles = {
+      login: 'Welcome back',
+      signup: 'Start your business account',
+      forgot: 'Reset your password'
+    };
+    getEl('auth-title').textContent = titles[mode];
+    statusEl.style.display = 'none';
+  };
+
+  function showStatus(msg, isOk = false) {
+    statusEl.className = 'status ' + (isOk ? 'ok' : 'err');
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
   }
-};
 
-getEl('forgot-form').onsubmit = async e => {
-  e.preventDefault();
-  statusEl.style.display = 'none';
-  const email = getEl('forgot-email').value;
+  getEl('login-form').onsubmit = async e => {
+    e.preventDefault();
+    statusEl.style.display = 'none';
+    const email = getEl('login-email').value;
+    const password = getEl('login-pass').value;
 
-  try {
-    const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/login.html',
-    });
-    if (error) {
-      console.error('Reset error:', error);
-      throw new Error(error.message);
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('Login error:', error);
+        throw new Error(error.message || 'Invalid login credentials');
+      }
+      showStatus('Success! Redirecting...', true);
+      setTimeout(() => window.location.href = '/', 800);
+    } catch (err) {
+      showStatus('⚠️ Login Failed: ' + err.message);
     }
-    showStatus('✅ Password reset link sent! Check your email inbox.', true);
-  } catch (err) {
-    showStatus('⚠️ Could not send reset link: ' + err.message);
-  }
-};
+  };
 
-// Check if already logged in
-(async () => {
-  try {
-    const { data } = await sb.auth.getSession();
-    if (data?.session) window.location.href = '/';
-  } catch (e) {}
+  getEl('signup-form').onsubmit = async e => {
+    e.preventDefault();
+    statusEl.style.display = 'none';
+    const businessName = getEl('reg-biz').value;
+    const email = getEl('reg-email').value;
+    const password = getEl('reg-pass').value;
+
+    try {
+      const { data, error } = await sb.auth.signUp({ 
+        email, 
+        password,
+        options: { 
+          data: { business_name: businessName },
+          emailRedirectTo: window.location.origin + '/login.html'
+        }
+      });
+      if (error) {
+        console.error('Signup error:', error);
+        throw new Error(error.message);
+      }
+      
+      if (data.user && data.session) {
+        await sb.from('profiles').upsert({ id: data.user.id, business_name: businessName });
+        showStatus('Account created! Redirecting...', true);
+        setTimeout(() => window.location.href = '/', 800);
+      } else {
+        showStatus('Registration successful! Please check your email (' + email + ') for a confirmation link.', true);
+      }
+    } catch (err) {
+      showStatus('⚠️ Registration Failed: ' + err.message);
+    }
+  };
+
+  getEl('forgot-form').onsubmit = async e => {
+    e.preventDefault();
+    statusEl.style.display = 'none';
+    const email = getEl('forgot-email').value;
+
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login.html',
+      });
+      if (error) {
+        console.error('Reset error:', error);
+        throw new Error(error.message);
+      }
+      showStatus('✅ Password reset link sent! Check your email inbox.', true);
+    } catch (err) {
+      showStatus('⚠️ Could not send reset link: ' + err.message);
+    }
+  };
+
+  // Check if already logged in
+  (async () => {
+    try {
+      const { data } = await sb.auth.getSession();
+      if (data?.session) window.location.href = '/';
+    } catch (e) {}
+  })();
 })();
 </script>
 </body>
