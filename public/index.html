@@ -848,7 +848,7 @@ ul{list-style:none}
     <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
     
     <div id="invoice-actions" style="display:none;margin-top:1.5rem;gap:.75rem">
-      <button class="btn-print" style="flex:1;margin-top:0" onclick="window.print()">Print Invoice / PDF</button>
+      <button class="btn-print" style="flex:1;margin-top:0" onclick="window.shareInvoicePDF()">Share Invoice as PDF</button>
       <button class="btn-save" style="flex:1" onclick="window.saveInvoiceAsImage()">Save as Image (PNG)</button>
     </div>
   </section>
@@ -923,6 +923,7 @@ ul{list-style:none}
 <!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   // Initialize Supabase
   const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';

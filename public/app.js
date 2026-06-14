@@ -420,12 +420,78 @@ async function saveInvoiceAsImage() {
   toast('⌛ Generating image...');
   try {
     const canvas = await html2canvas(view, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
-    const link = document.createElement('a');
-    link.download = `Invoice-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    toast('✅ Saved as PNG!');
-  } catch (err) { toast('⚠️ Failed.'); }
+    const dataUrl = canvas.toDataURL('image/png');
+    
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem } = Capacitor.Plugins;
+      const { Share } = Capacitor.Plugins;
+      const fileName = `Invoice-${Date.now()}.png`;
+      const base64Data = dataUrl.split(',')[1];
+      
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: 'CACHE'
+      });
+      
+      await Share.share({
+        title: 'BizTrack Invoice',
+        url: savedFile.uri,
+      });
+      toast('✅ Ready to share!');
+    } else {
+      const link = document.createElement('a');
+      link.download = `Invoice-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast('✅ Saved as PNG!');
+    }
+  } catch (err) { 
+    console.error(err);
+    toast('⚠️ Image Failed.'); 
+  }
+}
+
+async function shareInvoicePDF() {
+  const view = getEl('invoice-view');
+  if (!view) return;
+  toast('⌛ Generating PDF...');
+  try {
+    const canvas = await html2canvas(view, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/png');
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem } = Capacitor.Plugins;
+      const { Share } = Capacitor.Plugins;
+      const fileName = `Invoice-${Date.now()}.pdf`;
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+      
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: pdfBase64,
+        directory: 'CACHE'
+      });
+      
+      await Share.share({
+        title: 'BizTrack Invoice',
+        url: savedFile.uri,
+      });
+      toast('✅ PDF Ready!');
+    } else {
+      pdf.save(`Invoice-${Date.now()}.pdf`);
+      toast('✅ PDF Downloaded!');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('⚠️ PDF Failed.');
+  }
 }
 
 function previewInvoice() {
@@ -625,4 +691,5 @@ window.handleLogoUpload = handleLogoUpload;
 window.toggleInvMode = toggleInvMode;
 window.addManualItemRow = addManualItemRow;
 window.saveInvoiceAsImage = saveInvoiceAsImage;
+window.shareInvoicePDF = shareInvoicePDF;
 window.signOut = signOut;
