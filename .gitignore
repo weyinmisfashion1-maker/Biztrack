@@ -18,3 +18,10 @@ android/local.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+# Scratch logs
+replace_*.txt
+recent_*.txt
+step_*.json
+diff_app.txt
+

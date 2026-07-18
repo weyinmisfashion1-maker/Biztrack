@@ -141,7 +141,7 @@ body{
 (function() {
   const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const getEl = id => document.getElementById(id);
   const statusEl = getEl('status');
@@ -186,7 +186,7 @@ body{
     const password = getEl('login-pass').value;
 
     try {
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
       if (error) {
         console.error('Login error:', error);
         throw new Error(error.message || 'Invalid login credentials');
@@ -206,12 +206,11 @@ body{
     const password = getEl('reg-pass').value;
 
     try {
-      const { data, error } = await sb.auth.signUp({ 
+      const { data, error } = await window.sb.auth.signUp({ 
         email, 
         password,
         options: { 
-          data: { business_name: businessName },
-          emailRedirectTo: window.location.origin + '/login.html'
+          data: { business_name: businessName }
         }
       });
       if (error) {
@@ -219,12 +218,9 @@ body{
         throw new Error(error.message);
       }
       
-      if (data.user && data.session) {
-        await sb.from('profiles').upsert({ id: data.user.id, business_name: businessName });
+      if (data.user) {
         showStatus('Account created! Redirecting...', true);
         setTimeout(() => window.location.href = '/', 800);
-      } else {
-        showStatus('Registration successful! Please check your email (' + email + ') for a confirmation link.', true);
       }
     } catch (err) {
       showStatus('⚠️ Registration Failed: ' + err.message);
@@ -237,9 +233,7 @@ body{
     const email = getEl('forgot-email').value;
 
     try {
-      const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/login.html',
-      });
+      const { error } = await window.sb.auth.resetPasswordForEmail(email);
       if (error) {
         console.error('Reset error:', error);
         throw new Error(error.message);
@@ -253,7 +247,7 @@ body{
   // Check if already logged in
   (async () => {
     try {
-      const { data } = await sb.auth.getSession();
+      const { data } = await window.sb.auth.getSession();
       if (data?.session) window.location.href = '/';
     } catch (e) {}
   })();

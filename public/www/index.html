@@ -53,33 +53,43 @@ ul{list-style:none}
 }
 
 /* ===================== HERO SECTION ===================== */
-#hero{
-  background:var(--ink);
-  color:var(--cream);
-  position:relative;
-  overflow:hidden;
+#hero {
+  background: var(--ink);
+  color: var(--cream);
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.hero-top{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.875rem 1.25rem;
-  border-bottom:1px solid rgba(201,152,42,.18);
-  position:sticky;top:0;z-index:50;
-  background:var(--ink2);
+.hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid rgba(201,152,42,.18);
+  z-index: 50;
+  background: var(--ink2);
+  flex-shrink: 0;
 }
-.brand{
-  font-family:var(--ff-head);font-size:1.3rem;
-  color:var(--gold);letter-spacing:.04em;text-decoration:none;
+.brand {
+  font-family: var(--ff-head); font-size: 1.3rem;
+  color: var(--gold); letter-spacing: .04em; text-decoration: none;
 }
-.brand span{font-style:italic;font-weight:400;color:var(--gold-lt)}
-.hero-nav-tag{font-size:.65rem;color:rgba(250,246,239,.35);letter-spacing:.1em;text-transform:uppercase}
+.brand span { font-style: italic; font-weight: 400; color: var(--gold-lt) }
+.hero-nav-tag { font-size: .65rem; color: rgba(250,246,239,.35); letter-spacing: .1em; text-transform: uppercase }
 
-.hero-body{
-  padding:2.5rem 1.25rem 3rem;
+.hero-body {
+  padding: 1.5rem 1.25rem;
   background:
     radial-gradient(ellipse 70% 60% at 10% 90%,rgba(201,152,42,.15) 0%,transparent 65%),
     radial-gradient(ellipse 50% 50% at 90% 10%,rgba(201,152,42,.08) 0%,transparent 65%),
     var(--ink);
-  text-align:center;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
 }
 .hero-pill{
   display:inline-flex;align-items:center;gap:.45rem;
@@ -152,14 +162,14 @@ ul{list-style:none}
 
 /* == INSIGHTS PANEL (required id) == */
 #insights-panel{
-  display:grid;grid-template-columns:1fr 1fr;gap:.625rem;
-  margin-bottom:1.25rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:.4rem;
+  margin-bottom:.45rem;
 }
 .insight{
   background:var(--cream2);border:1px solid var(--border);
-  border-radius:var(--r);padding:.875rem 1rem;
+  border-radius:8px;padding:.45rem .6rem;
   border-left:3px solid var(--gold);position:relative;overflow:hidden;
-  animation:fadeSlideUp .4s ease both;
+  animation:fadeSlideUp .3s ease both;
 }
 .insight:nth-child(1){animation-delay:.05s}
 .insight:nth-child(2){animation-delay:.1s;border-left-color:var(--red)}
@@ -167,14 +177,14 @@ ul{list-style:none}
 .insight:nth-child(4){animation-delay:.2s;border-left-color:var(--blue)}
 .insight::after{
   content:'';position:absolute;top:-12px;right:-12px;
-  width:48px;height:48px;border-radius:50%;
+  width:40px;height:40px;border-radius:50%;
   background:rgba(201,152,42,.06);pointer-events:none;
 }
 .insight:nth-child(2)::after{background:rgba(181,48,48,.06)}
 .insight:nth-child(3)::after{background:rgba(30,102,65,.06)}
-.insight-lbl{font-size:.62rem;font-weight:var(--fw-semi);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.3rem}
-.insight-val{font-family:var(--ff-head);font-size:1.2rem;font-weight:700;color:var(--text);line-height:1.1}
-.insight-sub{font-size:.68rem;color:var(--muted);margin-top:.2rem}
+.insight-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.08rem}
+.insight-val{font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--text);line-height:1.1}
+.insight-sub{font-size:.62rem;color:var(--muted);margin-top:.08rem}
 
 /* == TABS == */
 .tabs{
@@ -196,13 +206,11 @@ ul{list-style:none}
 .profile-banner{
   display:block;
   width:100%;
-  margin:0 auto 1.25rem;
-  max-width:680px;
-  padding:12px;
-  border-radius:var(--r);
-  background:rgba(249,245,236,.95);
-  border:1px solid rgba(221,212,190,.9);
-  box-shadow:var(--sh);
+  margin:0 auto .45rem;
+  padding:0;
+  background:transparent;
+  border:none;
+  box-shadow:none;
   overflow:hidden;
 }
 .profile-banner h3{
@@ -342,65 +350,270 @@ ul{list-style:none}
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.88rem}
 .empty-ico{font-size:2rem;margin-bottom:.5rem}
 
-/* == INVOICE PREVIEW == */
-#invoice-view{
-  display:none;background:#fff;border:1px solid #eee;
-  border-radius:4px;padding:1.5rem 1rem;margin-top:.75rem;color:#1a1a1a;
-  box-shadow:0 10px 30px rgba(0,0,0,0.05);
-  font-family:'Outfit', sans-serif;
-  overflow:hidden;
-  word-wrap:break-word;
-  width:100%;
+/* == INVOICE PREVIEW (Elegant Minimalist Asymmetrical) == */
+/* == INVOICE PREVIEW (Elegant Minimalist Asymmetrical) == */
+#invoice-view {
+  display: none;
+  background: #fff;
+  border-top: 3px solid var(--gold) !important;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.85rem 1.15rem;
+  margin-top: 0;
+  color: var(--text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  font-family: var(--ff-body);
+  overflow: hidden;
+  word-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
-.inv-header{
-  display:flex;flex-direction:column;gap:1rem;
-  border-bottom:3px solid var(--gold);padding-bottom:1rem;margin-bottom:1.5rem;
-}
-.inv-logo-placeholder{
-  width:50px;height:50px;background:#f8f8f8;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;
-}
-.inv-logo-img{max-width:80px;max-height:50px;object-fit:contain}
-.inv-biz-info{max-width:100%}
-.inv-biz-name{font-family:var(--ff-head);font-size:1.4rem;font-weight:700;color:var(--ink);line-height:1.1;margin-bottom:.25rem}
-.inv-biz-details{font-size:.8rem;color:#555;line-height:1.4}
-
-.inv-meta{text-align:left}
-.inv-title{font-family:var(--ff-head);font-size:1.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:.5rem;text-transform:uppercase}
-.inv-ref-row{font-size:.8rem;color:#1a1a1a;margin-bottom:.25rem;display:flex;justify-content:flex-start;gap:1rem}
-.inv-ref-label{font-weight:600;color:var(--muted);text-transform:uppercase;font-size:.65rem;letter-spacing:1px}
-
-.inv-billing{display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:2rem}
-.inv-bill-box h4{font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:.5rem;border-bottom:1px solid #eee;padding-bottom:.3rem}
-.inv-bill-to-name{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:.2rem}
-.inv-bill-to-addr{font-size:.8rem;color:#555}
-
-.inv-tbl{width:100%;border-collapse:collapse;margin-bottom:1.5rem}
-.inv-tbl th{
-  background:var(--ink);color:white;text-align:left;padding:.6rem .4rem;
-  font-size:.65rem;text-transform:uppercase;letter-spacing:1px;
-}
-.inv-tbl th:nth-child(2),.inv-tbl th:nth-child(3),.inv-tbl th:nth-child(4){text-align:right}
-.inv-tbl td{padding:.6rem .4rem;border-bottom:1px solid #eee;font-size:.8rem}
-.inv-tbl td:nth-child(2),.inv-tbl td:nth-child(3),.inv-tbl td:nth-child(4){text-align:right}
-.inv-tbl tr:last-child td{border-bottom:2px solid var(--gold)}
-
-.inv-summary-grid{display:grid;grid-template-columns:1fr;gap:1.5rem}
-.inv-bank-box{background:#fdfaf3;padding:1rem;border-radius:8px;border-left:4px solid var(--gold)}
-.inv-bank-title{font-size:.65rem;font-weight:700;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
-.inv-bank-row{font-size:.75rem;margin-bottom:.2rem;display:flex;gap:.5rem}
-.inv-bank-label{font-weight:600;color:var(--muted);width:90px;flex-shrink:0}
-
-.inv-totals-box{font-size:.9rem}
-.inv-tot-row{display:flex;justify-content:space-between;padding:.4rem 0;color:#555}
-.inv-tot-grand{
-  margin-top:.4rem;padding:.8rem 0;border-top:2px solid var(--gold);
-  display:flex;justify-content:space-between;font-weight:800;font-size:1.2rem;color:var(--ink);
+#invoice-view * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
-.inv-footer{
-  margin-top:2rem;padding-top:1rem;border-top:1px solid #eee;
-  text-align:center;font-size:.75rem;color:var(--muted);font-style:italic;
+/* Asymmetrical Header */
+.inv-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+}
+.inv-biz-info {
+  text-align: left;
+  max-width: 60%;
+}
+.inv-biz-name {
+  font-family: var(--ff-head);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 0.15rem;
+}
+.inv-biz-details {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.inv-logo-wrap {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.inv-logo-placeholder {
+  font-family: var(--ff-head);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.inv-logo-img {
+  max-height: 36px;
+  max-width: 90px;
+  object-fit: contain;
+}
+
+/* Mid Section */
+.inv-mid-sec {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  align-items: flex-end;
+}
+.inv-bill-to {
+  text-align: left;
+  background: var(--cream);
+  border-left: 3px solid var(--gold);
+  padding: 0.4rem 0.6rem;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.inv-bill-to h3 {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--gold);
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+}
+.inv-bill-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.1rem;
+}
+.inv-bill-details {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.inv-bill-details div {
+  margin-bottom: 0.04rem;
+}
+
+.inv-meta-sec {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.inv-large-title {
+  font-family: var(--ff-head);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 0.1rem;
+}
+.inv-meta-table {
+  font-size: 0.65rem;
+  color: var(--text);
+  width: 100%;
+  max-width: 170px;
+}
+.inv-meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.04rem 0;
+}
+.inv-meta-label {
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.58rem;
+}
+.inv-meta-val {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Minimalist Table */
+.inv-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+.inv-tbl th {
+  color: var(--gold);
+  font-weight: 700;
+  text-align: left;
+  padding: 0.28rem 0.4rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-top: 1.5px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
+  background: transparent;
+}
+.inv-tbl th:nth-child(3), .inv-tbl th:nth-child(4), .inv-tbl th:nth-child(5) {
+  text-align: right;
+}
+.inv-tbl td {
+  padding: 0.28rem 0.4rem;
+  border-bottom: 1px solid var(--cream2);
+  font-size: 0.7rem;
+  color: var(--text);
+}
+.inv-tbl td:nth-child(3), .inv-tbl td:nth-child(4), .inv-tbl td:nth-child(5) {
+  text-align: right;
+}
+.inv-tbl tr:last-child td {
+  border-bottom: 1.5px solid var(--border);
+}
+
+/* Bottom layout (Bank left, totals right) */
+.inv-bottom-sec {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.inv-bank-box {
+  background: var(--cream);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  text-align: left;
+}
+.inv-bank-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.18rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.1rem;
+}
+.inv-bank-row {
+  font-size: 0.68rem;
+  margin-bottom: 0.08rem;
+  display: flex;
+  gap: 0.35rem;
+}
+.inv-bank-label {
+  font-weight: 600;
+  color: var(--muted);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.inv-totals-sec {
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+}
+.inv-tot-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.1rem 0.2rem;
+  color: var(--muted);
+}
+.inv-tot-row span:last-child {
+  font-weight: 700;
+  color: var(--text);
+}
+.inv-tot-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.2rem 0;
+  margin-top: 0.15rem;
+  border-top: 2px solid var(--gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+.inv-tot-bar span:last-child {
+  font-size: 0.95rem;
+  color: var(--gold);
+}
+
+/* Serif italic Thanks banner */
+.inv-thanks-banner {
+  text-align: center;
+  border-top: 1px double var(--border);
+  border-bottom: 1px double var(--border);
+  padding: 0.25rem 0;
+  margin-bottom: 0;
+  font-family: Georgia, serif;
+  font-size: 0.88rem;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .btn-print{
@@ -452,6 +665,7 @@ ul{list-style:none}
 
 /* ===================== FOOTER SECTION ===================== */
 #site-footer{
+  display: none; /* Hidden on landing page */
   background:var(--ink2);color:rgba(250,246,239,.45);
   text-align:center;padding:2rem 1.25rem 2.5rem;
   font-size:.78rem;line-height:1.7;
@@ -490,9 +704,790 @@ ul{list-style:none}
 @media print{
   #hero,.tabs,.btn-save,.add-row,
   #panel-sales,#panel-expense,#panel-inventory,#panel-report,
-  #site-footer,#toast,#invoice-actions{display:none!important}
+  #site-footer,#toast,#invoice-actions,.page-header,.card,.btn-back{display:none!important}
+  #invoice-modal{position:static!important;background:transparent!important;padding:0!important;display:block!important;width:100%!important;height:auto!important;}
+  #invoice-modal > div{max-width:100%!important;max-height:none!important;box-shadow:none!important;border:none!important;background:transparent!important;padding:0!important;}
+  #invoice-modal > div > div:first-child,#invoice-modal > div > div:last-child,#inv-mode-manual{display:none!important;}
   #panel-invoice,#invoice-view{display:block!important}
-  body{background:#fff}
+  body{background:#fff;margin:0;padding:0}
+  @page { size: portrait; margin: 8mm; }
+  #invoice-view {
+    border: none!important;
+    box-shadow: none!important;
+    padding: 0!important;
+    margin: 0!important;
+    page-break-inside: avoid!important;
+    break-inside: avoid!important;
+    page-break-after: avoid!important;
+    break-after: avoid!important;
+  }
+  .inv-footer-banner {
+    margin-left: 0!important;
+    margin-right: 0!important;
+    margin-bottom: 0!important;
+  }
+}
+
+/* ===================== REDESIGN DASHBOARD & PAGE-BASED NAV ===================== */
+/* Inner app content defaults */
+#main-content {
+  display: none; /* Hidden by default until "Start Tracking" is clicked */
+}
+
+/* Page Headers for subpages */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.35rem;
+}
+.page-header h2 {
+  font-family: var(--ff-head);
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 0;
+}
+.btn-back {
+  background: var(--ink);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-sm);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: var(--fw-semi);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+}
+.btn-back:hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* Quick Actions Grid on Dashboard */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem 0.45rem;
+  margin-bottom: 0.5rem;
+}
+.qa-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.35rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.qa-card:hover {
+  border-color: var(--gold);
+  background: var(--cream2);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(201,152,42,.12);
+}
+.qa-icon {
+  font-size: 1.05rem;
+  background: var(--cream);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.qa-card:hover .qa-icon {
+  background: var(--ink);
+  color: var(--gold-lt);
+}
+.qa-lbl {
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Latest Transactions */
+.transactions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.trans-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+.trans-item:hover {
+  border-color: var(--gold);
+}
+.trans-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.trans-title {
+  font-weight: var(--fw-semi);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.trans-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.trans-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.trans-amt {
+  font-family: var(--ff-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.trans-amt.in {
+  color: var(--green);
+}
+.trans-amt.out {
+  color: var(--red);
+}
+
+/* Floating Action Button (FAB) */
+.fab-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.fab-trigger {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  box-shadow: 0 4px 16px rgba(20, 16, 9, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: var(--fw-semi);
+  transition: transform 0.25s, background-color 0.2s;
+  outline: none;
+}
+.fab-trigger:hover {
+  background: var(--ink2);
+}
+.fab-trigger.open {
+  transform: rotate(45deg);
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: var(--red);
+}
+.fab-menu {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.22s, transform 0.22s;
+}
+.fab-menu.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+.fab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
+}
+.fab-label {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-xs);
+  font-size: 0.75rem;
+  font-weight: var(--fw-semi);
+  box-shadow: var(--sh);
+  border: 1px solid rgba(201,152,42,.15);
+  white-space: nowrap;
+}
+.fab-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+.fab-icon-btn:hover {
+  background: var(--gold-lt);
+  transform: scale(1.05);
+}
+}
+
+/* ===================== DARK MODE & SETTINGS SLIDERS ===================== */
+body.dark-mode {
+  --cream: #141009;
+  --cream2: #1E170E;
+  --cream3: #2D2215;
+  --text: #F5EFEB;
+  --muted: #A3937C;
+  --border: #4A3F2F;
+  background: var(--cream);
+  color: var(--text);
+}
+body.dark-mode .card,
+body.dark-mode .li,
+body.dark-mode .trans-item,
+body.dark-mode .qa-card,
+body.dark-mode .profile-item {
+  background: #1C150E !important;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .field input,
+body.dark-mode .field select,
+body.dark-mode .field textarea {
+  background: #251D14;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .field input:focus,
+body.dark-mode .field select:focus,
+body.dark-mode .field textarea:focus {
+  background: #2D231A;
+  border-color: var(--gold);
+}
+body.dark-mode .li-name,
+body.dark-mode .trans-title,
+body.dark-mode .card-h,
+body.dark-mode .page-header h2 {
+  color: #F5EFEB;
+}
+body.dark-mode .profile-banner {
+  background: rgba(28,21,14,.95);
+  border-color: var(--border);
+}
+body.dark-mode .profile-banner h3 {
+  color: #F5EFEB;
+}
+body.dark-mode #monthly-detail-modal > div {
+  background: var(--cream);
+}
+body.dark-mode #invoice-view {
+  background: #ffffff !important; /* Retain readable white base on invoice views */
+  color: #141009;
+}
+body.dark-mode #invoice-view * {
+  color: initial;
+}
+
+/* Premium Switch Toggle components */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-container:last-child {
+  border-bottom: none;
+}
+.toggle-lbl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.toggle-title {
+  font-weight: var(--fw-semi);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.toggle-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: .3s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: .3s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background-color: var(--gold);
+}
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+/* Zero-Scroll Recent Sales Fit-Screen Design */
+#panel-recent-sales {
+  max-width: 650px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .page-header {
+  margin-bottom: 0.35rem !important;
+  padding-bottom: 0.2rem !important;
+}
+
+#panel-recent-sales .page-header h2 {
+  font-size: 1.05rem !important;
+  margin: 0 !important;
+}
+
+#panel-recent-sales .card {
+  padding: 0.65rem !important;
+  margin-bottom: 0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .field {
+  margin-bottom: 0.35rem !important;
+}
+
+#panel-recent-sales .field label {
+  font-size: 0.7rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+#panel-recent-sales .field input {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.78rem !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+}
+
+#panel-recent-sales #list-root {
+  margin: 0.35rem 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .li {
+  padding: 0.3rem 0.55rem !important;
+  margin-bottom: 0.25rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: var(--bg-surface, #ffffff) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
+}
+
+#panel-recent-sales .li-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 0.4rem !important;
+}
+
+#panel-recent-sales .li-name {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+}
+
+#panel-recent-sales .li-sub {
+  font-size: 0.63rem !important;
+  color: var(--muted, #64748b) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 0.02rem !important;
+  line-height: 1.1 !important;
+}
+
+#panel-recent-sales .li-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  flex-shrink: 0 !important;
+}
+
+#panel-recent-sales .li-amt {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+}
+
+#panel-recent-sales .badge {
+  font-size: 0.55rem !important;
+  padding: 0.08rem 0.35rem !important;
+  border-radius: 4px !important;
+}
+
+#panel-recent-sales .btn-ghost {
+  padding: 0.15rem 0.35rem !important;
+  font-size: 0.65rem !important;
+  margin-left: 0.15rem !important;
+  border-radius: 4px !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* High Visibility Brand Theme Pagination Buttons */
+#panel-recent-sales .sales-prev-btn,
+#panel-recent-sales .sales-next-btn {
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-recent-sales .sales-prev-btn {
+  background: var(--cream2, #F3EDE0) !important;
+  color: var(--text, #1C1509) !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+}
+
+#panel-recent-sales .sales-next-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  box-shadow: 0 2px 6px rgba(201, 152, 42, 0.3) !important;
+}
+
+#panel-recent-sales .sales-next-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(201, 152, 42, 0.4) !important;
+}
+
+#panel-recent-sales .sales-prev-btn:hover {
+  background: var(--cream3, #EAE1CC) !important;
+}
+
+#panel-recent-sales .sales-page-info {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: var(--ink3, #4A3F2F) !important;
+}
+
+/* Zero-Scroll Record Sale Form Styling */
+#panel-sales {
+  max-width: 780px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-sales .row3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.45rem !important;
+}
+
+#panel-sales .field {
+  margin-bottom: 0.3rem !important;
+}
+
+#panel-sales .field label {
+  font-size: 0.68rem !important;
+  margin-bottom: 0.1rem !important;
+  font-weight: 600 !important;
+  color: var(--text, #1C1509) !important;
+}
+
+#panel-sales .field input,
+#panel-sales .field select {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.76rem !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+  box-sizing: border-box !important;
+}
+
+#panel-sales .btn-save {
+  padding: 0.3rem 1rem !important;
+  font-size: 0.78rem !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+}
+
+/* Brand Gold Action Bar & Button Styles for Record/Edit Sale */
+#panel-sales #sale-submit-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 1.15rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(201, 152, 42, 0.3) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-sales #sale-submit-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 14px rgba(201, 152, 42, 0.45) !important;
+}
+
+#panel-sales #sale-cancel-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: #141009 !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(201, 152, 42, 0.25) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-sales #sale-cancel-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  color: #141009 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(201, 152, 42, 0.35) !important;
+}
+
+/* Fail-Safe Action Bar for Millions */
+#panel-sales .sale-action-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: linear-gradient(135deg, rgba(201, 152, 42, 0.12) 0%, rgba(201, 152, 42, 0.05) 100%) !important;
+  border: 1px solid rgba(201, 152, 42, 0.25) !important;
+  padding: 0.35rem 0.65rem !important;
+  border-radius: 8px !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.15rem !important;
+  box-sizing: border-box !important;
+  gap: 0.5rem !important;
+}
+
+#panel-sales .sale-totals-block {
+  flex: 1 !important;
+  min-width: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#panel-sales .sale-totals-sub-line {
+  font-size: 0.63rem !important;
+  color: var(--muted, #7A6E58) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.1 !important;
+}
+
+#panel-sales .sale-totals-sub-line strong {
+  color: var(--ink, #141009) !important;
+  font-weight: 600 !important;
+}
+
+#panel-sales .sale-total-main-line {
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  color: #000000 !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  margin-top: 0.05rem !important;
+}
+
+#panel-sales .sale-total-main-line span#tot-total {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+#panel-sales .sale-buttons-block {
+  display: flex !important;
+  gap: 0.4rem !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  min-width: max-content !important;
+}
+
+@media (max-width: 550px) {
+  #panel-sales .row3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Zero-Scroll Record Expense Form & Collapsible Recent Expenses */
+#panel-expense {
+  max-width: 780px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-expense .row2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0.45rem !important;
+}
+
+#panel-expense .field {
+  margin-bottom: 0.3rem !important;
+}
+
+#panel-expense .field label {
+  font-size: 0.68rem !important;
+  margin-bottom: 0.1rem !important;
+  font-weight: 600 !important;
+  color: var(--text, #1C1509) !important;
+}
+
+#panel-expense .field input,
+#panel-expense .field select {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.76rem !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+  box-sizing: border-box !important;
+}
+
+#panel-expense #expense-submit-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 1.15rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(201, 152, 42, 0.3) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-expense #expense-submit-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+}
+
+#panel-expense #expense-cancel-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: #141009 !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-expense .exp-li-compact {
+  padding: 0.3rem 0.55rem !important;
+  margin-bottom: 0.25rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: var(--bg-surface, #ffffff) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
 }
 </style>
 </head>
@@ -505,30 +1500,28 @@ ul{list-style:none}
     <a href="#hero" class="brand" aria-label="BizTrack.ng homepage">Biz<em>Track.ng</em></a>
     <div style="display:flex;align-items:center;gap:1.5rem">
       <span id="user-display" style="font-size:.75rem;color:rgba(250,246,239,.6)"></span>
+      <button id="btn-staff-lock" onclick="window.lockApp()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:600;cursor:pointer;display:none">Lock (Staff Mode)</button>
+      <button id="btn-staff-unlock" onclick="window.unlockApp()" style="background:var(--gold);border:none;color:var(--ink);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:700;cursor:pointer;display:none">🔓 Unlock Admin</button>
       <button onclick="window.signOut()" style="background:transparent;border:1px solid rgba(201,152,42,.4);color:var(--gold);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:600;cursor:pointer">Sign Out</button>
     </div>
   </header>
 
   <div class="hero-body">
-    <div class="hero-pill" aria-hidden="true">
-      <span class="pill-dot"></span>Built for Nigerian Business Owners
-    </div>
-
     <h1 class="hero-h1">Your business,<br><em>tracked daily.</em></h1>
 
     <p class="hero-p">
       Record every sale, expense &amp; invoice in seconds.
-      Know your profit. Know your FIRS tax. All in ₦.
+      Know your profit.
     </p>
 
     <div class="hero-actions">
-      <button id="btn-primary" onclick="document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="Start tracking your business">
-        Start Tracking ↓
+      <button id="btn-primary" onclick="enterInnerApp('dashboard')" aria-label="Start tracking your business">
+        Start Tracking
       </button>
-      <button class="btn-ghost" onclick="switchTab('profile'); document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="Edit business details">
+      <button class="btn-ghost" onclick="enterInnerApp('profile')" aria-label="Edit business details">
         Business Details
       </button>
-      <button class="btn-ghost" onclick="switchTab('report'); document.getElementById('main-content').scrollIntoView({behavior:'smooth'})" aria-label="View your financial reports">
+      <button class="btn-ghost" onclick="enterInnerApp('report')" aria-label="View your financial reports">
         View Reports
       </button>
     </div>
@@ -544,7 +1537,7 @@ ul{list-style:none}
       </div>
       <div class="hero-metric">
         <span class="hm-val" id="hm-count" aria-label="Number of sales">0</span>
-        <span class="hm-lbl">Sales</span>
+        <span class="hm-lbl">Orders</span>
       </div>
     </div>
   </div>
@@ -554,139 +1547,260 @@ ul{list-style:none}
 <!-- MAIN SECTION -->
 <main id="main-content" role="main" tabindex="-1" aria-label="Business management workspace">
 
-  <section id="profile-banner" class="profile-banner" aria-label="Business profile information" style="display:none"></section>
+  <!-- PANEL: DASHBOARD -->
+  <section id="panel-dashboard" class="panel on" role="tabpanel" aria-label="Dashboard">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="goToLandingPage()">&larr; Back to Home</button>
+      <h2>Dashboard</h2>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button id="dash-btn-staff-lock" onclick="window.lockApp()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.35rem .75rem;border-radius:var(--r-xs);font-size:.75rem;font-weight:600;cursor:pointer;display:none">Lock Staff Mode</button>
+        <button id="dash-btn-staff-unlock" onclick="window.unlockApp()" style="background:var(--gold);border:none;color:var(--ink);padding:.35rem .75rem;border-radius:var(--r-xs);font-size:.75rem;font-weight:700;cursor:pointer;display:none">🔓 Unlock Admin</button>
+      </div>
+    </div>
 
-  <!-- INSIGHTS PANEL (required id) -->
-  <section id="insights-panel" aria-label="Financial overview">
-    <article class="insight" aria-label="Total revenue">
-      <div class="insight-lbl">Revenue</div>
-      <div class="insight-val" id="ins-rev">₦0.00</div>
-      <div class="insight-sub" id="ins-rev-sub">0 sales</div>
-    </article>
-    <article class="insight" aria-label="Total expenses">
-      <div class="insight-lbl">Expenses</div>
-      <div class="insight-val" id="ins-exp">₦0.00</div>
-      <div class="insight-sub" id="ins-exp-sub">0 entries</div>
-    </article>
-    <article class="insight" aria-label="Net profit">
-      <div class="insight-lbl">Net Profit</div>
-      <div class="insight-val" id="ins-profit">₦0.00</div>
-      <div class="insight-sub" id="ins-profit-sub">Revenue − Expenses</div>
-    </article>
-    <article class="insight" aria-label="FIRS tax estimate">
-      <div class="insight-lbl">FIRS Tax Est.</div>
-      <div class="insight-val" id="ins-tax">₦0.00</div>
-      <div class="insight-sub" id="ins-tax-sub">0% — Exempt</div>
-    </article>
+    <section id="profile-banner" class="profile-banner" aria-label="Business profile information" style="display:none"></section>
+
+    <!-- INSIGHTS PANEL (required id) -->
+    <section id="insights-panel" aria-label="Financial overview">
+      <article class="insight" aria-label="Total revenue">
+        <div class="insight-lbl">Revenue</div>
+        <div class="insight-val" id="ins-rev">₦0.00</div>
+        <div class="insight-sub" id="ins-rev-sub">0 sales</div>
+      </article>
+      <article class="insight" aria-label="Total expenses">
+        <div class="insight-lbl">Expenses</div>
+        <div class="insight-val" id="ins-exp">₦0.00</div>
+        <div class="insight-sub" id="ins-exp-sub">0 entries</div>
+      </article>
+      <article class="insight" aria-label="Net profit">
+        <div class="insight-lbl">Net Profit</div>
+        <div class="insight-val" id="ins-profit">₦0.00</div>
+        <div class="insight-sub" id="ins-profit-sub">Revenue − Expenses</div>
+      </article>
+      <article class="insight" aria-label="FIRS tax estimate">
+        <div class="insight-lbl">FIRS Tax Est.</div>
+        <div class="insight-val" id="ins-tax">₦0.00</div>
+        <div class="insight-sub" id="ins-tax-sub">0% — Exempt</div>
+      </article>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section style="margin-top: 0.4rem;">
+      <h3 class="card-h" style="margin-bottom: 0.35rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold);">Quick Actions</h3>
+      <div class="quick-actions-grid">
+        <div class="qa-card" id="qa-sales-card" onclick="switchTab('sales')">
+          <div class="qa-icon">📝</div>
+          <div class="qa-lbl">Record Sale</div>
+        </div>
+        <div class="qa-card" id="qa-recent-sales-card" onclick="switchTab('recent-sales')">
+          <div class="qa-icon">📋</div>
+          <div class="qa-lbl">Recent Sales</div>
+        </div>
+        <div class="qa-card" id="qa-expense-card" onclick="switchTab('expense')">
+          <div class="qa-icon">💸</div>
+          <div class="qa-lbl">Record Expense</div>
+        </div>
+        <div class="qa-card" id="qa-inventory-card" onclick="switchTab('inventory')">
+          <div class="qa-icon">📦</div>
+          <div class="qa-lbl">Inventory</div>
+        </div>
+        <div class="qa-card" id="qa-invoice-card" onclick="switchTab('invoice')">
+          <div class="qa-icon">🧾</div>
+          <div class="qa-lbl">Invoice</div>
+        </div>
+        <div class="qa-card" id="qa-report-card" onclick="switchTab('report')">
+          <div class="qa-icon">📊</div>
+          <div class="qa-lbl">Reports</div>
+        </div>
+        <div class="qa-card" id="qa-profile-card" onclick="switchTab('profile')">
+          <div class="qa-icon">⚙️</div>
+          <div class="qa-lbl">Business Details</div>
+        </div>
+        <div class="qa-card" id="qa-settings-card" onclick="switchTab('settings')">
+          <div class="qa-icon">🔧</div>
+          <div class="qa-lbl">Settings</div>
+        </div>
+        <div class="qa-card" id="qa-admin-card" onclick="switchTab('admin')">
+          <div class="qa-icon">👑</div>
+          <div class="qa-lbl">Admin Center</div>
+        </div>
+      </div>
+    </section>
   </section>
 
-  <!-- TABS -->
-  <nav class="tabs" role="tablist" aria-label="App sections">
-    <button class="tab on" role="tab" id="tab-sales"     aria-selected="true"  aria-controls="panel-sales"     onclick="switchTab('sales')"    >Record Sale</button>
+  <!-- TABS (Hidden but kept for script reference compatibility) -->
+  <nav class="tabs" role="tablist" aria-label="App sections" style="display:none!important;">
+    <button class="tab"    role="tab" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab"    role="tab" id="tab-sales"     aria-selected="false" aria-controls="panel-sales"     onclick="switchTab('sales')"    >Record Sale</button>
+    <button class="tab"    role="tab" id="tab-recent-sales" onclick="switchTab('recent-sales')">Recent Sales</button>
     <button class="tab"    role="tab" id="tab-expense"   aria-selected="false" aria-controls="panel-expense"   onclick="switchTab('expense')"  >Expense</button>
     <button class="tab"    role="tab" id="tab-inventory" aria-selected="false" aria-controls="panel-inventory" onclick="switchTab('inventory')" >Inventory</button>
     <button class="tab"    role="tab" id="tab-invoice"   aria-selected="false" aria-controls="panel-invoice"   onclick="switchTab('invoice')"  >Invoice</button>
     <button class="tab"    role="tab" id="tab-report"    aria-selected="false" aria-controls="panel-report"    onclick="switchTab('report')"   >Report</button>
     <button class="tab"    role="tab" id="tab-profile"   aria-selected="false" aria-controls="panel-profile"   onclick="switchTab('profile')"  >Details</button>
+    <button class="tab"    role="tab" id="tab-settings"  onclick="switchTab('settings')">Settings</button>
+    <button class="tab"    role="tab" id="tab-admin"     onclick="switchTab('admin')">Admin</button>
+    <button class="tab"    role="tab" id="tab-transactions" onclick="switchTab('transactions')">Transactions</button>
+    <button class="tab"    role="tab" id="tab-unlock-admin" onclick="window.unlockApp()" style="display:none;color:var(--gold);font-weight:600">🔓 Unlock Admin</button>
   </nav>
 
   <!-- PANEL: DAILY SALE -->
-  <section id="panel-sales" class="panel on" role="tabpanel" aria-labelledby="tab-sales">
-    <div class="card">
-      <h2 class="card-h">New Sale Record</h2>
+  <section id="panel-sales" class="panel" role="tabpanel" aria-labelledby="tab-sales">
+    <div class="page-header" style="margin-bottom: 0.25rem; padding-bottom: 0.15rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Record Sale</h2>
+    </div>
+    <div class="card" style="padding: 0.55rem 0.75rem !important;">
+      <h2 class="card-h" style="font-size: 0.85rem; margin-bottom: 0.35rem;">New Sale Record</h2>
       <form id="form-sale" novalidate>
 
-        <div class="row2">
-          <div class="field">
-            <label for="sale-date">Date of Sale <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="date" id="sale-date" name="sale-date" required aria-required="true"/>
+        <!-- Customer & Order Meta Grid -->
+        <div style="display:grid; grid-template-columns: 1fr 1.4fr 1.1fr 1.3fr; gap:0.45rem; margin-bottom:0.35rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-date" style="font-size:0.65rem; margin-bottom:0.15rem;">Date <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="date" id="sale-date" name="sale-date" required aria-required="true" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
           </div>
-          <div class="field">
-            <label for="sale-status">Delivery Status</label>
-            <select id="sale-status" name="sale-status">
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-name" style="font-size:0.65rem; margin-bottom:0.15rem;">Customer Name <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="cust-name" name="cust-name" placeholder="e.g. Amaka Okonkwo" required aria-required="true" autocomplete="off" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-phone" style="font-size:0.65rem; margin-bottom:0.15rem;">Phone / Contact <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="tel" id="cust-phone" name="cust-phone" placeholder="08012345678" required aria-required="true" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-address" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Address</label>
+            <input type="text" id="cust-address" name="cust-address" placeholder="Street, City" autocomplete="off" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+        </div>
+
+        <!-- Delivery, Payment & Financial Options Grid -->
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.45rem; margin-bottom:0.35rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-status" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Status</label>
+            <select id="sale-status" name="sale-status" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;">
               <option value="Pending">Pending</option>
               <option value="Delivered">Delivered</option>
               <option value="Failed">Failed</option>
             </select>
           </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-payment-status" style="font-size:0.65rem; margin-bottom:0.15rem;">Payment Status</label>
+            <select id="sale-payment-status" name="sale-payment-status" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;">
+              <option value="Paid">Paid (Completed)</option>
+              <option value="Pending">Pending (Unpaid)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-delivery" style="font-size:0.65rem; margin-bottom:0.15rem;">Expected Delivery</label>
+            <input type="date" id="sale-delivery" name="sale-delivery" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-delivery-fee" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Fee (₦)</label>
+            <input type="number" id="sale-delivery-fee" name="sale-delivery-fee" placeholder="0.00" min="0" step="0.01" value="0" oninput="calcTotals()" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-disc" style="font-size:0.65rem; margin-bottom:0.15rem;">Discount (%)</label>
+            <input type="number" id="sale-disc" name="sale-disc" placeholder="0" min="0" max="100" value="0" oninput="calcTotals()" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="cust-name">Customer Full Name <span class="req-mark" aria-hidden="true">*</span></label>
-          <input type="text" id="cust-name" name="cust-name" placeholder="e.g. Amaka Okonkwo" required aria-required="true" autocomplete="off"/>
-        </div>
-
-        <div class="row2">
-          <div class="field">
-            <label for="cust-phone">Phone / Contact <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="tel" id="cust-phone" name="cust-phone" placeholder="+234 800 000 0000" required aria-required="true"/>
-          </div>
-          <div class="field">
-            <label for="cust-address">Delivery Address</label>
-            <input type="text" id="cust-address" name="cust-address" placeholder="Street, City" autocomplete="off"/>
-          </div>
-        </div>
-
-        <fieldset style="border:none;padding:0;margin-bottom:.875rem">
-          <legend class="items-legend">Items Purchased <span class="req-mark" aria-hidden="true">*</span></legend>
-          <div class="items-col-head" aria-hidden="true">
-            <span>Item Name</span><span>Qty</span><span>Unit Price (₦)</span>
-          </div>
+        <!-- Items Purchased Container -->
+        <datalist id="inventory-item-suggestions"></datalist>
+        <fieldset style="border:1px solid var(--border); padding:0.25rem 0.45rem; margin-bottom:0.35rem; border-radius:6px; background:#fafafa; max-height:140px; overflow-y:auto;">
+          <legend class="items-legend" style="font-size:0.65rem; font-weight:700; padding:0 0.2rem;">Items Purchased <span class="req-mark" aria-hidden="true">*</span></legend>
           <div id="items-rows">
-            <div class="item-row">
-              <input type="text"   id="item-name-0"  name="item-name-0"  class="iname"  placeholder="Item name"  aria-label="Item name"/>
-              <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1"/>
-              <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01"/>
+            <div class="item-row" style="display:flex; flex-direction:column; gap:0.15rem; margin-bottom:0.25rem; padding:0.25rem 0.35rem; border:1px solid var(--border); border-radius:6px; background:#fff;">
+              <div style="display:flex; gap:0.3rem; align-items:center;">
+                <input type="text"   id="item-name-0"  name="item-name-0"  class="iname" list="inventory-item-suggestions" placeholder="Type item name or select inventory product…" aria-label="Item name" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="flex:2.2; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1" oninput="calcTotals()" style="flex:0.6; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01" oninput="calcTotals()" style="flex:0.9; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0.1rem 0.35rem; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
+              </div>
+              <div class="stock-badge-info" style="font-size:0.66rem; color:var(--muted); padding-left:0.15rem;"></div>
             </div>
           </div>
-          <button type="button" class="add-row" onclick="addItemRow()" aria-label="Add another item line">+ Add another item</button>
+          <button type="button" class="add-row" onclick="addItemRow()" aria-label="Add another item line" style="padding:0.15rem 0.5rem; font-size:0.68rem; margin-top:0.15rem; background:var(--cream2); border:1px solid var(--border); border-radius:4px; cursor:pointer;">+ Add item</button>
         </fieldset>
 
-        <div class="row2">
-          <div class="field">
-            <label for="sale-delivery-fee">Delivery Fee</label>
-            <input type="number" id="sale-delivery-fee" name="sale-delivery-fee" placeholder="0.00" min="0" step="0.01" value="0" oninput="calcTotals()"/>
+        <!-- Compact Action & Totals Bar -->
+        <div class="sale-action-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.25rem; padding-top:0.25rem; border-top:1px solid var(--border);">
+          <div class="sale-totals-block totals" aria-live="polite" aria-label="Sale totals" style="font-size:0.75rem;">
+            <div class="sale-totals-sub-line" style="font-size:0.7rem; color:var(--muted);">
+              <span>Fee: <strong id="tot-delivery">₦0.00</strong></span> · 
+              <span>Sub: <strong id="tot-sub">₦0.00</strong></span> · 
+              <span class="neg">Disc: <strong class="neg" id="tot-disc">-₦0.00</strong></span>
+            </div>
+            <div class="sale-total-main-line" style="font-size:0.95rem; font-weight:700; color:var(--ink);">
+              <span>Total:</span> <span id="tot-total" style="color:var(--green, #137333);">₦0.00</span>
+            </div>
           </div>
-          <div class="field">
-            <label for="sale-disc">Discount (%)</label>
-            <input type="number" id="sale-disc" name="sale-disc" placeholder="0" min="0" max="100" value="0" oninput="calcTotals()"/>
+
+          <div class="sale-buttons-block" style="display:flex; gap:0.4rem;">
+            <button type="submit" id="sale-submit-btn" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.4rem 1.35rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer;">Save</button>
+            <button type="button" id="sale-cancel-btn" style="display:none; background:var(--cream2); color:var(--ink); border:1px solid var(--border); padding:0.4rem 1rem; font-size:0.82rem; border-radius:6px; cursor:pointer;" onclick="clearSaleEditMode()">Cancel</button>
           </div>
         </div>
-
-        <div class="row2">
-          <div class="field">
-            <label for="sale-delivery">Expected Delivery</label>
-            <input type="date" id="sale-delivery" name="sale-delivery"/>
-          </div>
-          <div class="field">
-            <label for="cust-feedback">Customer Feedback</label>
-            <textarea id="cust-feedback" name="cust-feedback" placeholder="Feedback after delivery (optional)…" rows="2"></textarea>
-          </div>
-        </div>
-
-        <div class="totals" aria-live="polite" aria-label="Sale totals">
-          <div class="tot-row"><span>Delivery Fee</span><span id="tot-delivery">₦0.00</span></div>
-          <div class="tot-row"><span>Subtotal</span><span id="tot-sub">₦0.00</span></div>
-          <div class="tot-row"><span class="neg">Discount</span><span class="neg" id="tot-disc">- ₦0.00</span></div>
-          <div class="tot-row big"><span>Total</span><span id="tot-total">₦0.00</span></div>
-        </div>
-
-        <button type="submit" class="btn-save">Save Sale Record</button>
       </form>
     </div>
+  </section>
 
-    <section aria-labelledby="sales-list-hd">
-      <h2 id="sales-list-hd" class="card-h" style="margin-bottom:.75rem">Recent Sales</h2>
+  <!-- PANEL: RECENT SALES -->
+  <section id="panel-recent-sales" class="panel" role="tabpanel" aria-labelledby="tab-recent-sales">
+    <div class="page-header" style="margin-bottom: 0.65rem; padding-bottom: 0.4rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Recent Sales</h2>
+    </div>
+    <div class="card" style="padding: 0.85rem !important;">
+      <div class="field" style="margin-bottom: 0.65rem;">
+        <label for="input-search">Search Sales</label>
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1;"/>
+          <button type="button" id="btn-search-sales" onclick="triggerSalesSearch()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0 0.85rem; font-size:0.78rem; font-weight:700; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem; flex-shrink:0;">
+            🔍 Search
+          </button>
+          <button type="button" id="btn-clear-search" onclick="clearSalesSearch()" style="background:var(--cream2, #F3EDE0); color:var(--muted, #7A6E58); border:1px solid var(--border, #DDD4BE); padding:0 0.65rem; font-size:0.75rem; font-weight:600; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; flex-shrink:0;">
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+        <nav class="tabs" id="sales-filter-tabs" role="tablist" style="margin-bottom:0; flex:1;">
+          <button type="button" class="tab on" id="sf-all" onclick="filterSales('All')">All</button>
+          <button type="button" class="tab" id="sf-paid" onclick="filterSales('Paid')">Paid</button>
+          <button type="button" class="tab" id="sf-pending" onclick="filterSales('Pending')">Unpaid</button>
+        </nav>
+
+        <!-- Top Pagination Controls -->
+        <div class="sales-pagination-controls" style="display:flex; align-items:center; gap:0.4rem;">
+          <button type="button" class="btn-ghost sales-prev-btn" onclick="prevSalesPage()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">&larr; Prev</button>
+          <span class="sales-page-info" style="font-size:0.75rem; font-weight:var(--fw-semi); color:var(--muted)">Page 1 of 1</span>
+          <button type="button" class="btn-ghost sales-next-btn" onclick="nextSalesPage()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">Next &rarr;</button>
+        </div>
+      </div>
+
       <ul id="list-root" aria-label="Recorded sales" aria-live="polite"></ul>
-    </section>
+      
+      <!-- Bottom Pagination Controls -->
+      <div class="sales-pagination-controls" style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+        <button type="button" class="btn-ghost sales-prev-btn" onclick="prevSalesPage()" style="width:auto; padding:0.3rem 0.75rem; font-size:0.78rem;">&larr; Previous</button>
+        <span class="sales-page-info" style="font-size:0.8rem; font-weight:var(--fw-semi); color:var(--muted)">Page 1 of 1</span>
+        <button type="button" class="btn-ghost sales-next-btn" onclick="nextSalesPage()" style="width:auto; padding:0.3rem 0.75rem; font-size:0.78rem;">Next &rarr;</button>
+      </div>
+    </div>
   </section>
 
   <!-- PANEL: EXPENSE -->
   <section id="panel-expense" class="panel" role="tabpanel" aria-labelledby="tab-expense">
-    <div class="card">
-      <h2 class="card-h">Record Daily Expense</h2>
-      <form id="form-expense" novalidate>
+    <div class="page-header" style="margin-bottom: 0.35rem; padding-bottom: 0.2rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Record Expense</h2>
+    </div>
 
+    <div class="card" style="padding: 0.65rem 0.85rem !important;">
+      <h2 class="card-h" style="margin-bottom: 0.35rem;">Record Daily Expense</h2>
+      <form id="form-expense" novalidate>
         <div class="row2">
           <div class="field">
             <label for="exp-date">Date <span class="req-mark" aria-hidden="true">*</span></label>
@@ -709,158 +1823,341 @@ ul{list-style:none}
           </div>
         </div>
 
-        <div class="field">
-          <label for="exp-desc">Description</label>
-          <input type="text" id="exp-desc" name="exp-desc" placeholder="Brief description of the expense" autocomplete="off"/>
+        <div class="row2">
+          <div class="field">
+            <label for="exp-amount">Amount (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="number" id="exp-amount" name="exp-amount" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="exp-desc">Description</label>
+            <input type="text" id="exp-desc" name="exp-desc" placeholder="Brief description of expense" autocomplete="off"/>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="exp-amount">Amount (₦) <span class="req-mark" aria-hidden="true">*</span></label>
-          <input type="number" id="exp-amount" name="exp-amount" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;">
+          <button type="submit" id="expense-submit-btn">Save Expense</button>
+          <button type="button" id="expense-cancel-btn" style="display:none;" onclick="clearExpenseEditMode()">Cancel</button>
         </div>
-
-        <button type="submit" class="btn-save">Save Expense</button>
       </form>
     </div>
 
-    <section aria-labelledby="exp-list-hd">
-      <h2 id="exp-list-hd" class="card-h" style="margin-bottom:.75rem">Recent Expenses</h2>
-      <ul id="exp-list" aria-label="Recorded expenses" aria-live="polite"></ul>
-    </section>
+    <!-- Collapsible Recent Expenses Card -->
+    <div class="card" style="margin-top: 0.45rem; padding: 0.5rem 0.85rem !important;">
+      <button type="button" id="exp-collapse-toggle" onclick="toggleExpensesAccordion()" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none; padding:0.2rem 0; cursor:pointer; text-align:left;" aria-expanded="false">
+        <div style="display:flex; align-items:center; gap:0.45rem;">
+          <span style="font-size:0.95rem;">💸</span>
+          <h3 style="font-size:0.85rem; font-weight:700; color:var(--ink, #141009); margin:0;">Recent Expenses</h3>
+          <span id="exp-count-badge" class="badge" style="background:rgba(201,152,42,0.12); color:var(--gold-dark, #C9982A); font-size:0.6rem; font-weight:600; padding:0.1rem 0.4rem; border-radius:4px;">0 recorded</span>
+        </div>
+        <div id="exp-chevron" style="font-size:0.75rem; color:var(--muted, #7A6E58); transition:transform 0.25s ease;">▼</div>
+      </button>
+
+      <div id="exp-collapsible-content" style="max-height:0; overflow:hidden; opacity:0; transition:max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease; margin-top:0;">
+        <ul id="exp-list" aria-label="Recorded expenses" aria-live="polite" style="margin-top:0.35rem; padding:0; list-style:none;"></ul>
+      </div>
+    </div>
   </section>
 
   <!-- PANEL: INVENTORY -->
   <section id="panel-inventory" class="panel" role="tabpanel" aria-labelledby="tab-inventory">
-    <div class="card">
-      <h2 class="card-h">Add Product to Inventory</h2>
-      <form id="form-inventory" novalidate>
-
-        <div class="row2">
-          <div class="field">
-            <label for="inv-name">Product Name <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="text" id="inv-name" name="inv-name" placeholder="e.g. Ankara Fabric" required aria-required="true" autocomplete="off"/>
-          </div>
-          <div class="field">
-            <label for="inv-category">Category</label>
-            <input type="text" id="inv-category" name="inv-category" placeholder="e.g. Fabrics" autocomplete="off"/>
-          </div>
-        </div>
-
-        <div class="row2">
-          <div class="field">
-            <label for="inv-qty">Qty in Stock <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="number" id="inv-qty" name="inv-qty" placeholder="0" min="0" required aria-required="true"/>
-          </div>
-          <div class="field">
-            <label for="inv-unit">Unit of Measure</label>
-            <input type="text" id="inv-unit" name="inv-unit" placeholder="pieces, yards, kg…"/>
-          </div>
-        </div>
-
-        <div class="row2">
-          <div class="field">
-            <label for="inv-cost">Cost Price (₦) <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="number" id="inv-cost" name="inv-cost" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
-          </div>
-          <div class="field">
-            <label for="inv-sell">Selling Price (₦)</label>
-            <input type="number" id="inv-sell" name="inv-sell" placeholder="0.00" min="0" step="0.01"/>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-save">Add to Inventory</button>
-      </form>
+    <div class="page-header" style="margin-bottom:0.65rem; padding-bottom:0.35rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Inventory</h2>
     </div>
 
-    <section aria-labelledby="inv-list-hd">
-      <h2 id="inv-list-hd" class="card-h" style="margin-bottom:.75rem">Stock List</h2>
-      <ul id="inv-list" aria-label="Inventory items" aria-live="polite"></ul>
-    </section>
+    <!-- Inventory Dashboard Summary Cards -->
+    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:0.55rem; margin-bottom:0.75rem;">
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--gold);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Total Products</div>
+        <div id="inv-dash-total-products" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--text); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid #2A4EA6;">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Total Units</div>
+        <div id="inv-dash-total-units" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--text); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid #E8BE6A;">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Low Stock</div>
+        <div id="inv-dash-low-stock" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--gold); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--red);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Out of Stock</div>
+        <div id="inv-dash-out-stock" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--red); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="grid-column: span 2; background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--green);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Stock Value (Selling Price Total)</div>
+        <div id="inv-dash-value" style="font-family:var(--ff-head); font-size:1.2rem; font-weight:700; color:var(--green); margin-top:0.15rem;">₦0.00</div>
+      </div>
+    </div>
+
+    <!-- Inventory Zero-Scroll Action Grid -->
+    <div style="display:grid; grid-template-columns:1fr; gap:0.65rem; margin-top:0.5rem;">
+
+      <!-- Card 1: Add Product to Inventory Trigger -->
+      <div class="card" style="padding:0.85rem 1rem !important; margin-bottom:0;" onclick="openAddProductModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; cursor:pointer;">
+          <div>
+            <h3 style="font-size:0.9rem; font-weight:700; color:var(--ink, #141009); margin:0;">Add Product to Inventory</h3>
+            <p style="font-size:0.72rem; color:var(--muted); margin:0.15rem 0 0 0;">Create a new inventory product record in a pop-up dialog</p>
+          </div>
+          <button type="button" id="btn-open-add-product" onclick="event.stopPropagation(); openAddProductModal();" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
+            ➕ Add Product
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: View Stock Inventory List Trigger -->
+      <div class="card" style="padding:0.85rem 1rem !important; margin-bottom:0;" onclick="openStockListModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; cursor:pointer;">
+          <div>
+            <h3 style="font-size:0.9rem; font-weight:700; color:var(--ink, #141009); margin:0;">Stock Inventory List</h3>
+            <p style="font-size:0.72rem; color:var(--muted); margin:0.15rem 0 0 0;">View, search, edit, or delete saved stock items in a pop-up</p>
+          </div>
+          <button type="button" id="btn-view-stock-modal" onclick="event.stopPropagation(); openStockListModal();" style="background:var(--cream2, #F3EDE0); color:var(--ink, #141009); border:1px solid var(--border, #DDD4BE); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem;">
+            📦 View Stock List (<span id="inv-stock-count-badge">0</span>)
+          </button>
+        </div>
+      </div>
+
+    </div>
   </section>
+
+  <!-- MODAL: ADD / EDIT PRODUCT POP-UP -->
+  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeAddProductModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:540px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Header -->
+      <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">➕</span>
+          <h3 id="add-product-modal-title" style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Add Product to Inventory</h3>
+        </div>
+        <button type="button" onclick="closeAddProductModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Form Container -->
+      <div style="padding:1.15rem; overflow-y:auto; flex:1;">
+        <form id="form-inventory" novalidate>
+          <div class="row2">
+            <div class="field">
+              <label for="inv-name">Product Name <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="text" id="inv-name" name="inv-name" placeholder="e.g. Ankara Fabric" required aria-required="true" autocomplete="off"/>
+            </div>
+            <div class="field">
+              <label for="inv-category">Category</label>
+              <input type="text" id="inv-category" name="inv-category" placeholder="e.g. Fabrics" autocomplete="off"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="inv-qty">Qty in Stock <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="number" id="inv-qty" name="inv-qty" placeholder="0" min="0" required aria-required="true"/>
+            </div>
+            <div class="field">
+              <label for="inv-unit">Unit of Measure</label>
+              <input type="text" id="inv-unit" name="inv-unit" placeholder="pieces, yards, kg…"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="inv-cost">Cost Price (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="number" id="inv-cost" name="inv-cost" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+            </div>
+            <div class="field">
+              <label for="inv-sell">Selling Price (₦)</label>
+              <input type="number" id="inv-sell" name="inv-sell" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.6rem; margin-top:0.75rem; justify-content:flex-end;">
+            <button type="button" class="btn-ghost" onclick="closeAddProductModal()" style="width:auto; padding:0.5rem 1rem;">Cancel</button>
+            <button type="submit" class="btn-save" id="inventory-submit-btn" style="width:auto; padding:0.5rem 1.25rem;">Add to Inventory</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STOCK LIST POP-UP -->
+  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeStockListModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:680px; width:100%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Header -->
+      <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">📦</span>
+          <h3 style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Inventory Stock List</h3>
+        </div>
+        <button type="button" onclick="closeStockListModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div style="padding:0.65rem 1rem; background:var(--cream2); border-bottom:1px solid var(--border); display:flex; gap:0.5rem; align-items:center;">
+        <input type="text" id="stock-modal-search" placeholder="Search product name, category, or SKU..." oninput="filterStockModalList()" style="flex:1; padding:0.45rem 0.75rem; font-size:0.8rem; border-radius:6px; border:1px solid var(--border); background:#fff;" />
+        <button type="button" onclick="closeStockListModal()" style="background:var(--gold); color:var(--ink); border:none; border-radius:6px; padding:0.45rem 0.85rem; font-size:0.78rem; font-weight:700; cursor:pointer; flex-shrink:0;">+ Add New</button>
+      </div>
+
+      <!-- Scrollable List Content -->
+      <div id="stock-modal-body" style="flex:1; overflow-y:auto; padding:0.75rem 1rem; -webkit-overflow-scrolling:touch;">
+        <ul id="stock-modal-list" aria-label="Inventory products" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:0.65rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--muted);">
+        <span id="stock-modal-summary">Showing 0 products</span>
+        <button type="button" onclick="closeStockListModal()" style="background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.35rem 0.85rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INSUFFICIENT STOCK WARNING -->
+  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:#fff; border-radius:var(--r, 12px); max-width:440px; width:100%; padding:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:4px solid var(--red, #B53030);">
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+        <span style="font-size:1.5rem;">⚠️</span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--red, #B53030); margin:0;">Insufficient Stock Warning</h3>
+      </div>
+      <p id="stock-warning-msg" style="font-size:0.85rem; color:var(--text); margin-bottom:1.25rem; line-height:1.5;"></p>
+      <div style="display:flex; justify-content:flex-end; gap:0.6rem;">
+        <button type="button" id="stock-warning-cancel-btn" style="background:var(--cream2); color:var(--text); border:1px solid var(--border); padding:0.45rem 1rem; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer;">Cancel Sale</button>
+        <button type="button" id="stock-warning-proceed-btn" style="background:var(--red); color:#fff; border:none; padding:0.45rem 1rem; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer;">Proceed Anyway</button>
+      </div>
+    </div>
+  </div>
 
   <!-- PANEL: INVOICE -->
   <section id="panel-invoice" class="panel" role="tabpanel" aria-labelledby="tab-invoice">
-    <div class="card">
-      <h2 class="card-h">Invoice Designer</h2>
+    <div class="page-header" style="margin-bottom: 0.35rem; padding-bottom: 0.2rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Invoice Designer</h2>
+    </div>
 
-      <div class="field">
-        <label for="biz-logo-upload">Business Logo</label>
-        <div style="display:flex;gap:1rem;align-items:center">
+    <!-- Top Action & Logo Bar -->
+    <div class="card" style="padding: 0.65rem 0.85rem !important; margin-bottom: 0.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; gap:0.75rem; align-items:center;">
           <input type="file" id="biz-logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
-          <button type="button" class="btn-ghost" style="width:auto;padding:.5rem 1rem" onclick="document.getElementById('biz-logo-upload').click()">Upload Logo</button>
-          <div id="logo-preview-wrap" style="width:50px;height:50px;border:1px solid var(--border);border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--cream)">
-            <span style="font-size:.6rem;color:var(--muted)">No Logo</span>
+          <button type="button" class="btn-ghost" style="width:auto; padding:0.35rem 0.85rem; font-size:0.78rem;" onclick="document.getElementById('biz-logo-upload').click()">Upload Logo</button>
+          <div id="logo-preview-wrap" style="width:38px; height:38px; border:1px solid var(--border); border-radius:var(--r-xs); display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--cream)">
+            <span style="font-size:.65rem; color:var(--muted)">No Logo</span>
           </div>
         </div>
-      </div>
 
-      <div class="tabs" style="margin-top:1rem;background:var(--cream3)">
-        <button class="tab on" id="tab-inv-sale" onclick="toggleInvMode('sale')">From Sale</button>
-        <button class="tab" id="tab-inv-manual" onclick="toggleInvMode('manual')">Manual Entry</button>
-      </div>
-
-      <!-- Mode: From Sale -->
-      <div id="inv-mode-sale">
-        <div class="field">
-          <label for="inv-sale-sel">Select Sale to Invoice <span class="req-mark" aria-hidden="true">*</span></label>
-          <select id="inv-sale-sel" name="inv-sale-sel" onchange="previewInvoice()" aria-label="Choose a recorded sale to invoice">
-            <option value="">Choose a sale…</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Mode: Manual -->
-      <div id="inv-mode-manual" style="display:none">
-        <div class="field">
-          <label for="man-cust-name">Customer Name</label>
-          <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()"/>
-        </div>
-        <div class="field">
-          <label for="man-cust-addr">Customer Address (Optional)</label>
-          <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()"/>
-        </div>
-        
-        <fieldset style="border:none;padding:0;margin-bottom:.875rem">
-          <legend class="items-legend">Invoice Items</legend>
-          <div id="man-items-rows">
-            <div class="item-row">
-              <input type="text"   class="m-iname"  placeholder="Item name"  oninput="previewInvoice()"/>
-              <input type="number" class="m-iqty"   placeholder="1" value="1" oninput="previewInvoice()"/>
-              <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()"/>
-            </div>
-          </div>
-          <button type="button" class="add-row" onclick="addManualItemRow()">+ Add Item</button>
-        </fieldset>
-
-        <div class="row2">
-          <div class="field">
-            <label for="man-delivery">Delivery Fee</label>
-            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()"/>
-          </div>
-          <div class="field">
-            <label for="man-discount">Discount (%)</label>
-            <input type="number" id="man-discount" value="0" oninput="previewInvoice()"/>
-          </div>
-        </div>
+        <button type="button" onclick="openInvoiceModalManual()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
+          ✏️ Create Custom / Manual Invoice
+        </button>
       </div>
     </div>
 
-    <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
-    
-    <div id="invoice-actions" style="display:none;margin-top:1.5rem;gap:.75rem">
-      <button class="btn-print" style="flex:1;margin-top:0" onclick="window.shareInvoicePDF()">Share Invoice as PDF</button>
-      <button class="btn-save" style="flex:1" onclick="window.saveInvoiceAsImage()">Save as Image (PNG)</button>
+    <!-- Sales Picker Card for Invoicing -->
+    <div class="card" style="padding: 0.65rem 0.85rem !important;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
+        <div>
+          <h2 class="card-h" style="font-size: 0.88rem; margin:0;">Select a Sale to Generate Invoice</h2>
+          <p style="font-size:0.72rem; color:var(--muted); margin:0.1rem 0 0 0;">Click on any sale below to pop up the invoice preview on your screen</p>
+        </div>
+        <input type="text" id="inv-sales-search" placeholder="Search sales by customer or date..." oninput="filterInvoiceSalesPicker()" style="padding:0.35rem 0.65rem; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); width:220px;" />
+      </div>
+
+      <!-- Sales List Picker -->
+      <div id="inv-sales-picker-container" style="max-height:58vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+        <ul id="inv-sales-picker-list" aria-label="Select sale to invoice" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
     </div>
   </section>
 
+  <!-- MODAL: INVOICE POP-UP DIALOG -->
+  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeInvoiceModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:760px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Modal Header -->
+      <div style="padding:0.75rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">📄</span>
+          <h3 id="invoice-modal-title" style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Invoice Preview</h3>
+        </div>
+        <button type="button" onclick="closeInvoiceModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Hidden select element for backwards compatibility -->
+      <select id="inv-sale-sel" style="display:none;" onchange="previewInvoice()"></select>
+
+      <!-- Manual Inputs Container (if manual mode) -->
+      <div id="inv-mode-manual" style="display:none; padding:0.85rem 1.15rem; background:var(--cream2); border-bottom:1px solid var(--border);">
+        <div class="row2" style="margin-bottom:0.4rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-cust-name" style="font-size:0.68rem;">Customer Name</label>
+            <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-cust-addr" style="font-size:0.68rem;">Customer Address (Optional)</label>
+            <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+        </div>
+
+        <fieldset style="border:1px solid var(--border); padding:0.25rem 0.45rem; margin-bottom:0.4rem; border-radius:6px; background:#fff;">
+          <legend class="items-legend" style="font-size:0.65rem; font-weight:700;">Invoice Items</legend>
+          <div id="man-items-rows">
+            <div class="item-row" style="display:flex; gap:0.3rem; margin-bottom:0.2rem;">
+              <input type="text" class="m-iname" placeholder="Item name" oninput="previewInvoice()" style="flex:2; height:26px; font-size:0.75rem;"/>
+              <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="flex:0.6; height:26px; font-size:0.75rem;"/>
+              <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()" style="flex:1; height:26px; font-size:0.75rem;"/>
+            </div>
+          </div>
+          <button type="button" class="add-row" onclick="addManualItemRow()" style="padding:0.15rem 0.5rem; font-size:0.68rem;">+ Add Item</button>
+        </fieldset>
+
+        <div class="row2">
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-delivery" style="font-size:0.68rem;">Delivery Fee (₦)</label>
+            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-discount" style="font-size:0.68rem;">Discount (%)</label>
+            <input type="number" id="man-discount" value="0" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Invoice Document View -->
+      <div style="flex:1; overflow-y:auto; padding:0.5rem 0.75rem; -webkit-overflow-scrolling:touch;">
+        <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
+      </div>
+
+      <!-- Action Buttons Footer -->
+      <div style="padding:0.65rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div id="invoice-actions" style="display:flex; gap:0.4rem; flex-wrap:wrap; flex:1;">
+          <button class="btn-print" style="padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700; margin:0;" onclick="window.shareInvoicePDF()">Share PDF</button>
+          <button class="btn-save" style="padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700;" onclick="window.saveInvoiceAsImage()">Save PNG</button>
+          <button class="btn-save" id="btn-save-manual-invoice" style="display:none; padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700;" onclick="window.saveManualInvoice()">Save to Sales</button>
+          <button class="btn-save" id="btn-edit-invoice" style="display:none; background:var(--cream); color:var(--text); border:1px solid var(--border); padding:0.4rem 0.85rem; font-size:0.78rem;" onclick="window.editInvoiceSale()">Edit Sale</button>
+        </div>
+        <button type="button" onclick="closeInvoiceModal()" style="background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.4rem 1rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- PANEL: REPORT -->
   <section id="panel-report" class="panel" role="tabpanel" aria-labelledby="tab-report">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Financial Reports</h2>
+    </div>
     <div class="card" id="report-card" aria-live="polite"></div>
     <div class="card" id="tax-card" aria-live="polite"></div>
   </section>
 
+  <!-- MODAL: MONTHLY SALES DETAIL -->
+  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;overflow-y:auto;padding:2rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
+    <div style="background:var(--cream);border-radius:var(--r);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.15)">
+      <div id="monthly-detail-content"></div>
+    </div>
+  </div>
+
   <!-- PANEL: PROFILE -->
   <section id="panel-profile" class="panel" role="tabpanel" aria-labelledby="tab-profile">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Business Details</h2>
+    </div>
     <div class="card">
       <h2 class="card-h">Business Details</h2>
       <form id="form-profile" novalidate>
@@ -888,12 +2185,215 @@ ul{list-style:none}
             <input type="text" id="prof-acc-num" />
           </div>
         </div>
-        <div class="field">
-          <label for="prof-acc-name">Account Name</label>
-          <input type="text" id="prof-acc-name" />
+        <div class="row2">
+          <div class="field">
+            <label for="prof-acc-name">Account Name</label>
+            <input type="text" id="prof-acc-name" />
+          </div>
+          <div class="field">
+            <label for="prof-pin">Owner PIN (4 Digits) <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="prof-pin" required pattern="\d{4}" maxlength="4" placeholder="1234" />
+          </div>
         </div>
+        
         <button type="submit" class="btn-save">Update Business Details</button>
       </form>
+    </div>
+  </section>
+
+  <!-- PANEL: SETTINGS -->
+  <section id="panel-settings" class="panel" role="tabpanel" aria-labelledby="tab-settings">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Settings</h2>
+    </div>
+
+    <form id="form-settings" novalidate>
+      <!-- CARD 1: CURRENCY & REGIONAL SETTINGS -->
+      <div class="card">
+        <h3 class="card-h" style="margin-bottom: 0.5rem;">Currency & Regional</h3>
+        <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">Select your default currency symbol for transactions, invoices, and financial reports.</p>
+        
+        <div class="field" style="margin-bottom: 0;">
+          <label for="setting-currency">Currency Symbol</label>
+          <select id="setting-currency" name="setting-currency" onchange="window.saveSettings()">
+            <option value="₦">Naira (₦)</option>
+            <option value="$">US Dollar ($)</option>
+            <option value="€">Euro (€)</option>
+            <option value="£">British Pound (£)</option>
+            <option value="₵">Ghana Cedi (₵)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CARD 2: INVOICE DEFAULTS -->
+      <div class="card">
+        <h3 class="card-h" style="margin-bottom: 0.5rem;">Invoice & Billing Defaults</h3>
+        <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">Set default tax rates, payment due terms, and instructions automatically populated on new invoices.</p>
+        
+        <div class="row2">
+          <div class="field">
+            <label for="setting-invoice-tax">Default VAT / Tax Rate (%)</label>
+            <input type="number" id="setting-invoice-tax" name="setting-invoice-tax" placeholder="0" min="0" max="100" step="0.1" oninput="window.saveSettings()"/>
+          </div>
+          <div class="field">
+            <label for="setting-invoice-terms">Invoice Due Period</label>
+            <select id="setting-invoice-terms" name="setting-invoice-terms" onchange="window.saveSettings()">
+              <option value="Due on Receipt">Due on Receipt</option>
+              <option value="Net 7">Net 7 Days</option>
+              <option value="Net 15">Net 15 Days</option>
+              <option value="Net 30">Net 30 Days</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom: 0;">
+          <label for="setting-invoice-notes">Payment Instructions / Notes</label>
+          <textarea id="setting-invoice-notes" name="setting-invoice-notes" placeholder="e.g. Please include invoice number in bank transfer description..." rows="2" oninput="window.saveSettings()"></textarea>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- PANEL: ADMIN CENTER -->
+  <section id="panel-admin" class="panel" role="tabpanel" aria-labelledby="tab-admin">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Admin Center</h2>
+    </div>
+
+    <!-- CARD 1: SYSTEM CONTROLS -->
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 0.75rem;">System Lock & PIN</h3>
+      
+      <div class="toggle-container" style="border-bottom: none; margin-bottom: 0.75rem;">
+        <div class="toggle-lbl-group">
+          <span class="toggle-title">Quick Lock (Staff Mode)</span>
+          <span class="toggle-desc">Instantly lock the application into restricted Staff Mode</span>
+        </div>
+        <button type="button" class="btn-ghost" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="window.lockApp()">🔒 Lock App</button>
+      </div>
+
+      <div class="field" style="border-top: 1px solid var(--border); padding-top: 0.85rem; margin-bottom: 0;">
+        <label for="admin-new-pin">Change Admin PIN (4 Digits)</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="admin-new-pin" placeholder="e.g. 1234" pattern="\d{4}" maxlength="4" style="flex: 1; height: 34px; font-size: 0.82rem;"/>
+          <button type="button" class="btn-save" style="width: auto; padding: 0.45rem 1.15rem; font-size: 0.82rem; margin: 0;" onclick="window.changeAdminPin()">Update PIN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: STAFF ACCESS CONTROL (Moved from Settings to Admin Center) -->
+    <div class="card" id="admin-staff-card">
+      <h3 class="card-h" style="margin-bottom: 0.25rem;">Staff Access Control</h3>
+      <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem; line-height:1.4;">Configure what features staff members can access and perform when the app is locked in Staff Mode.</p>
+      
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1rem; font-size:0.82rem;">
+        <!-- Tabs -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Tabs Visibility</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_sales" onchange="window.saveStaffPermissions()"> Sales Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_expense" onchange="window.saveStaffPermissions()"> Expenses Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_inventory" onchange="window.saveStaffPermissions()"> Inventory Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_invoice" onchange="window.saveStaffPermissions()"> Invoices Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_report" onchange="window.saveStaffPermissions()"> Reports Tab
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Allowed Actions</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_add_expense" onchange="window.saveStaffPermissions()"> Add Expense
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_add_inventory" onchange="window.saveStaffPermissions()"> Add Inventory
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_edit_sale" onchange="window.saveStaffPermissions()"> Edit Sales
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_delete_sale" onchange="window.saveStaffPermissions()"> Delete Sales
+          </label>
+        </div>
+
+        <!-- Data Visibility -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Data Visibility</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_amounts" onchange="window.saveStaffPermissions()"> See Sale Amounts
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_customer_contact" onchange="window.saveStaffPermissions()"> See Customer Contact
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_dashboard_stats" onchange="window.saveStaffPermissions()"> View Dashboard Stats
+          </label>
+        </div>
+
+        <!-- Printing & Exports -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Printing & Exports</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_print_report" onchange="window.saveStaffPermissions()"> Print Reports
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_print_invoice" onchange="window.saveStaffPermissions()"> Print Invoices
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: BACKUPS & MAINTENANCE -->
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 1rem;">Backups & Maintenance</h3>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem;">Download complete copies of your inventory, expense, and sales data or restore from a previously exported file.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button type="button" class="btn-save" style="background: var(--ink); color: var(--gold); border: 1px solid var(--gold);" onclick="window.exportDatabase()">⬇️ Export Database Backup (JSON)</button>
+        
+        <div style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem;">
+          <label style="display: block; font-size: 0.65rem; font-weight: var(--fw-semi); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem;">Restore from Backup</label>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <input type="file" id="db-import-file" accept=".json" style="display: none;" onchange="window.importDatabase(event)"/>
+            <button type="button" class="btn-ghost" style="flex: 1;" onclick="document.getElementById('db-import-file').click()">Upload Backup File (.json)</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem;">
+          <label style="display: block; font-size: 0.65rem; font-weight: var(--fw-semi); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; color: var(--red);">Danger Zone</label>
+          <button type="button" class="btn-save" style="background: var(--red); color: white;" onclick="window.resetDatabase()">⚠️ Factory Reset App Database</button>
+        </div>
+      </div>
+    </div>
+
+          <div class="card" id="admin-deleted-records-card">
+      <h3 class="card-h" style="margin-bottom: 1rem;">Deleted Sales Log</h3>
+      <ul id="deleted-list-root" aria-label="Deleted sales history" class="list-root"></ul>
+    </div>
+  </section>
+
+  <!-- PANEL: TRANSACTIONS -->
+  <section id="panel-transactions" class="panel" role="tabpanel" aria-labelledby="tab-transactions">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">&larr; Back to Dashboard</button>
+      <h2>Latest Transactions</h2>
+    </div>
+    
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 1.25rem;">Transaction Feed</h3>
+      <ul id="dashboard-tx-list" class="transactions-list">
+        <!-- Populated dynamically by app.js -->
+      </ul>
     </div>
   </section>
 
@@ -917,6 +2417,68 @@ ul{list-style:none}
   <p class="footer-copy">&copy; 2026 BizTrack.ng · No data leaves your device</p>
 </footer>
 
+<!-- Floating Action Button (FAB) -->
+<div class="fab-container" id="app-fab" style="display:none;">
+  <div class="fab-menu" id="fab-menu-list">
+    <button class="fab-item" id="fab-action-sale" onclick="handleFabAction('sales')">
+      <span class="fab-label">Record Sale</span>
+      <div class="fab-icon-btn">📝</div>
+    </button>
+    <button class="fab-item" id="fab-action-expense" onclick="handleFabAction('expense')">
+      <span class="fab-label">Record Expense</span>
+      <div class="fab-icon-btn">💸</div>
+    </button>
+    <button class="fab-item" id="fab-action-invoice" onclick="handleFabAction('invoice')">
+      <span class="fab-label">Create Invoice</span>
+      <div class="fab-icon-btn">🧾</div>
+    </button>
+    <button class="fab-item" id="fab-action-stock" onclick="handleFabAction('inventory')">
+      <span class="fab-label">Add Product</span>
+      <div class="fab-icon-btn">📦</div>
+    </button>
+  </div>
+  <button type="button" class="fab-trigger" id="fab-trigger-btn" onclick="toggleFabMenu()" aria-label="Quick Actions">+</button>
+</div>
+
+<!-- MODAL: SALE DETAILS -->
+<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
+  <div class="card" style="max-width:520px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #1e293b);">📋 Sale Record Details</h2>
+      <button type="button" onclick="closeSaleDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <div id="sdm-content">
+      <!-- Content injected dynamically via JS -->
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem; border-top:1px solid rgba(0,0,0,0.08); padding-top:0.75rem;">
+      <button type="button" class="btn-ghost" onclick="closeSaleDetailModal()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem;">Close</button>
+      <button type="button" class="btn-save" id="sdm-edit-btn" style="width:auto; padding:0.35rem 1rem; font-size:0.8rem;">Edit Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXPENSE DETAILS -->
+<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
+  <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #141009);">💸 Expense Details</h2>
+      <button type="button" onclick="closeExpenseDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <div id="edm-content">
+      <!-- Injected dynamically via JS -->
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem; border-top:1px solid rgba(0,0,0,0.08); padding-top:0.75rem;">
+      <button type="button" class="btn-ghost" onclick="closeExpenseDetailModal()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem;">Close</button>
+      <button type="button" class="btn-ghost" id="edm-delete-btn" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem; color:var(--red, #B53030); border-color:rgba(181,48,48,0.3);">Delete</button>
+      <button type="button" class="btn-save" id="edm-edit-btn" style="width:auto; padding:0.35rem 1rem; font-size:0.8rem;">Edit Expense</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -925,13 +2487,12 @@ ul{list-style:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // Initialize Supabase
   const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
 <!-- app.js linked at bottom (template constraint) -->
-<script src="app.js"></script>
+<script src="app.js?v=32"></script>
 
 </body>
 </html>

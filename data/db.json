@@ -1,5 +1,951 @@
 {
-  "sales": [],
+  "sales": [
+    {
+      "id": "f10db3bd-018e-4429-a169-da9547b38cf3",
+      "date": "2026-07-01",
+      "customerName": "Amaka Okonkwo",
+      "customer_name": "Amaka Okonkwo",
+      "contact": "+234 80000 0000",
+      "address": "Block 1, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 1,
+          "price": 4500
+        },
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 0,
+      "total": 32500,
+      "status": "Pending",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "a019f15c-7889-4d73-926c-29bdd12abccc",
+      "date": "2026-07-02",
+      "customerName": "Chioma Adebayo",
+      "customer_name": "Chioma Adebayo",
+      "contact": "+234 80111 0011",
+      "address": "Block 2, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Swiss Lace Material",
+          "qty": 2,
+          "price": 18000
+        },
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 2,
+      "total": 79380,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "1343408b-fe86-4f4a-9611-a9c7ea0f7f61",
+      "date": "2026-07-03",
+      "customerName": "Tunde Bakare",
+      "customer_name": "Tunde Bakare",
+      "contact": "+234 80222 0022",
+      "address": "Block 3, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 3,
+          "price": 35000
+        },
+        {
+          "name": "Men Corporate Suit",
+          "qty": 1,
+          "price": 42000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 4,
+      "total": 143040,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "ea01f591-3a9d-4b2b-ad7e-e0adf08ff4f9",
+      "date": "2026-07-04",
+      "customerName": "Emeka Nwosu",
+      "customer_name": "Emeka Nwosu",
+      "contact": "+234 80333 0033",
+      "address": "Block 4, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        },
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 2,
+          "price": 65000
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 6,
+      "total": 151340,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "c110bb26-7a67-4b44-ae96-72f4c5871def",
+      "date": "2026-07-05",
+      "customerName": "Bisi Alabi",
+      "customer_name": "Bisi Alabi",
+      "contact": "+234 80444 0044",
+      "address": "Block 5, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        },
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 1,
+          "price": 15000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 8,
+      "total": 54280,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "aafe061f-dd4e-4784-90e3-af66eff1c0ab",
+      "date": "2026-07-06",
+      "customerName": "Kemi Fowler",
+      "customer_name": "Kemi Fowler",
+      "contact": "+234 80555 0055",
+      "address": "Block 6, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Men Corporate Suit",
+          "qty": 3,
+          "price": 42000
+        },
+        {
+          "name": "UV Sunglasses",
+          "qty": 2,
+          "price": 8500
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 0,
+      "total": 144000,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "b6f0ad6f-a047-4b38-aa78-00ff37f5159b",
+      "date": "2026-07-07",
+      "customerName": "Damilola Ojo",
+      "customer_name": "Damilola Ojo",
+      "contact": "+234 80666 0060",
+      "address": "Block 7, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 1,
+          "price": 65000
+        },
+        {
+          "name": "Leather Belt",
+          "qty": 1,
+          "price": 6000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 2,
+      "total": 71540,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "2e682f6f-a361-4ab0-b036-87fc66e86148",
+      "date": "2026-07-08",
+      "customerName": "Nkechi Eze",
+      "customer_name": "Nkechi Eze",
+      "contact": "+234 80777 0001",
+      "address": "Block 8, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 2,
+          "price": 15000
+        },
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 2,
+          "price": 4500
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 4,
+      "total": 40320,
+      "status": "Failed",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "8a26c488-bdfe-4d55-ac5c-6d729d87d633",
+      "date": "2026-07-09",
+      "customerName": "Ibrahim Musa",
+      "customer_name": "Ibrahim Musa",
+      "contact": "+234 80880 0012",
+      "address": "Block 9, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "UV Sunglasses",
+          "qty": 3,
+          "price": 8500
+        },
+        {
+          "name": "Swiss Lace Material",
+          "qty": 1,
+          "price": 18000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 6,
+      "total": 40890,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "ffbaf601-352b-4e46-ab0c-6f4f7cadb39f",
+      "date": "2026-07-10",
+      "customerName": "Yinka Shonibare",
+      "customer_name": "Yinka Shonibare",
+      "contact": "+234 80901 0023",
+      "address": "Block 10, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Leather Belt",
+          "qty": 1,
+          "price": 6000
+        },
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 2,
+          "price": 35000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 8,
+      "total": 70840,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "b09ac838-1778-4cd0-996f-a2ee891a1fee",
+      "date": "2026-07-11",
+      "customerName": "Funke Akindele",
+      "customer_name": "Funke Akindele",
+      "contact": "+234 80012 0034",
+      "address": "Block 11, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 2,
+          "price": 4500
+        },
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 0,
+      "total": 39000,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "1c57107c-3021-406c-ad59-44f28753a366",
+      "date": "2026-07-12",
+      "customerName": "Gabriel Afolayan",
+      "customer_name": "Gabriel Afolayan",
+      "contact": "+234 80123 0045",
+      "address": "Block 12, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Swiss Lace Material",
+          "qty": 3,
+          "price": 18000
+        },
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 2,
+      "total": 98980,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "f135d94d-25f6-4764-8cf3-c9745e330332",
+      "date": "2026-07-13",
+      "customerName": "Blessing Okagbare",
+      "customer_name": "Blessing Okagbare",
+      "contact": "+234 80234 0050",
+      "address": "Block 13, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 1,
+          "price": 35000
+        },
+        {
+          "name": "Men Corporate Suit",
+          "qty": 1,
+          "price": 42000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 4,
+      "total": 73920,
+      "status": "Pending",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "ba754669-f878-488d-9e0b-afffdee671b7",
+      "date": "2026-07-14",
+      "customerName": "Uche Jombo",
+      "customer_name": "Uche Jombo",
+      "contact": "+234 80345 0061",
+      "address": "Block 14, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 2,
+          "price": 28000
+        },
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 2,
+          "price": 65000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 6,
+      "total": 175780,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "8bcfdfbb-c8ca-43e7-b360-74968da123b6",
+      "date": "2026-07-15",
+      "customerName": "Olamide Adedeji",
+      "customer_name": "Olamide Adedeji",
+      "contact": "+234 80456 0002",
+      "address": "Block 15, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Designer Handbag",
+          "qty": 3,
+          "price": 22000
+        },
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 1,
+          "price": 15000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 8,
+      "total": 76360,
+      "status": "Failed",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "5f28a36d-4bc1-4fa8-b11b-1bb2d7097e51",
+      "date": "2026-07-16",
+      "customerName": "Genevieve Nnaji",
+      "customer_name": "Genevieve Nnaji",
+      "contact": "+234 80567 0013",
+      "address": "Block 16, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Men Corporate Suit",
+          "qty": 1,
+          "price": 42000
+        },
+        {
+          "name": "UV Sunglasses",
+          "qty": 2,
+          "price": 8500
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 0,
+      "total": 62000,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "9e974576-8af7-4e30-ae5a-0b0ad4d911f7",
+      "date": "2026-07-17",
+      "customerName": "Davido Adeleke",
+      "customer_name": "Davido Adeleke",
+      "contact": "+234 80670 0024",
+      "address": "Block 17, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 2,
+          "price": 65000
+        },
+        {
+          "name": "Leather Belt",
+          "qty": 1,
+          "price": 6000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 2,
+      "total": 133280,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "5d3cf87f-9830-4b44-a223-fde7901dabe5",
+      "date": "2026-07-01",
+      "customerName": "Wizkid Balogun",
+      "customer_name": "Wizkid Balogun",
+      "contact": "+234 80781 0035",
+      "address": "Block 18, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 3,
+          "price": 15000
+        },
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 2,
+          "price": 4500
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 4,
+      "total": 52800,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "f1382c76-bdd9-4af8-a944-7fdfbbc2cab7",
+      "date": "2026-07-02",
+      "customerName": "Tiwa Savage",
+      "customer_name": "Tiwa Savage",
+      "contact": "+234 80802 0040",
+      "address": "Block 19, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "UV Sunglasses",
+          "qty": 1,
+          "price": 8500
+        },
+        {
+          "name": "Swiss Lace Material",
+          "qty": 1,
+          "price": 18000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 6,
+      "total": 26790,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "4bdd9399-a8b8-448d-bc15-c8788aff15a7",
+      "date": "2026-07-03",
+      "customerName": "Burnaboy Ogulu",
+      "customer_name": "Burnaboy Ogulu",
+      "contact": "+234 80913 0051",
+      "address": "Block 20, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Leather Belt",
+          "qty": 2,
+          "price": 6000
+        },
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 2,
+          "price": 35000
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 8,
+      "total": 78200,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "abf12bac-7ea2-434d-b697-09943245ff2a",
+      "date": "2026-07-04",
+      "customerName": "Falz The Bahd Guy",
+      "customer_name": "Falz The Bahd Guy",
+      "contact": "+234 80024 0062",
+      "address": "Block 21, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 3,
+          "price": 4500
+        },
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 0,
+      "total": 41500,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "4300ea96-56e2-4a4c-84d0-0b51bf450bcb",
+      "date": "2026-07-05",
+      "customerName": "Don Jazzy",
+      "customer_name": "Don Jazzy",
+      "contact": "+234 80135 0003",
+      "address": "Block 22, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Swiss Lace Material",
+          "qty": 1,
+          "price": 18000
+        },
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 2,
+      "total": 61740,
+      "status": "Failed",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "d504e211-feee-4425-a3c7-1f198aabab4a",
+      "date": "2026-07-06",
+      "customerName": "Rema Ikubor",
+      "customer_name": "Rema Ikubor",
+      "contact": "+234 80246 0014",
+      "address": "Block 23, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 2,
+          "price": 35000
+        },
+        {
+          "name": "Men Corporate Suit",
+          "qty": 1,
+          "price": 42000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 4,
+      "total": 109440,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "7c7a7f7b-0382-4202-b004-921ca421d586",
+      "date": "2026-07-07",
+      "customerName": "Asake Ololade",
+      "customer_name": "Asake Ololade",
+      "contact": "+234 80357 0025",
+      "address": "Block 24, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 3,
+          "price": 28000
+        },
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 2,
+          "price": 65000
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 6,
+      "total": 203980,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "83b5a5b4-b795-4d01-b14f-56151fb99208",
+      "date": "2026-07-08",
+      "customerName": "Fireboy DML",
+      "customer_name": "Fireboy DML",
+      "contact": "+234 80460 0030",
+      "address": "Block 25, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Designer Handbag",
+          "qty": 1,
+          "price": 22000
+        },
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 1,
+          "price": 15000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 8,
+      "total": 34040,
+      "status": "Pending",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "f915274f-b8d1-411f-bece-9abba0551a27",
+      "date": "2026-07-09",
+      "customerName": "Simi Kosoko",
+      "customer_name": "Simi Kosoko",
+      "contact": "+234 80571 0041",
+      "address": "Block 26, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Men Corporate Suit",
+          "qty": 2,
+          "price": 42000
+        },
+        {
+          "name": "UV Sunglasses",
+          "qty": 2,
+          "price": 8500
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 0,
+      "total": 102000,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "332a9f41-24fa-43a7-aa0e-ee158370880f",
+      "date": "2026-07-10",
+      "customerName": "Adekunle Gold",
+      "customer_name": "Adekunle Gold",
+      "contact": "+234 80682 0052",
+      "address": "Block 27, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 3,
+          "price": 65000
+        },
+        {
+          "name": "Leather Belt",
+          "qty": 1,
+          "price": 6000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 2,
+      "total": 198940,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "6f300128-cca0-4be0-91e6-9779f22518f9",
+      "date": "2026-07-11",
+      "customerName": "Tems Openiyi",
+      "customer_name": "Tems Openiyi",
+      "contact": "+234 80703 0063",
+      "address": "Block 28, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 1,
+          "price": 15000
+        },
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 2,
+          "price": 4500
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 4,
+      "total": 25920,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "9d0b2af2-9586-4c0e-964c-95a27bca74da",
+      "date": "2026-07-12",
+      "customerName": "Ayra Starr",
+      "customer_name": "Ayra Starr",
+      "contact": "+234 80814 0004",
+      "address": "Block 29, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "UV Sunglasses",
+          "qty": 2,
+          "price": 8500
+        },
+        {
+          "name": "Swiss Lace Material",
+          "qty": 1,
+          "price": 18000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 6,
+      "total": 32900,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "538b161c-eba9-4614-9808-76d253831a7a",
+      "date": "2026-07-13",
+      "customerName": "Chike Osebuka",
+      "customer_name": "Chike Osebuka",
+      "contact": "+234 80925 0015",
+      "address": "Block 30, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Leather Belt",
+          "qty": 3,
+          "price": 6000
+        },
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 2,
+          "price": 35000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 8,
+      "total": 81880,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "ecb5e985-1a3c-4c6f-b766-3b45c3359bc3",
+      "date": "2026-07-14",
+      "customerName": "Joeboy Akinfenwa",
+      "customer_name": "Joeboy Akinfenwa",
+      "contact": "+234 80036 0020",
+      "address": "Block 31, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Ankara Fabric (Yards)",
+          "qty": 1,
+          "price": 4500
+        },
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 0,
+      "total": 34500,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "c4cb3374-4f2b-49b7-abe1-8dba36b18dc8",
+      "date": "2026-07-15",
+      "customerName": "Victony Anthony",
+      "customer_name": "Victony Anthony",
+      "contact": "+234 80147 0031",
+      "address": "Block 32, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Swiss Lace Material",
+          "qty": 2,
+          "price": 18000
+        },
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        }
+      ],
+      "delivery_fee": 3000,
+      "discount": 2,
+      "total": 81340,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "e99656eb-a6b2-47dc-a909-3284b1e2ba6e",
+      "date": "2026-07-16",
+      "customerName": "Omah Lay",
+      "customer_name": "Omah Lay",
+      "contact": "+234 80250 0042",
+      "address": "Block 33, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Italian Leather Shoes",
+          "qty": 3,
+          "price": 35000
+        },
+        {
+          "name": "Men Corporate Suit",
+          "qty": 1,
+          "price": 42000
+        }
+      ],
+      "delivery_fee": 0,
+      "discount": 4,
+      "total": 141120,
+      "status": "Pending",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    },
+    {
+      "id": "ab48d10f-34b9-49b6-971e-156663b752fd",
+      "date": "2026-07-17",
+      "customerName": "Zlatan Ibile",
+      "customer_name": "Zlatan Ibile",
+      "contact": "+234 80361 0053",
+      "address": "Block 34, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Gold-Plated Wristwatch",
+          "qty": 1,
+          "price": 28000
+        },
+        {
+          "name": "Traditional Agbada Set",
+          "qty": 2,
+          "price": 65000
+        }
+      ],
+      "delivery_fee": 1000,
+      "discount": 6,
+      "total": 149460,
+      "status": "Delivered",
+      "paymentStatus": "Pending",
+      "payment_status": "Pending",
+      "is_deleted": false
+    },
+    {
+      "id": "3b0d4dc5-d0c1-43f9-9fa3-fd84c2b4baac",
+      "date": "2026-07-01",
+      "customerName": "Seyi Vibez",
+      "customer_name": "Seyi Vibez",
+      "contact": "+234 80472 0064",
+      "address": "Block 35, Allen Avenue, Ikeja, Lagos",
+      "items": [
+        {
+          "name": "Designer Handbag",
+          "qty": 2,
+          "price": 22000
+        },
+        {
+          "name": "Luxury Perfume Spray",
+          "qty": 1,
+          "price": 15000
+        }
+      ],
+      "delivery_fee": 2000,
+      "discount": 8,
+      "total": 56120,
+      "status": "Delivered",
+      "paymentStatus": "Paid",
+      "payment_status": "Paid",
+      "is_deleted": false
+    }
+  ],
   "expenses": [],
   "stock": [],
   "profile": {

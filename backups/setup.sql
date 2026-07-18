@@ -11,6 +11,7 @@ create table profiles (
   account_number text,
   account_name text,
   logo text,
+  pin text default '1234',
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
 
@@ -27,6 +28,7 @@ create table sales (
   discount numeric default 0,
   total numeric not null,
   status text default 'Pending',
+  is_deleted boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
@@ -74,11 +76,14 @@ create policy "Users can update own profile" on profiles for update using (auth.
 -- Sales Policies
 create policy "Users can view own sales" on sales for select using (auth.uid() = user_id);
 create policy "Users can insert own sales" on sales for insert with check (auth.uid() = user_id);
+create policy "Users can update own sales" on sales for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Expenses Policies
 create policy "Users can view own expenses" on expenses for select using (auth.uid() = user_id);
 create policy "Users can insert own expenses" on expenses for insert with check (auth.uid() = user_id);
+create policy "Users can update own expenses" on expenses for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Stock Policies
 create policy "Users can view own stock" on stock for select using (auth.uid() = user_id);
 create policy "Users can insert own stock" on stock for insert with check (auth.uid() = user_id);
+create policy "Users can update own stock" on stock for update using (auth.uid() = user_id) with check (auth.uid() = user_id);

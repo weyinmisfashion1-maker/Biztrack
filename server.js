@@ -55,7 +55,8 @@ function validateSale(sale) {
   return sale && typeof sale.customerName === 'string' && sale.customerName.trim() &&
     typeof sale.contact === 'string' && sale.contact.trim() &&
     Array.isArray(sale.items) && sale.items.length > 0 &&
-    typeof sale.total === 'number';
+    typeof sale.total === 'number' &&
+    (!sale.paymentStatus || ['Paid', 'Pending'].includes(sale.paymentStatus));
 }
 
 function validateExpense(expense) {
@@ -88,8 +89,38 @@ app.get('/api/data', async (req, res) => {
 });
 
 app.get('/api/sales', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = (req.query.search || '').toLowerCase();
+  const status = req.query.status || 'All';
+
   const data = await readDb();
-  res.json(data.sales || []);
+  let sales = (data.sales || []).filter(s => !s.is_deleted);
+
+  if (search) {
+    sales = sales.filter(s =>
+      (s.customerName && s.customerName.toLowerCase().includes(search)) ||
+      (s.customer_name && s.customer_name.toLowerCase().includes(search)) ||
+      (s.items && s.items.some(i => i.name && i.name.toLowerCase().includes(search)))
+    );
+  }
+
+  if (status !== 'All') {
+    sales = sales.filter(s => (s.paymentStatus || s.payment_status || 'Paid') === status);
+  }
+
+  const total = sales.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const start = (page - 1) * limit;
+  const paginatedSales = sales.slice(start, start + limit);
+
+  res.json({
+    data: paginatedSales,
+    total,
+    page,
+    totalPages,
+    limit
+  });
 });
 
 app.get('/api/expenses', async (req, res) => {
@@ -107,10 +138,26 @@ app.post('/api/sales', async (req, res) => {
   if (!validateSale(sale)) {
     return res.status(400).json({ error: 'Invalid sale payload.' });
   }
+  
+  if (!sale.id) sale.id = crypto.randomUUID();
+  if (!sale.paymentStatus) sale.paymentStatus = 'Paid';
+  
   const data = await readDb();
   data.sales.unshift(sale);
   await writeDb(data);
   res.status(201).json(sale);
+});
+
+app.put('/api/sales/:id/pay', async (req, res) => {
+  const { id } = req.params;
+  const data = await readDb();
+  const sale = data.sales.find(s => s.id === id);
+  if (!sale) {
+    return res.status(404).json({ error: 'Sale not found.' });
+  }
+  sale.paymentStatus = 'Paid';
+  await writeDb(data);
+  res.json(sale);
 });
 
 app.post('/api/expenses', async (req, res) => {
