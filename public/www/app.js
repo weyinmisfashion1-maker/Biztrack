@@ -1,4 +1,4 @@
-/**
+﻿/**
  * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
@@ -6,6 +6,7 @@
 
 const FIRS = { low: 25000000, high: 100000000, rateMid: 0.20, rateTop: 0.30 };
 let S = { sales: [], expenses: [], stock: [], deletedSales: [] };
+window.S = S;
 let itemCount = 1;
 let PROFILE = null;
 let INVOICE_MODE = 'sale';
@@ -18,6 +19,12 @@ let CURRENT_SALES_SEARCH = '';
 let CURRENT_SALES_PAGE = 1;
 let TOTAL_SALES_PAGES = 1;
 const SALES_PAGE_SIZE = 5;
+
+// Inventory Control setting (synced to profile, default OFF)
+let INVENTORY_CONTROL = {
+  require_stock_before_sale: false
+};
+
 
 // App Preferences & Settings State
 let SETTINGS = {
@@ -81,6 +88,19 @@ async function checkAuth() {
 
 async function signOut() {
   try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) {
+      localStorage.removeItem('biztrack_settings_' + user.id);
+    }
+    localStorage.removeItem('biztrack_expenses');
+    localStorage.setItem('biztrack_locked', 'true');
+    
+    // Clear global state
+    S = { sales: [], expenses: [], stock: [], deletedSales: [] };
+    PROFILE = null;
+    IS_LOCKED = true;
+    INVENTORY_CONTROL = { require_stock_before_sale: false };
+
     const { error } = await sb.auth.signOut();
     if (error) console.error('Sign out error:', error);
   } catch (e) {
@@ -104,6 +124,17 @@ async function loadProfile() {
       console.error('Profile load error:', error);
       return null;
     }
+    // Load inventory control settings from localStorage
+    const localInv = localStorage.getItem('biztrack_inventory_control_' + user.id);
+    if (localInv) {
+      try {
+        INVENTORY_CONTROL = JSON.parse(localInv);
+      } catch (err) {
+        INVENTORY_CONTROL = { require_stock_before_sale: false };
+      }
+    } else {
+      INVENTORY_CONTROL = { require_stock_before_sale: false };
+    }
     return data;
   } catch (e) {
     console.error('Profile fetch exception:', e);
@@ -113,10 +144,14 @@ async function loadProfile() {
 
 async function loadData() {
   try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    // Fetch using OR to include legacy rows where user_id is NULL
     const [sales, expenses, stock] = await Promise.all([
-      sb.from('sales').select('*').order('date', { ascending: false }),
-      sb.from('expenses').select('*').order('date', { ascending: false }),
-      sb.from('stock').select('*').order('name', { ascending: true })
+      sb.from('sales').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('date', { ascending: false }),
+      sb.from('expenses').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('date', { ascending: false }),
+      sb.from('stock').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('name', { ascending: true })
     ]);
 
     if (sales.error) console.error('Sales error', sales.error);
@@ -124,25 +159,133 @@ async function loadData() {
     if (stock.error) console.error('Stock error', stock.error);
 
     let allSales = sales.data || [];
-    if (allSales.length < 5) {
-      try {
-        const res = await fetch('/api/sales?limit=100');
-        const json = await res.json();
-        if (json && Array.isArray(json.data) && json.data.length >= 5) {
-          allSales = json.data;
-        }
-      } catch (err) {
-        console.warn('Fallback fetch /api/sales failed', err);
+    let allExpenses = expenses.data || [];
+    let allStock = stock.data || [];
+
+    // Client-side auto-migration for legacy null user_id records
+    const nullSales = allSales.filter(s => !s.user_id);
+    const nullExpenses = allExpenses.filter(e => !e.user_id);
+    const nullStock = allStock.filter(p => !p.user_id);
+
+    if (nullSales.length > 0 || nullExpenses.length > 0 || nullStock.length > 0) {
+      console.log(`[Migration] Found legacy records with NULL user_id. Associating them with user ID: ${user.id}`);
+      
+      // Migrate sales
+      for (const s of nullSales) {
+        sb.from('sales').update({ user_id: user.id }).eq('id', s.id).then(({ error }) => {
+          if (error) console.warn('[Migration] Failed to migrate sale', s.id, error);
+        });
+        s.user_id = user.id;
+      }
+      
+      // Migrate expenses
+      for (const e of nullExpenses) {
+        sb.from('expenses').update({ user_id: user.id }).eq('id', e.id).then(({ error }) => {
+          if (error) console.warn('[Migration] Failed to migrate expense', e.id, error);
+        });
+        e.user_id = user.id;
+      }
+      
+      // Migrate stock
+      for (const p of nullStock) {
+        sb.from('stock').update({ user_id: user.id }).eq('id', p.id).then(({ error }) => {
+          if (error) console.warn('[Migration] Failed to migrate stock item', p.id, error);
+        });
+        p.user_id = user.id;
       }
     }
+
     S.sales = allSales.filter(sale => !sale.is_deleted);
     S.deletedSales = allSales.filter(sale => sale.is_deleted);
-    S.expenses = expenses.data || [];
-    S.stock = stock.data || [];
+    S.expenses = allExpenses;
+    S.stock = allStock;
   } catch (e) {
     console.error('Data load exception:', e);
   }
 }
+
+/* --- AUDIT LOG --- */
+async function addAuditLog(entry, userId) {
+  try {
+    if (!window.sb || !userId) return;
+    const log = {
+      user_id: userId,
+      action: entry.action || 'unknown',
+      details: JSON.stringify(entry),
+      created_at: new Date().toISOString()
+    };
+    // Use upsert-safe insert; silent fail if table doesn't exist yet
+    await sb.from('audit_log').insert([log]);
+  } catch (err) {
+    // Audit logging is non-critical — silently swallow errors
+    console.warn('[AuditLog]', err?.message || err);
+  }
+}
+
+/* --- INVENTORY CONTROL --- */
+async function saveInventoryControl(enabled) {
+  if (IS_LOCKED) {
+    toast('⚠️  Only the Business Owner can change Inventory Control settings.');
+    // Revert the toggle in the UI
+    const toggle = getEl('inv-ctrl-require-stock');
+    if (toggle) toggle.checked = INVENTORY_CONTROL.require_stock_before_sale;
+    return;
+  }
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    INVENTORY_CONTROL.require_stock_before_sale = !!enabled;
+
+    // Save setting to localStorage
+    localStorage.setItem('biztrack_inventory_control_' + user.id, JSON.stringify(INVENTORY_CONTROL));
+
+    // Update the status badge in the UI
+    _renderInventoryControlStatus();
+    toast(enabled
+      ? '✅ Inventory Control ON — Sales require sufficient stock.'
+      : '✅ Inventory Control OFF — Sales allowed regardless of stock.');
+  } catch (err) {
+    console.error(err);
+    toast('⚠️  Failed to save settings locally: ' + (err.message || err.details || JSON.stringify(err)));
+    // Revert toggle on failure
+    const toggle = getEl('inv-ctrl-require-stock');
+    if (toggle) toggle.checked = INVENTORY_CONTROL.require_stock_before_sale;
+  }
+}
+
+function _renderInventoryControlStatus() {
+  const badge = getEl('inv-ctrl-status-badge');
+  const descEl = getEl('inv-ctrl-mode-desc');
+  const enabled = INVENTORY_CONTROL.require_stock_before_sale;
+  if (badge) {
+    badge.textContent = enabled ? 'ON' : 'OFF';
+    badge.style.background = enabled ? 'var(--green, #1E6641)' : 'var(--muted)';
+    badge.style.color = '#fff';
+    badge.style.padding = '0.15rem 0.55rem';
+    badge.style.borderRadius = '20px';
+    badge.style.fontSize = '0.72rem';
+    badge.style.fontWeight = '700';
+    badge.style.letterSpacing = '0.05em';
+  }
+  if (descEl) {
+    descEl.textContent = enabled
+      ? 'Sales are blocked when stock is insufficient. Stock is always deducted after a sale.'
+      : 'Sales proceed even with zero stock. Stock deducted when possible; custom items skipped.';
+  }
+  const toggle = getEl('inv-ctrl-require-stock');
+  if (toggle) toggle.checked = enabled;
+
+  // Disable toggle for staff
+  if (IS_LOCKED && toggle) {
+    toggle.disabled = true;
+    toggle.title = 'Only the Business Owner can change this setting.';
+  } else if (toggle) {
+    toggle.disabled = false;
+    toggle.title = '';
+  }
+}
+
 
 function toast(message) {
   const el = getEl('toast');
@@ -168,8 +311,7 @@ function switchTab(name) {
       'inventory': perms.tab_inventory,
       'invoice': perms.tab_invoice,
       'report': perms.tab_report,
-      'settings': true,
-      'transactions': true
+      'settings': true
     };
     if (tabMap[name] === false) {
       alert("Access Denied! You do not have permission to access this feature.");
@@ -243,7 +385,7 @@ async function saveStaffPermissions() {
     toast('✅ Staff permissions saved!');
   } catch (err) {
     console.error(err);
-    toast('⚠️ Could not save permissions');
+    toast('⚠️  Could not save permissions');
   }
 }
 
@@ -278,9 +420,9 @@ function onItemNameInput(inputEl) {
     const qty = Number(product.qty) || 0;
     if (badgeEl) {
       if (qty <= 0) {
-        badgeEl.innerHTML = `<span style="color:var(--red); font-weight:700; font-size:0.66rem;">⚠️ Out of Stock (0 in inventory)</span>`;
+        badgeEl.innerHTML = `<span style="color:var(--red); font-weight:700; font-size:0.66rem;">⚠️  Out of Stock (0 in inventory)</span>`;
       } else if (qty <= 5) {
-        badgeEl.innerHTML = `<span style="color:var(--gold); font-weight:700; font-size:0.66rem;">⚠️ Low Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
+        badgeEl.innerHTML = `<span style="color:var(--gold); font-weight:700; font-size:0.66rem;">⚠️  Low Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
       } else {
         badgeEl.innerHTML = `<span style="color:var(--green); font-weight:600; font-size:0.66rem;">✓ In Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
       }
@@ -288,7 +430,7 @@ function onItemNameInput(inputEl) {
   } else {
     row.dataset.stockId = '';
     if (badgeEl) {
-      badgeEl.innerHTML = val ? `<span style="color:var(--muted); font-size:0.66rem;">✏️ Custom item (Manual entry)</span>` : '';
+      badgeEl.innerHTML = val ? `<span style="color:var(--muted); font-size:0.66rem;">✏️  Custom item (Manual entry)</span>` : '';
     }
   }
   calcTotals();
@@ -405,7 +547,9 @@ function populateSaleItems(items = []) {
 }
 
 async function checkStockValidation(items) {
-  const warnings = [];
+  const requireStock = INVENTORY_CONTROL.require_stock_before_sale;
+  const insufficientItems = [];
+  const notInInventory = [];
 
   for (const item of items) {
     let stockItem = null;
@@ -420,59 +564,74 @@ async function checkStockValidation(items) {
       const avail = Number(stockItem.qty) || 0;
       const req = Number(item.qty) || 0;
       if (req > avail) {
-        warnings.push({
+        insufficientItems.push({
           productName: stockItem.name,
           available: avail,
           requested: req
         });
       }
+    } else {
+      // Item not found in inventory
+      notInInventory.push(item.name);
     }
   }
 
-  if (warnings.length === 0) return true;
+  // ─€─€ STRICT MODE (ON): Block the sale if ANY item is insufficient ─€─€
+  if (requireStock) {
+    if (insufficientItems.length > 0) {
+      const modal = getEl('stock-warning-modal');
+      const msgEl = getEl('stock-warning-msg');
+      const btnCancel = getEl('stock-warning-cancel-btn');
+      const btnProceed = getEl('stock-warning-proceed-btn');
 
-  return new Promise((resolve) => {
-    const modal = getEl('stock-warning-modal');
-    const msgEl = getEl('stock-warning-msg');
-    const btnCancel = getEl('stock-warning-cancel-btn');
-    const btnProceed = getEl('stock-warning-proceed-btn');
+      const blockHtml = insufficientItems.map(w => `
+        <div style="background:#FCEAEA; border-left:3px solid var(--red); padding:0.45rem 0.65rem; border-radius:6px; margin-top:0.4rem; font-size:0.82rem; color:var(--text);">
+          <strong>${esc(w.productName)}</strong>: Requested <strong>${w.requested}</strong> units, only <strong style="color:var(--red);">${w.available}</strong> in stock.
+        </div>
+      `).join('');
 
-    if (!modal || !msgEl || !btnCancel || !btnProceed) {
-      const wText = warnings.map(w => `• "${w.productName}": Requested ${w.requested}, but only ${w.available} available`).join('\n');
-      const proceed = confirm(`⚠️ Insufficient Stock Warning:\n\n${wText}\n\nDo you still want to proceed with this sale?`);
-      return resolve(proceed);
+      if (modal && msgEl && btnCancel && btnProceed) {
+        msgEl.innerHTML = `
+          <div style="background:#FCEAEA; border-left:4px solid var(--red); padding:0.6rem 0.85rem; border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem; font-weight:600; color:var(--red);">
+            🚫 Insufficient Stock — Sale Blocked
+          </div>
+          ${blockHtml}
+          <p style="margin-top:0.75rem; font-size:0.8rem; color:var(--muted); line-height:1.5;">
+            Insufficient stock. Please restock before completing this sale.
+          </p>`;
+        // Hide the proceed button since sale is blocked
+        btnProceed.style.display = 'none';
+        btnCancel.textContent = 'OK, Go Back';
+        const cleanup = () => {
+          modal.style.display = 'none';
+          btnProceed.style.display = '';
+          btnCancel.textContent = 'Cancel';
+          btnCancel.onclick = null;
+        };
+        btnCancel.onclick = () => cleanup();
+        modal.style.display = 'flex';
+      } else {
+        const wText = insufficientItems.map(w => `• "${w.productName}": Requested ${w.requested}, only ${w.available} available`).join('\n');
+        alert(`🚫 Insufficient stock. Please restock before completing this sale:\n\n${wText}`);
+      }
+      return false; // Block the sale
     }
+    // Items not in inventory are allowed even in strict mode — just proceed
+    return true;
+  }
 
-    const warningHtml = warnings.map(w => `
-      <div style="background:#FCEAEA; border-left:3px solid var(--red); padding:0.45rem 0.65rem; border-radius:6px; margin-top:0.4rem; font-size:0.82rem; color:var(--text);">
-        <strong>${esc(w.productName)}</strong>: Requested <strong>${w.requested}</strong> units, but only <strong style="color:var(--red);">${w.available}</strong> available in stock.
-      </div>
-    `).join('');
-
-    msgEl.innerHTML = `Insufficient inventory stock for item(s):${warningHtml}<br><span style="margin-top:0.5rem; display:block;">Do you still want to proceed with recording this sale?</span>`;
-
-    const cleanup = () => {
-      modal.style.display = 'none';
-      btnCancel.onclick = null;
-      btnProceed.onclick = null;
-    };
-
-    btnCancel.onclick = () => {
-      cleanup();
-      resolve(false);
-    };
-
-    btnProceed.onclick = () => {
-      cleanup();
-      resolve(true);
-    };
-
-    modal.style.display = 'flex';
-  });
+  // ─€─€ PERMISSIVE MODE (OFF): Allow sales even if stock is zero/insufficient ─€─€
+  if (notInInventory.length > 0) {
+    toast(`ℹ️ Inventory not validated for: ${notInInventory.join(', ')}`);
+  }
+  return true;
 }
 
 async function deductStockForSale(items) {
   try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
     for (const item of items) {
       let stockItem = null;
       if (item.stock_id) {
@@ -485,12 +644,32 @@ async function deductStockForSale(items) {
       if (stockItem) {
         const soldQty = Number(item.qty) || 0;
         const currentQty = Number(stockItem.qty) || 0;
-        const newQty = currentQty - soldQty;
+        const newQty = Math.max(0, currentQty - soldQty); // Never go below 0 in permissive mode
 
         stockItem.qty = newQty;
 
         if (window.sb) {
-          await sb.from('stock').update({ qty: newQty }).eq('id', stockItem.id);
+          await sb.from('stock').update({ qty: newQty }).eq('id', stockItem.id).eq('user_id', user.id);
+          // Record inventory adjustment in audit log
+          await addAuditLog({
+            action: 'stock_deduct',
+            item_name: stockItem.name,
+            stock_id: stockItem.id,
+            qty_before: currentQty,
+            qty_after: newQty,
+            qty_sold: soldQty,
+            mode: INVENTORY_CONTROL.require_stock_before_sale ? 'strict' : 'permissive'
+          }, user.id);
+        }
+      } else if (item.name) {
+        // Item not in inventory — log the skipped deduction
+        if (window.sb && user) {
+          await addAuditLog({
+            action: 'stock_skip',
+            item_name: item.name,
+            qty_sold: Number(item.qty) || 0,
+            note: 'Item not found in inventory, deduction skipped'
+          }, user.id);
         }
       }
     }
@@ -550,7 +729,9 @@ function clearSaleEditMode() {
 async function deleteSale(id) {
   if (!confirm('Are you sure you want to delete this sale record?')) return;
   try {
-    const { data, error } = await sb.from('sales').update({ is_deleted: true }).eq('id', id).select();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    const { data, error } = await sb.from('sales').update({ is_deleted: true }).eq('id', id).eq('user_id', user.id).select();
     if (error) throw error;
     
     if (!data || data.length === 0) {
@@ -583,7 +764,7 @@ async function deleteSale(id) {
     }
   } catch (err) {
     console.error('Delete error:', err);
-    toast('⚠️ Error deleting sale');
+    toast('⚠️  Error deleting sale');
   }
 }
 
@@ -591,7 +772,7 @@ function lockApp() {
   IS_LOCKED = true;
   localStorage.setItem('biztrack_locked', 'true');
   applyLockUIState();
-  toast('🔒 App locked in Staff Mode');
+  toast('🔒’ App locked in Staff Mode');
 }
 
 function unlockApp() {
@@ -737,13 +918,13 @@ function applyLockUIState() {
     if (staffSettingsCard) staffSettingsCard.style.display = 'block';
 
     // Restore all tabs
-    ['tab-sales','tab-recent-sales','tab-expense','tab-inventory','tab-invoice','tab-report','tab-settings','tab-admin','tab-transactions'].forEach(id => {
+    ['tab-sales','tab-recent-sales','tab-expense','tab-inventory','tab-invoice','tab-report','tab-settings','tab-admin','tab-transactions','tab-utilities'].forEach(id => {
       const el = getEl(id);
       if (el) el.style.display = '';
     });
 
     // Restore all Quick Actions and FAB buttons
-    ['qa-sales-card','qa-recent-sales-card','qa-expense-card','qa-inventory-card','qa-invoice-card','qa-report-card','qa-profile-card','qa-settings-card','qa-admin-card','qa-transactions-card'].forEach(id => {
+    ['qa-sales-card','qa-recent-sales-card','qa-expense-card','qa-inventory-card','qa-invoice-card','qa-report-card','qa-profile-card','qa-settings-card','qa-admin-card','qa-transactions-card','qa-utilities-card'].forEach(id => {
       const el = getEl(id);
       if (el) el.style.display = '';
     });
@@ -779,6 +960,9 @@ function applyLockUIState() {
   _renderSalesList();
   // Re-render transaction feed to respect edit/delete permissions
   renderLatestTransactions();
+  
+  // Update Inventory Control toggle UI state (disabled/enabled)
+  _renderInventoryControlStatus();
 }
 
 async function restoreSale(id) {
@@ -788,7 +972,10 @@ async function restoreSale(id) {
       return;
     }
 
-    const { data, error } = await sb.from('sales').update({ is_deleted: false }).eq('id', id).select();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await sb.from('sales').update({ is_deleted: false }).eq('id', id).eq('user_id', user.id).select();
     if (error) throw error;
     
     toast('✅ Sale restored!');
@@ -796,7 +983,7 @@ async function restoreSale(id) {
     renderAll();
   } catch (err) {
     console.error('Restore error:', err);
-    toast('⚠️ Error restoring sale');
+    toast('⚠️  Error restoring sale');
   }
 }
 
@@ -809,15 +996,18 @@ async function permanentlyDeleteSale(id) {
 
     if (!confirm('WARNING: Are you sure you want to PERMANENTLY delete this sale record? This action cannot be undone.')) return;
     
-    const { data, error } = await sb.from('sales').delete().eq('id', id).select();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await sb.from('sales').delete().eq('id', id).eq('user_id', user.id).select();
     if (error) throw error;
     
-    toast('🗑️ Sale permanently deleted!');
+    toast('🗑️ Sale permanently deleted!');
     await loadData();
     renderAll();
   } catch (err) {
     console.error('Permanent delete error:', err);
-    toast('⚠️ Error permanently deleting sale');
+    toast('⚠️  Error permanently deleting sale');
   }
 }
 
@@ -845,7 +1035,7 @@ function _renderDeletedSalesList() {
   }
   
   if (!S.deletedSales || !S.deletedSales.length) {
-    list.innerHTML = '<li class="empty"><div class="empty-ico">🗑️</div>No deleted sales records.</li>';
+    list.innerHTML = '<li class="empty"><div class="empty-ico">🗑️</div>No deleted sales records.</li>';
     return;
   }
 
@@ -944,14 +1134,16 @@ async function filterSales(status) {
 async function markSalePaid(id) {
   try {
     toast('⏳ Marking as Paid...');
-    const { error } = await sb.from('sales').update({ payment_status: 'Paid' }).eq('id', id);
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    const { error } = await sb.from('sales').update({ payment_status: 'Paid' }).eq('id', id).eq('user_id', user.id);
     if (error) throw error;
     toast('✅ Marked as Paid!');
     await loadData();
     renderAll();
   } catch (err) {
     console.error(err);
-    toast('⚠️ Error updating status');
+    toast('⚠️  Error updating status');
   }
 }
 
@@ -966,7 +1158,10 @@ async function _renderSalesList() {
 
   // Attempt Supabase server-side range pagination first
   try {
-    let query = sb.from('sales').select('*', { count: 'exact' }).eq('is_deleted', false).order('date', { ascending: false });
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+
+    let query = sb.from('sales').select('*', { count: 'exact' }).or(`user_id.eq.${user.id},user_id.is.null`).eq('is_deleted', false).order('date', { ascending: false });
     if (CURRENT_SALES_FILTER !== 'All') {
       query = query.eq('payment_status', CURRENT_SALES_FILTER);
     }
@@ -979,38 +1174,26 @@ async function _renderSalesList() {
 
     const { data, count, error } = await query;
     if (error || !data) {
-      throw new Error('Fallback to local server API for full sample dataset');
+      throw new Error('Supabase query failed');
     }
     pageItems = data;
     totalRecords = count !== null ? count : data.length;
   } catch (err) {
-    // Fallback to local server API endpoint /api/sales with server-side page/limit params
-    try {
-      const url = `/api/sales?page=${CURRENT_SALES_PAGE}&limit=${SALES_PAGE_SIZE}&search=${encodeURIComponent(searchText)}&status=${encodeURIComponent(CURRENT_SALES_FILTER)}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json && Array.isArray(json.data)) {
-        pageItems = json.data;
-        totalRecords = json.total || pageItems.length;
-      } else {
-        throw new Error('In-memory fallback');
-      }
-    } catch (e2) {
-      let items = (S.sales || []).slice();
-      if (searchText) {
-        items = items.filter(record =>
-          (record.customer_name && record.customer_name.toLowerCase().includes(searchText)) ||
-          (record.customerName && record.customerName.toLowerCase().includes(searchText)) ||
-          (record.items && record.items.some(item => item.name.toLowerCase().includes(searchText)))
-        );
-      }
-      if (CURRENT_SALES_FILTER !== 'All') {
-        items = items.filter(record => (record.payment_status || record.paymentStatus || 'Paid') === CURRENT_SALES_FILTER);
-      }
-      totalRecords = items.length;
-      const start = (CURRENT_SALES_PAGE - 1) * SALES_PAGE_SIZE;
-      pageItems = items.slice(start, start + SALES_PAGE_SIZE);
+    // In-memory fallback
+    let items = (S.sales || []).slice();
+    if (searchText) {
+      items = items.filter(record =>
+        (record.customer_name && record.customer_name.toLowerCase().includes(searchText)) ||
+        (record.customerName && record.customerName.toLowerCase().includes(searchText)) ||
+        (record.items && record.items.some(item => item.name.toLowerCase().includes(searchText)))
+      );
     }
+    if (CURRENT_SALES_FILTER !== 'All') {
+      items = items.filter(record => (record.payment_status || record.paymentStatus || 'Paid') === CURRENT_SALES_FILTER);
+    }
+    totalRecords = items.length;
+    const start = (CURRENT_SALES_PAGE - 1) * SALES_PAGE_SIZE;
+    pageItems = items.slice(start, start + SALES_PAGE_SIZE);
   }
 
   TOTAL_SALES_PAGES = Math.ceil(totalRecords / SALES_PAGE_SIZE) || 1;
@@ -1131,10 +1314,10 @@ function viewSaleDetails(id) {
     </div>
 
     <div style="background:rgba(0,0,0,0.03); padding:0.65rem 0.75rem; border-radius:8px; margin-bottom:0.75rem; font-size:0.76rem; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
-      <div><strong>📞 Contact:</strong> ${esc(record.contact || 'N/A')}</div>
-      <div><strong>📍 Address:</strong> ${esc(record.address || 'N/A')}</div>
+      <div><strong>📝ž Contact:</strong> ${esc(record.contact || 'N/A')}</div>
+      <div><strong>📝 Address:</strong> ${esc(record.address || 'N/A')}</div>
       <div><strong>🚚 Expected Delivery:</strong> ${esc(record.expected_delivery || record.delivery || 'N/A')}</div>
-      <div><strong>💬 Feedback:</strong> ${esc(record.feedback || 'None')}</div>
+      <div><strong>💼¬ Feedback:</strong> ${esc(record.feedback || 'None')}</div>
     </div>
 
     <div style="margin-bottom:0.75rem;">
@@ -1417,14 +1600,27 @@ async function deleteStockItem(id) {
 
   const product = (S.stock || []).find(item => String(item.id) === String(id));
   const name = product ? product.name : 'this item';
+  const oldQty = product ? Number(product.qty) || 0 : 0;
 
   if (!confirm(`Are you sure you want to delete "${name}" from inventory?`)) return;
 
   try {
     if (window.sb) {
-      const { error } = await sb.from('stock').delete().eq('id', id);
-      if (error && !isNaN(Number(id))) {
-        await sb.from('stock').delete().eq('id', Number(id));
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { error } = await sb.from('stock').delete().eq('id', id).eq('user_id', user.id);
+        if (error && !isNaN(Number(id))) {
+          await sb.from('stock').delete().eq('id', Number(id)).eq('user_id', user.id);
+        }
+        await addAuditLog({
+          action: 'stock_manual_delete',
+          item_name: name,
+          stock_id: id,
+          qty_before: oldQty,
+          qty_after: 0,
+          qty_change: -oldQty,
+          note: 'Product deleted from inventory'
+        }, user.id);
       }
     }
   } catch (err) {
@@ -1433,7 +1629,7 @@ async function deleteStockItem(id) {
 
   S.stock = (S.stock || []).filter(item => String(item.id) !== String(id));
 
-  toast('🗑️ Product deleted from inventory!');
+  toast('🗑️ Product deleted from inventory!');
   renderAll();
   _renderStockModalList();
 }
@@ -1472,7 +1668,7 @@ function renderInsights() {
   getEl('ins-exp').textContent = fmt(expenses);
   getEl('ins-exp-sub').textContent = IS_LOCKED ? `${monthLabel} · ${expPool.length} entr${expPool.length === 1 ? 'y' : 'ies'}` : `${S.expenses.length} entr${S.expenses.length === 1 ? 'y' : 'ies'}`;
   getEl('ins-profit').textContent = fmt(profit);
-  getEl('ins-profit-sub').textContent = profit >= 0 ? 'Positive ✓' : 'Loss ✗';
+  getEl('ins-profit-sub').textContent = profit >= 0 ? 'Positive ✓' : 'Loss ✏️—';
 
   // Tax card: admin only
   const taxCard = getEl('ins-tax')?.closest('article');
@@ -1552,7 +1748,7 @@ function renderReport() {
   if (reportCard) {
     reportCard.innerHTML = `
       <h2 class="card-h">Monthly Breakdown</h2>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">💡 Click any month to see detailed sales breakdown</p>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">💼¡ Click any month to see detailed sales breakdown</p>
       <div style="overflow-x:auto"><table class="rtbl"><thead><tr><th>Month</th><th>Sales</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
@@ -1641,8 +1837,8 @@ function showMonthlySalesDetail(month) {
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           ${(!IS_LOCKED || (PROFILE?.staff_permissions?.can_print_report ?? STAFF_PERMS.can_print_report)) ? `
-          <button onclick="printMonthlySalesDetail('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">🖨 Print</button>
-          <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer">⬇ Download PNG</button>
+          <button onclick="printMonthlySalesDetail('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">🖨️ Print</button>
+          <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer">📥 Download PNG</button>
           ` : ''}
           <button onclick="closeMonthlySalesDetail()" style="display:inline-flex;align-items:center;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">✕ Close</button>
         </div>
@@ -1870,7 +2066,7 @@ async function downloadMonthlySalesAsPNG(month) {
     toast('✅ Downloaded as PNG!');
   } catch (err) {
     console.error('Download error:', err);
-    toast('⚠️ Download failed');
+    toast('⚠️  Download failed');
   }
 }
 
@@ -1893,10 +2089,10 @@ function printMonthlySalesDetail(month) {
     `);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
-    toast('📄 Opened print preview');
+    toast('🖨️ Opened print preview');
   } catch (err) {
     console.error('Print error:', err);
-    toast('⚠️ Print failed');
+    toast('⚠️  Print failed');
   }
 }
 
@@ -1962,7 +2158,7 @@ async function handleLogoUpload(event) {
       if (error) throw error;
       toast('✅ Logo saved!');
       previewInvoice();
-    } catch (err) { toast('⚠️ Save failed.'); }
+    } catch (err) { toast('⚠️  Save failed.'); }
   };
   reader.readAsDataURL(file);
 }
@@ -2008,7 +2204,7 @@ async function saveInvoiceAsImage() {
     }
   } catch (err) { 
     console.error(err);
-    toast('⚠️ Image Failed.'); 
+    toast('⚠️  Image Failed.'); 
   }
 }
 
@@ -2059,7 +2255,7 @@ async function shareInvoicePDF() {
     }
   } catch (err) {
     console.error(err);
-    toast('⚠️ PDF Failed.');
+    toast('⚠️  PDF Failed.');
   }
 }
 
@@ -2067,7 +2263,7 @@ async function saveManualInvoice() {
   if (INVOICE_MODE !== 'manual') return;
   const items = getManualItems();
   if (!items.length) {
-    return toast('⚠️ Please add at least one item to the invoice.');
+    return toast('⚠️  Please add at least one item to the invoice.');
   }
 
   try {
@@ -2121,7 +2317,7 @@ async function saveManualInvoice() {
     
   } catch (err) {
     console.error('Error saving manual invoice:', err);
-    toast('⚠️ Error saving invoice');
+    toast('⚠️  Error saving invoice');
   }
 }
 
@@ -2271,7 +2467,7 @@ function renderProfileBanner(profile) {
          ${logoHtml}
          <div style="min-width:0; flex:1;">
            <h3 style="margin:0; font-size:0.82rem; font-weight:700; color:var(--text); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(profile.business_name || 'My Business')}</h3>
-           <div style="font-size:0.65rem; color:var(--muted); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📍 ${esc(profile.location || 'No Location Set')}</div>
+           <div style="font-size:0.65rem; color:var(--muted); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📝 ${esc(profile.location || 'No Location Set')}</div>
          </div>
        </div>
        <div style="text-align:right; flex-shrink:0;">
@@ -2304,7 +2500,7 @@ function _renderInvoiceSalesPicker() {
   }
 
   if (!sales.length) {
-    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem; text-align:center;"><div class="empty-ico">📄</div>No recorded sales found for invoicing.</li>';
+    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem; text-align:center;"><div class="empty-ico">📋</div>No recorded sales found for invoicing.</li>';
     return;
   }
 
@@ -2328,7 +2524,7 @@ function _renderInvoiceSalesPicker() {
         <div class="li-right" style="display:flex; align-items:center; gap:0.6rem; flex-shrink:0;">
           <div style="font-size:0.92rem; font-weight:700; color:var(--green);">${fmt(sale.total)}</div>
           <button type="button" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.35rem 0.85rem; font-size:0.76rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;">
-            📄 Generate Invoice
+            🧾 Generate Invoice
           </button>
         </div>
       </li>`;
@@ -2399,7 +2595,7 @@ function wireForms() {
       const { data: { user } } = await sb.auth.getUser();
       const pinVal = getEl('prof-pin').value.trim();
       if (!/^\d{4}$/.test(pinVal)) {
-        return toast('⚠️ PIN must be exactly 4 digits');
+        return toast('⚠️  PIN must be exactly 4 digits');
       }
       const perms = readStaffPermsFromUI();
       const payload = {
@@ -2414,7 +2610,7 @@ function wireForms() {
         logo: PROFILE?.logo || null,
         staff_permissions: perms
       };
-      if (!payload.business_name) return toast('⚠️ Business Name is required');
+      if (!payload.business_name) return toast('⚠️  Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
       if (error) throw error;
       PROFILE = payload;
@@ -2424,7 +2620,7 @@ function wireForms() {
       switchTab('sales');
     } catch (err) { 
       console.error(err);
-      toast('⚠️ Update failed: ' + (err.message || 'Unknown error')); 
+      toast('⚠️  Update failed: ' + (err.message || 'Unknown error')); 
     }
   });
 
@@ -2433,12 +2629,12 @@ function wireForms() {
     try {
       const custName = (getEl('cust-name')?.value || '').trim();
       if (!custName) {
-        return toast('⚠️ Customer Name is required');
+        return toast('⚠️  Customer Name is required');
       }
 
       const items = getItems();
       if (!items || !items.length) {
-        return toast('⚠️ Please add at least one item with a valid name');
+        return toast('⚠️  Please add at least one item with a valid name');
       }
 
       // Check stock availability & prompt if insufficient
@@ -2448,7 +2644,7 @@ function wireForms() {
       const userRes = await sb.auth.getUser();
       const user = userRes?.data?.user;
       if (!user) {
-        return toast('⚠️ Session expired. Please log in again.');
+        return toast('⚠️  Session expired. Please log in again.');
       }
 
       const payload = { 
@@ -2469,7 +2665,7 @@ function wireForms() {
       payload.total = subtotal - discountAmt;
       
       if (SALE_EDIT_ID) {
-        const { data: updated, error } = await sb.from('sales').update(payload).eq('id', SALE_EDIT_ID).select('*');
+        const { data: updated, error } = await sb.from('sales').update(payload).eq('id', SALE_EDIT_ID).eq('user_id', user.id).select('*');
         if (error) throw error;
       } else {
         const { error } = await sb.from('sales').insert([payload]);
@@ -2487,7 +2683,7 @@ function wireForms() {
       toast(message);
     } catch (err) { 
       console.error('Error saving sale:', err);
-      toast('⚠️ Error saving sale: ' + (err.message || 'Check required fields')); 
+      toast('⚠️  Error saving sale: ' + (err.message || 'Check required fields')); 
     }
   });
 
@@ -2505,7 +2701,7 @@ function wireForms() {
       
       let error;
       if (EXPENSE_EDIT_ID) {
-        const { data: updated, error: updateError } = await sb.from('expenses').update(payload).match({ id: EXPENSE_EDIT_ID }).select('*');
+        const { data: updated, error: updateError } = await sb.from('expenses').update(payload).eq('id', EXPENSE_EDIT_ID).eq('user_id', user.id).select('*');
         if (updateError) throw updateError;
         if (!updated || updated.length === 0) throw new Error('Expense update did not return any updated rows.');
       } else {
@@ -2516,7 +2712,7 @@ function wireForms() {
       const message = EXPENSE_EDIT_ID ? '✅ Expense updated!' : '✅ Expense saved!';
       clearExpenseEditMode();
       toast(message);
-    } catch (err) { toast('⚠️ Error saving expense'); }
+    } catch (err) { toast('⚠️  Error saving expense'); }
   });
 
   getEl('form-inventory')?.addEventListener('submit', async event => {
@@ -2535,16 +2731,37 @@ function wireForms() {
       };
       
       if (!payload.name) {
-        return toast('⚠️ Product Name is required');
+        return toast('⚠️  Product Name is required');
       }
 
       if (STOCK_EDIT_ID) {
-        const { data: updated, error: updateError } = await sb.from('stock').update(payload).match({ id: STOCK_EDIT_ID }).select('*');
+        const oldItem = (S.stock || []).find(item => String(item.id) === String(STOCK_EDIT_ID));
+        const oldQty = oldItem ? Number(oldItem.qty) || 0 : 0;
+        const { data: updated, error: updateError } = await sb.from('stock').update(payload).eq('id', STOCK_EDIT_ID).eq('user_id', user.id).select('*');
         if (updateError) throw updateError;
         if (!updated || updated.length === 0) throw new Error('Stock update did not return any updated rows.');
+        await addAuditLog({
+          action: 'stock_manual_update',
+          item_name: payload.name,
+          stock_id: STOCK_EDIT_ID,
+          qty_before: oldQty,
+          qty_after: payload.qty,
+          qty_change: payload.qty - oldQty,
+          note: 'Manual inventory update'
+        }, user.id);
       } else {
-        const { error: insertError } = await sb.from('stock').insert([payload]);
+        const { data: inserted, error: insertError } = await sb.from('stock').insert([payload]).select('*');
         if (insertError) throw insertError;
+        const newStockItem = inserted && inserted[0] ? inserted[0] : null;
+        await addAuditLog({
+          action: 'stock_manual_add',
+          item_name: payload.name,
+          stock_id: newStockItem ? newStockItem.id : null,
+          qty_before: 0,
+          qty_after: payload.qty,
+          qty_change: payload.qty,
+          note: 'Manual inventory addition'
+        }, user.id);
       }
       await loadData(); 
       renderAll(); 
@@ -2552,7 +2769,7 @@ function wireForms() {
       toast(STOCK_EDIT_ID ? '✅ Stock updated!' : '✅ Stock added to inventory!'); 
     } catch (err) { 
       console.error(err);
-      toast('⚠️ Error saving inventory'); 
+      toast('⚠️  Error saving inventory'); 
     }
   });
 
@@ -2568,7 +2785,7 @@ async function init() {
   try {
     await loadData();
     PROFILE = await loadProfile();
-  } catch (err) { toast('⚠️ Load failed.'); }
+  } catch (err) { toast('⚠️  Load failed.'); }
   renderProfileBanner(PROFILE);
   loadSettings(user.id);
   renderLogoPreview();
@@ -2837,6 +3054,9 @@ function populateAdminCenter() {
       if (el) el.checked = !!merged[key];
     });
   }
+
+  // Render the Inventory Control section
+  _renderInventoryControlStatus();
 }
 
 function toggleTheme(isDark) {
@@ -2861,7 +3081,7 @@ async function changeAdminPin() {
   const pinInput = getEl('admin-new-pin');
   const pinVal = pinInput ? pinInput.value.trim() : '';
   if (!/^\d{4}$/.test(pinVal)) {
-    return toast('⚠️ PIN must be exactly 4 digits');
+    return toast('⚠️  PIN must be exactly 4 digits');
   }
   try {
     const { data: { user } } = await sb.auth.getUser();
@@ -2884,7 +3104,7 @@ async function changeAdminPin() {
     toast('✅ Owner PIN updated successfully!');
   } catch (err) {
     console.error(err);
-    toast('⚠️ Failed to update PIN');
+    toast('⚠️  Failed to update PIN');
   }
 }
 
@@ -2895,9 +3115,9 @@ async function exportDatabase() {
     if (!user) return;
 
     const [sales, expenses, stock] = await Promise.all([
-      sb.from('sales').select('*'),
-      sb.from('expenses').select('*'),
-      sb.from('stock').select('*')
+      sb.from('sales').select('*').eq('user_id', user.id),
+      sb.from('expenses').select('*').eq('user_id', user.id),
+      sb.from('stock').select('*').eq('user_id', user.id)
     ]);
 
     const backupData = {
@@ -2922,7 +3142,7 @@ async function exportDatabase() {
     toast('✅ Backup file downloaded!');
   } catch (err) {
     console.error(err);
-    toast('⚠️ Failed to export database');
+    toast('⚠️  Failed to export database');
   }
 }
 
@@ -2965,13 +3185,13 @@ async function importDatabase(event) {
         toast('✅ Backup restored successfully!');
       } catch (err) {
         console.error(err);
-        toast('⚠️ Failed to restore backup: ' + err.message);
+        toast('⚠️  Failed to restore backup: ' + err.message);
       }
     };
     reader.readAsText(file);
   } catch (err) {
     console.error(err);
-    toast('⚠️ Error reading backup file');
+    toast('⚠️  Error reading backup file');
   } finally {
     event.target.value = '';
   }
@@ -3000,7 +3220,7 @@ async function resetDatabase() {
     toast('✅ Database reset successfully!');
   } catch (err) {
     console.error(err);
-    toast('⚠️ Failed to reset database');
+    toast('⚠️  Failed to reset database');
   }
 }
 
@@ -3028,7 +3248,7 @@ async function saveStaffPermissions() {
     toast('✅ Settings & staff permissions saved!');
   } catch (err) {
     console.error(err);
-    toast('⚠️ Failed to save staff permissions');
+    toast('⚠️  Failed to save staff permissions');
   }
 }
 
@@ -3045,9 +3265,12 @@ async function deleteExpense(id) {
 
   try {
     if (window.sb) {
-      const { error } = await sb.from('expenses').delete().eq('id', id);
-      if (error && !isNaN(Number(id))) {
-        await sb.from('expenses').delete().eq('id', Number(id));
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { error } = await sb.from('expenses').delete().eq('id', id).eq('user_id', user.id);
+        if (error && !isNaN(Number(id))) {
+          await sb.from('expenses').delete().eq('id', Number(id)).eq('user_id', user.id);
+        }
       }
     }
   } catch (err) {
@@ -3063,7 +3286,7 @@ async function deleteExpense(id) {
     localStorage.setItem('biztrack_expenses', JSON.stringify(updatedLocal));
   } catch (e) {}
 
-  toast('🗑️ Expense deleted!');
+  toast('🗑️ Expense deleted!');
   renderAll();
 }
 
@@ -3156,6 +3379,7 @@ window.enterInnerApp = enterInnerApp;
 window.goToLandingPage = goToLandingPage;
 window.toggleTheme = toggleTheme;
 window.saveSettings = saveSettings;
+window.saveInventoryControl = saveInventoryControl;
 window.changeAdminPin = changeAdminPin;
 window.exportDatabase = exportDatabase;
 window.importDatabase = importDatabase;
@@ -3172,6 +3396,7 @@ window.closeAddProductModal = closeAddProductModal;
 window.filterStockModalList = filterStockModalList;
 window.deleteStockItem = deleteStockItem;
 window.enterStockEditModeFromModal = enterStockEditModeFromModal;
+function onStockItemSelect(el) { if (typeof onItemNameInput === "function") onItemNameInput(el); }
 window.onStockItemSelect = onStockItemSelect;
 window.onItemNameInput = onItemNameInput;
 window.populateStockDropdowns = populateStockDropdowns;
@@ -3180,5 +3405,4 @@ window.openInvoiceModalForSale = openInvoiceModalForSale;
 window.openInvoiceModalManual = openInvoiceModalManual;
 window.closeInvoiceModal = closeInvoiceModal;
 window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
-
 
