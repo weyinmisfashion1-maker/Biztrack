@@ -3408,6 +3408,19 @@ window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
 
 
 
+/* --- UTILITY FEATURES MODAL HANDLERS --- */
+function openUtilityFeaturesModal() {
+  const modal = getEl('utility-features-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+}
+
+function closeUtilityFeaturesModal() {
+  const modal = getEl('utility-features-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
 /* --- UTILITY FEATURES: THANK YOU CARD GENERATOR & INVOICE PICKER --- */
 let TY_MODE = 'manual';
 let TY_SELECTED_SALE = null;
@@ -3653,6 +3666,8 @@ ${msg}
   window.open(`https://wa.me/?text=${encoded}`, '_blank');
 }
 
+window.openUtilityFeaturesModal = openUtilityFeaturesModal;
+window.closeUtilityFeaturesModal = closeUtilityFeaturesModal;
 window.openThankYouModal = openThankYouModal;
 window.closeThankYouModal = closeThankYouModal;
 window.resetThankYouMode = resetThankYouMode;
