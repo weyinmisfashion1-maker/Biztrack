@@ -3606,3 +3606,20 @@ window.onThankYouSaleSelected = onThankYouSaleSelected;
 window.updateThankYouPreview = updateThankYouPreview;
 window.downloadThankYouPNG = downloadThankYouPNG;
 window.shareThankYouWhatsApp = shareThankYouWhatsApp;
+
+
+/* --- UTILITY FEATURES MODAL HANDLERS --- */
+function openUtilityFeaturesModal() {
+  const modal = getEl('utility-features-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+}
+
+function closeUtilityFeaturesModal() {
+  const modal = getEl('utility-features-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
+window.openUtilityFeaturesModal = openUtilityFeaturesModal;
+window.closeUtilityFeaturesModal = closeUtilityFeaturesModal;
