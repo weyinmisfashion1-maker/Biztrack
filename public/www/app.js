@@ -3408,7 +3408,7 @@ window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
 
 
 
-/* --- UTILITY FEATURES: THANK YOU CARD GENERATOR --- */
+/* --- UTILITY FEATURES: THANK YOU CARD GENERATOR & INVOICE PICKER --- */
 let TY_MODE = 'manual';
 let TY_SELECTED_SALE = null;
 
@@ -3427,6 +3427,7 @@ function closeThankYouModal() {
 
 function resetThankYouMode() {
   if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'block';
+  if (getEl('ty-step-invoice-picker')) getEl('ty-step-invoice-picker').style.display = 'none';
   if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'none';
   TY_MODE = 'manual';
   TY_SELECTED_SALE = null;
@@ -3434,24 +3435,24 @@ function resetThankYouMode() {
 
 function selectThankYouMode(mode) {
   TY_MODE = mode;
-  if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'none';
-  if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
-
-  const badge = getEl('ty-mode-badge');
-  const selGroup = getEl('ty-invoice-select-group');
-  const itemsWrap = getEl('ty-items-preview-wrap');
-  const cardItemsBox = getEl('ty-card-items-box');
-
   if (mode === 'invoice') {
-    if (badge) badge.textContent = '🧾 From Sale / Invoice';
-    if (selGroup) selGroup.style.display = 'block';
-    populateThankYouSalesDropdown();
+    openThankYouInvoicePicker();
   } else {
+    if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'none';
+    if (getEl('ty-step-invoice-picker')) getEl('ty-step-invoice-picker').style.display = 'none';
+    if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
+
+    const badge = getEl('ty-mode-badge');
     if (badge) badge.textContent = '✏️ Manual Creation';
-    if (selGroup) selGroup.style.display = 'none';
+
+    const banner = getEl('ty-selected-invoice-banner');
+    if (banner) banner.style.display = 'none';
+
+    const itemsWrap = getEl('ty-items-preview-wrap');
     if (itemsWrap) itemsWrap.style.display = 'none';
+    const cardItemsBox = getEl('ty-card-items-box');
     if (cardItemsBox) cardItemsBox.style.display = 'none';
-    
+
     if (getEl('ty-cust-name')) getEl('ty-cust-name').value = '';
     if (getEl('ty-note-title')) getEl('ty-note-title').value = 'Thank You for Your Business!';
     if (getEl('ty-message')) getEl('ty-message').value = 'We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.';
@@ -3459,61 +3460,115 @@ function selectThankYouMode(mode) {
   }
 }
 
-function populateThankYouSalesDropdown() {
-  const sel = getEl('ty-sale-select');
-  if (!sel) return;
-  sel.innerHTML = '';
+function openThankYouInvoicePicker() {
+  if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'none';
+  if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'none';
+  if (getEl('ty-step-invoice-picker')) getEl('ty-step-invoice-picker').style.display = 'block';
+  if (getEl('ty-invoice-search')) getEl('ty-invoice-search').value = '';
+  renderThankYouInvoicePickerList();
+}
 
-  const sales = (S?.sales || []).filter(s => !s.is_deleted);
+function renderThankYouInvoicePickerList() {
+  const container = getEl('ty-invoice-picker-list');
+  if (!container) return;
+
+  const search = (getEl('ty-invoice-search')?.value || '').toLowerCase().trim();
+  let sales = (S?.sales || []).filter(s => !s.is_deleted);
+
+  if (search) {
+    sales = sales.filter(s => {
+      const name = (s.customerName || s.customer_name || '').toLowerCase();
+      const itemsStr = (s.items || []).map(i => (i.name || '').toLowerCase()).join(' ');
+      return name.includes(search) || itemsStr.includes(search);
+    });
+  }
+
   if (sales.length === 0) {
-    sel.innerHTML = '<option value="">No recorded sales found</option>';
-    onThankYouSaleSelected();
+    container.innerHTML = `
+      <div style="text-align:center; padding:1.5rem; color:var(--muted); font-size:0.82rem;">
+        ${search ? '🔍 No recorded invoices match your search.' : '🧾 No recorded sales found in your database yet.<br/><span style="font-size:0.75rem;">Record a sale first or use "Create Manually".</span>'}
+      </div>`;
     return;
   }
 
   sales.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-  sel.innerHTML = sales.map(s => {
-    const custName = esc(s.customerName || s.customer_name || 'Customer');
-    const amt = fmt(s.total || s.total_amount || 0);
-    const dt = s.date ? String(s.date).slice(0, 10) : '';
-    return `<option value="${esc(s.id)}">${dt} — ${custName} (${amt})</option>`;
-  }).join('');
 
-  onThankYouSaleSelected();
+  container.innerHTML = sales.map(s => {
+    const custName = esc(s.customerName || s.customer_name || 'Customer');
+    const totalAmt = fmt(s.total || s.total_amount || 0);
+    const dt = s.date ? String(s.date).slice(0, 10) : todayISO();
+    const items = s.items || [];
+    const itemsSummary = items.length > 0
+      ? items.map(i => `${esc(i.name)} ×${i.qty}`).join(', ')
+      : 'No item breakdown';
+    const status = s.paymentStatus || s.payment_status || 'Paid';
+    const isPaid = status === 'Paid';
+
+    return `
+      <div class="card" style="padding:0.75rem 0.85rem; border:1px solid var(--border); border-radius:10px; background:#fff; display:flex; justify-content:space-between; align-items:center; gap:0.75rem; cursor:pointer;" onclick="pickThankYouInvoice('${esc(s.id)}')">
+        <div style="flex:1; overflow:hidden;">
+          <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+            <strong style="font-size:0.88rem; color:var(--ink);">${custName}</strong>
+            <span style="font-size:0.65rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:999px; background:${isPaid ? 'var(--green-bg, #E4F2EB)' : 'var(--red-bg, #FCEAEA)'}; color:${isPaid ? 'var(--green, #1E6641)' : 'var(--red, #B53030)'};">${status}</span>
+          </div>
+          <div style="font-size:0.75rem; color:var(--muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+            📅 ${dt} · 📦 ${itemsSummary}
+          </div>
+          <div style="font-size:0.82rem; font-weight:700; color:var(--gold); margin-top:0.15rem;">
+            ${totalAmt}
+          </div>
+        </div>
+        <button type="button" class="btn-save" onclick="event.stopPropagation(); pickThankYouInvoice('${esc(s.id)}')" style="width:auto; padding:0.35rem 0.75rem; font-size:0.78rem; flex-shrink:0;">
+          Select ➔
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 
-function onThankYouSaleSelected() {
-  const sel = getEl('ty-sale-select');
-  if (!sel) return;
-  const saleId = sel.value;
+function pickThankYouInvoice(saleId) {
   const sale = (S?.sales || []).find(s => String(s.id) === String(saleId));
+  if (!sale) return;
 
+  TY_SELECTED_SALE = sale;
+  TY_MODE = 'invoice';
+
+  if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'none';
+  if (getEl('ty-step-invoice-picker')) getEl('ty-step-invoice-picker').style.display = 'none';
+  if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
+
+  const badge = getEl('ty-mode-badge');
+  if (badge) badge.textContent = '🧾 From Recorded Invoice';
+
+  const banner = getEl('ty-selected-invoice-banner');
+  if (banner) banner.style.display = 'block';
+
+  const custName = sale.customerName || sale.customer_name || 'Valued Customer';
+  if (getEl('ty-banner-cust')) getEl('ty-banner-cust').textContent = custName;
+  if (getEl('ty-banner-details')) {
+    const dt = sale.date ? String(sale.date).slice(0, 10) : '';
+    const amt = fmt(sale.total || sale.total_amount || 0);
+    getEl('ty-banner-details').textContent = `${dt} · ${amt}`;
+  }
+
+  if (getEl('ty-cust-name')) getEl('ty-cust-name').value = custName;
+
+  const items = sale.items || [];
   const itemsWrap = getEl('ty-items-preview-wrap');
   const itemsListEl = getEl('ty-items-list');
   const cardItemsBox = getEl('ty-card-items-box');
   const cardItemsContent = getEl('ty-card-items-content');
   const cardTotalRow = getEl('ty-card-total-row');
 
-  if (sale) {
-    TY_SELECTED_SALE = sale;
-    const custName = sale.customerName || sale.customer_name || '';
-    if (getEl('ty-cust-name')) getEl('ty-cust-name').value = custName;
+  if (items.length > 0) {
+    const summaryText = items.map(i => `• ${esc(i.name)} ×${i.qty} (${fmt(i.total || (i.qty * (i.price || 0)))})`).join('<br/>');
+    if (itemsListEl) itemsListEl.innerHTML = summaryText;
+    if (itemsWrap) itemsWrap.style.display = 'block';
 
-    const items = sale.items || [];
-    if (items.length > 0) {
-      const summaryText = items.map(i => `• ${esc(i.name)} ×${i.qty} (${fmt(i.total || (i.qty * (i.price || 0)))})`).join('<br/>');
-      if (itemsListEl) itemsListEl.innerHTML = summaryText;
-      if (itemsWrap) itemsWrap.style.display = 'block';
-
-      if (cardItemsContent) cardItemsContent.innerHTML = summaryText;
-      if (cardTotalRow) cardTotalRow.innerHTML = `Total Amount: ${fmt(sale.total || sale.total_amount || 0)}`;
-      if (cardItemsBox) cardItemsBox.style.display = 'block';
-    } else {
-      if (itemsWrap) itemsWrap.style.display = 'none';
-      if (cardItemsBox) cardItemsBox.style.display = 'none';
-    }
+    if (cardItemsContent) cardItemsContent.innerHTML = summaryText;
+    if (cardTotalRow) cardTotalRow.innerHTML = `Total Amount: ${fmt(sale.total || sale.total_amount || 0)}`;
+    if (cardItemsBox) cardItemsBox.style.display = 'block';
   } else {
-    TY_SELECTED_SALE = null;
     if (itemsWrap) itemsWrap.style.display = 'none';
     if (cardItemsBox) cardItemsBox.style.display = 'none';
   }
@@ -3602,24 +3657,9 @@ window.openThankYouModal = openThankYouModal;
 window.closeThankYouModal = closeThankYouModal;
 window.resetThankYouMode = resetThankYouMode;
 window.selectThankYouMode = selectThankYouMode;
-window.onThankYouSaleSelected = onThankYouSaleSelected;
+window.openThankYouInvoicePicker = openThankYouInvoicePicker;
+window.renderThankYouInvoicePickerList = renderThankYouInvoicePickerList;
+window.pickThankYouInvoice = pickThankYouInvoice;
 window.updateThankYouPreview = updateThankYouPreview;
 window.downloadThankYouPNG = downloadThankYouPNG;
 window.shareThankYouWhatsApp = shareThankYouWhatsApp;
-
-
-/* --- UTILITY FEATURES MODAL HANDLERS --- */
-function openUtilityFeaturesModal() {
-  const modal = getEl('utility-features-modal');
-  if (!modal) return;
-  modal.style.display = 'flex';
-}
-
-function closeUtilityFeaturesModal() {
-  const modal = getEl('utility-features-modal');
-  if (!modal) return;
-  modal.style.display = 'none';
-}
-
-window.openUtilityFeaturesModal = openUtilityFeaturesModal;
-window.closeUtilityFeaturesModal = closeUtilityFeaturesModal;

@@ -2540,6 +2540,7 @@ body.dark-mode #invoice-view * {
     </div>
 
     <!-- STEP 1: OPTIONS CHOICE (Create Manually vs Choose from Invoice) -->
+        <!-- STEP 1: OPTIONS CHOICE (Create Manually vs Choose from Invoice) -->
     <div id="ty-step-options" style="display:block;">
       <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">How would you like to create your Thank You card?</p>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
@@ -2549,27 +2550,47 @@ body.dark-mode #invoice-view * {
           <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Write a custom message and enter customer details from scratch.</span>
         </div>
 
-        <div class="qa-card" onclick="selectThankYouMode('invoice')" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
+        <div class="qa-card" onclick="openThankYouInvoicePicker()" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
           <div class="qa-icon" style="width:44px; height:44px; font-size:1.5rem; margin-bottom:0.4rem;">🧾</div>
           <strong style="font-size:0.9rem; color:var(--text); margin-bottom:0.25rem; display:block;">Choose from Invoice</strong>
-          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Auto-fill customer name & purchased items from your recorded sales.</span>
+          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Browse all recorded invoices and select a customer to auto-fill details.</span>
         </div>
       </div>
     </div>
 
-    <!-- STEP 2: EDITOR & PREVIEW -->
+    <!-- STEP 2: INVOICE PICKER POP-UP LIST -->
+    <div id="ty-step-invoice-picker" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Back to Options</button>
+        <span style="font-size:0.75rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px;">Select Recorded Invoice</span>
+      </div>
+
+      <div class="field" style="margin-bottom:0.75rem;">
+        <input type="text" id="ty-invoice-search" placeholder="🔍 Search by customer name or item..." oninput="renderThankYouInvoicePickerList()" style="width:100%; font-size:0.85rem; padding:0.55rem 0.8rem;" />
+      </div>
+
+      <div id="ty-invoice-picker-list" style="max-height:320px; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:0.6rem;">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- STEP 3: EDITOR & PREVIEW -->
     <div id="ty-step-editor" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Change Option</button>
+        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Change Mode</button>
         <span id="ty-mode-badge" style="font-size:0.72rem; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px;"></span>
       </div>
 
-      <!-- Invoice Selector (Only shown if mode === 'invoice') -->
-      <div id="ty-invoice-select-group" class="field" style="display:none; margin-bottom:0.75rem;">
-        <label for="ty-sale-select" style="font-weight:600; font-size:0.78rem;">Select Sale / Invoice:</label>
-        <select id="ty-sale-select" onchange="onThankYouSaleSelected()" style="width:100%;">
-          <!-- Populated dynamically -->
-        </select>
+      <!-- Selected Invoice Banner (Shown when mode === 'invoice') -->
+      <div id="ty-selected-invoice-banner" style="display:none; background:var(--cream2, #f3ede0); border:1px solid var(--border); border-radius:10px; padding:0.65rem 0.85rem; margin-bottom:0.75rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem;">
+          <div>
+            <span style="font-size:0.65rem; font-weight:700; color:var(--gold); text-transform:uppercase;">Selected Invoice:</span>
+            <div id="ty-banner-cust" style="font-size:0.88rem; font-weight:700; color:var(--ink);">Customer Name</div>
+            <div id="ty-banner-details" style="font-size:0.75rem; color:var(--muted);">Date & Amount</div>
+          </div>
+          <button type="button" class="btn-ghost" onclick="openThankYouInvoicePicker()" style="width:auto; padding:0.3rem 0.65rem; font-size:0.75rem; color:var(--gold); border-color:var(--gold);">🔄 Change Invoice</button>
+        </div>
       </div>
 
       <!-- Inputs -->
@@ -2595,7 +2616,6 @@ body.dark-mode #invoice-view * {
         <div id="ty-items-list" style="font-size:0.78rem; color:var(--text);"></div>
       </div>
 
-      <!-- LIVE PREVIEW CARD CONTAINER -->
       <div style="margin-top:0.75rem;">
         <label style="font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:0.35rem;">Card Preview:</label>
         <div id="thank-you-card-render" style="background:linear-gradient(135deg, #141009 0%, #2A2215 100%); color:#FAF6EF; padding:1.5rem; border-radius:16px; border:2px solid #C9982A; box-shadow:0 8px 24px rgba(0,0,0,0.25); text-align:center; position:relative; overflow:hidden;">
