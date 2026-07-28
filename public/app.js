@@ -3406,3 +3406,203 @@ window.openInvoiceModalManual = openInvoiceModalManual;
 window.closeInvoiceModal = closeInvoiceModal;
 window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
 
+
+
+/* --- UTILITY FEATURES: THANK YOU CARD GENERATOR --- */
+let TY_MODE = 'manual';
+let TY_SELECTED_SALE = null;
+
+function openThankYouModal() {
+  const modal = getEl('thank-you-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  resetThankYouMode();
+}
+
+function closeThankYouModal() {
+  const modal = getEl('thank-you-modal');
+  if (!modal) return;
+  modal.style.display = 'none';
+}
+
+function resetThankYouMode() {
+  if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'block';
+  if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'none';
+  TY_MODE = 'manual';
+  TY_SELECTED_SALE = null;
+}
+
+function selectThankYouMode(mode) {
+  TY_MODE = mode;
+  if (getEl('ty-step-options')) getEl('ty-step-options').style.display = 'none';
+  if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
+
+  const badge = getEl('ty-mode-badge');
+  const selGroup = getEl('ty-invoice-select-group');
+  const itemsWrap = getEl('ty-items-preview-wrap');
+  const cardItemsBox = getEl('ty-card-items-box');
+
+  if (mode === 'invoice') {
+    if (badge) badge.textContent = '🧾 From Sale / Invoice';
+    if (selGroup) selGroup.style.display = 'block';
+    populateThankYouSalesDropdown();
+  } else {
+    if (badge) badge.textContent = '✏️ Manual Creation';
+    if (selGroup) selGroup.style.display = 'none';
+    if (itemsWrap) itemsWrap.style.display = 'none';
+    if (cardItemsBox) cardItemsBox.style.display = 'none';
+    
+    if (getEl('ty-cust-name')) getEl('ty-cust-name').value = '';
+    if (getEl('ty-note-title')) getEl('ty-note-title').value = 'Thank You for Your Business!';
+    if (getEl('ty-message')) getEl('ty-message').value = 'We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.';
+    updateThankYouPreview();
+  }
+}
+
+function populateThankYouSalesDropdown() {
+  const sel = getEl('ty-sale-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+
+  const sales = (S?.sales || []).filter(s => !s.is_deleted);
+  if (sales.length === 0) {
+    sel.innerHTML = '<option value="">No recorded sales found</option>';
+    onThankYouSaleSelected();
+    return;
+  }
+
+  sales.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  sel.innerHTML = sales.map(s => {
+    const custName = esc(s.customerName || s.customer_name || 'Customer');
+    const amt = fmt(s.total || s.total_amount || 0);
+    const dt = s.date ? String(s.date).slice(0, 10) : '';
+    return `<option value="${esc(s.id)}">${dt} — ${custName} (${amt})</option>`;
+  }).join('');
+
+  onThankYouSaleSelected();
+}
+
+function onThankYouSaleSelected() {
+  const sel = getEl('ty-sale-select');
+  if (!sel) return;
+  const saleId = sel.value;
+  const sale = (S?.sales || []).find(s => String(s.id) === String(saleId));
+
+  const itemsWrap = getEl('ty-items-preview-wrap');
+  const itemsListEl = getEl('ty-items-list');
+  const cardItemsBox = getEl('ty-card-items-box');
+  const cardItemsContent = getEl('ty-card-items-content');
+  const cardTotalRow = getEl('ty-card-total-row');
+
+  if (sale) {
+    TY_SELECTED_SALE = sale;
+    const custName = sale.customerName || sale.customer_name || '';
+    if (getEl('ty-cust-name')) getEl('ty-cust-name').value = custName;
+
+    const items = sale.items || [];
+    if (items.length > 0) {
+      const summaryText = items.map(i => `• ${esc(i.name)} ×${i.qty} (${fmt(i.total || (i.qty * (i.price || 0)))})`).join('<br/>');
+      if (itemsListEl) itemsListEl.innerHTML = summaryText;
+      if (itemsWrap) itemsWrap.style.display = 'block';
+
+      if (cardItemsContent) cardItemsContent.innerHTML = summaryText;
+      if (cardTotalRow) cardTotalRow.innerHTML = `Total Amount: ${fmt(sale.total || sale.total_amount || 0)}`;
+      if (cardItemsBox) cardItemsBox.style.display = 'block';
+    } else {
+      if (itemsWrap) itemsWrap.style.display = 'none';
+      if (cardItemsBox) cardItemsBox.style.display = 'none';
+    }
+  } else {
+    TY_SELECTED_SALE = null;
+    if (itemsWrap) itemsWrap.style.display = 'none';
+    if (cardItemsBox) cardItemsBox.style.display = 'none';
+  }
+
+  updateThankYouPreview();
+}
+
+function updateThankYouPreview() {
+  const bizName = PROFILE?.businessName || PROFILE?.business_name || 'BizTrack Business';
+  const custNameInput = getEl('ty-cust-name')?.value.trim();
+  const headerInput = getEl('ty-note-title')?.value.trim() || 'Thank You for Your Business!';
+  const msgInput = getEl('ty-message')?.value.trim() || 'We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.';
+
+  if (getEl('ty-card-biz-name')) getEl('ty-card-biz-name').textContent = bizName;
+  if (getEl('ty-card-cust-name')) getEl('ty-card-cust-name').textContent = custNameInput || 'Valued Customer';
+  if (getEl('ty-card-header')) getEl('ty-card-header').textContent = headerInput;
+  if (getEl('ty-card-msg-text')) getEl('ty-card-msg-text').textContent = msgInput;
+
+  const phone = PROFILE?.phoneNumber || PROFILE?.phone_number || '';
+  if (getEl('ty-card-phone')) getEl('ty-card-phone').textContent = phone ? ('📞 ' + phone) : '📞 BizTrack Business';
+  if (getEl('ty-card-date')) getEl('ty-card-date').textContent = '📅 ' + todayISO();
+}
+
+async function downloadThankYouPNG() {
+  const cardEl = getEl('thank-you-card-render');
+  if (!cardEl) return;
+  if (typeof html2canvas !== 'function') {
+    return alert('HTML2Canvas library is loading. Please try again in a moment.');
+  }
+
+  try {
+    toast('⏳ Generating Thank You Card image...');
+    const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, backgroundColor: null });
+    const custName = (getEl('ty-cust-name')?.value || 'customer').toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const link = document.createElement('a');
+    link.download = `thank-you-card-${custName}-${todayISO()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('💌 Thank You Card downloaded!');
+  } catch (err) {
+    console.error('Download error:', err);
+    toast('⚠️ Image Download Failed');
+  }
+}
+
+function shareThankYouWhatsApp() {
+  const bizName = PROFILE?.businessName || PROFILE?.business_name || 'BizTrack Business';
+  const custName = getEl('ty-cust-name')?.value.trim() || 'Valued Customer';
+  const header = getEl('ty-card-header')?.textContent || 'Thank You!';
+  const msg = getEl('ty-card-msg-text')?.textContent || '';
+
+  let text = `💌 *${header}*
+
+Dear *${custName}*,
+
+${msg}
+
+`;
+
+  if (TY_MODE === 'invoice' && TY_SELECTED_SALE) {
+    const items = TY_SELECTED_SALE.items || [];
+    if (items.length > 0) {
+      text += `*Order Summary:*
+`;
+      items.forEach(i => {
+        text += `• ${i.name} ×${i.qty} (${fmt(i.total || (i.qty * i.price))})
+`;
+      });
+      text += `*Total Amount:* ${fmt(TY_SELECTED_SALE.total || TY_SELECTED_SALE.total_amount || 0)}
+
+`;
+    }
+  }
+
+  text += `Warm regards,
+*${bizName}*
+`;
+  if (PROFILE?.phoneNumber) text += `📞 Phone: ${PROFILE.phoneNumber}
+`;
+
+  const encoded = encodeURIComponent(text);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+window.openThankYouModal = openThankYouModal;
+window.closeThankYouModal = closeThankYouModal;
+window.resetThankYouMode = resetThankYouMode;
+window.selectThankYouMode = selectThankYouMode;
+window.onThankYouSaleSelected = onThankYouSaleSelected;
+window.updateThankYouPreview = updateThankYouPreview;
+window.downloadThankYouPNG = downloadThankYouPNG;
+window.shareThankYouWhatsApp = shareThankYouWhatsApp;

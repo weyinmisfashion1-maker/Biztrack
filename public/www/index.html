@@ -1643,6 +1643,26 @@ body.dark-mode #invoice-view * {
           <div class="qa-lbl">Admin Center</div>
         </div>
       </div>
+    
+    <!-- UTILITY FEATURES -->
+    <section style="margin-top: 1rem;">
+      <h3 class="card-h" style="margin-bottom: 0.35rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold);">Utility Features</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.75rem;">
+        <!-- THANK YOU CARD -->
+        <div class="qa-card" id="qa-thank-you-card" style="padding: 1rem; text-align: left; align-items: flex-start; gap: 0.5rem; flex-direction: column;" onclick="openThankYouModal()">
+          <div style="display: flex; align-items: center; gap: 0.6rem; width: 100%;">
+            <div class="qa-icon" style="width: 36px; height: 36px; font-size: 1.3rem;">💌</div>
+            <div style="flex: 1;">
+              <div class="qa-lbl" style="font-size: 0.88rem; font-weight: 700; text-align: left;">Thank You Card</div>
+              <span style="font-size: 0.72rem; color: var(--muted);">Customer Appreciation & Receipt Notes</span>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Generate and send custom branded Thank You notes directly to your clients.</p>
+          <button type="button" class="btn-save" style="width: 100%; margin-top: 0.5rem; padding: 0.45rem; font-size: 0.8rem; text-align: center; display: flex; justify-content: center; align-items: center; gap: 0.35rem;" onclick="event.stopPropagation(); openThankYouModal();">
+            <span>💌</span> Create Thank You Card
+          </button>
+        </div>
+      </div>
     </section>
   </section>
 
@@ -2496,6 +2516,125 @@ body.dark-mode #invoice-view * {
       <button type="button" class="btn-ghost" id="edm-delete-btn" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem; color:var(--red, #B53030); border-color:rgba(181,48,48,0.3);">Delete</button>
       <button type="button" class="btn-save" id="edm-edit-btn" style="width:auto; padding:0.35rem 1rem; font-size:0.8rem;">Edit Expense</button>
     </div>
+  </div>
+</div>
+
+
+<!-- MODAL: THANK YOU CARD GENERATOR -->
+<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeThankYouModal()">
+  <div class="card" style="max-width:540px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">💌 Thank You Card Generator</h2>
+      <button type="button" onclick="closeThankYouModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <!-- STEP 1: OPTIONS CHOICE (Create Manually vs Choose from Invoice) -->
+    <div id="ty-step-options" style="display:block;">
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">How would you like to create your Thank You card?</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="qa-card" onclick="selectThankYouMode('manual')" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
+          <div class="qa-icon" style="width:44px; height:44px; font-size:1.5rem; margin-bottom:0.4rem;">✏️</div>
+          <strong style="font-size:0.9rem; color:var(--text); margin-bottom:0.25rem; display:block;">Create Manually</strong>
+          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Write a custom message and enter customer details from scratch.</span>
+        </div>
+
+        <div class="qa-card" onclick="selectThankYouMode('invoice')" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
+          <div class="qa-icon" style="width:44px; height:44px; font-size:1.5rem; margin-bottom:0.4rem;">🧾</div>
+          <strong style="font-size:0.9rem; color:var(--text); margin-bottom:0.25rem; display:block;">Choose from Invoice</strong>
+          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Auto-fill customer name & purchased items from your recorded sales.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: EDITOR & PREVIEW -->
+    <div id="ty-step-editor" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Change Option</button>
+        <span id="ty-mode-badge" style="font-size:0.72rem; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px;"></span>
+      </div>
+
+      <!-- Invoice Selector (Only shown if mode === 'invoice') -->
+      <div id="ty-invoice-select-group" class="field" style="display:none; margin-bottom:0.75rem;">
+        <label for="ty-sale-select" style="font-weight:600; font-size:0.78rem;">Select Sale / Invoice:</label>
+        <select id="ty-sale-select" onchange="onThankYouSaleSelected()" style="width:100%;">
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+
+      <!-- Inputs -->
+      <div class="row2" style="gap:0.5rem; margin-bottom:0.5rem;">
+        <div class="field">
+          <label for="ty-cust-name" style="font-size:0.75rem;">Customer Name:</label>
+          <input type="text" id="ty-cust-name" placeholder="e.g. Mrs. Blessing" oninput="updateThankYouPreview()" />
+        </div>
+        <div class="field">
+          <label for="ty-note-title" style="font-size:0.75rem;">Card Header / Title:</label>
+          <input type="text" id="ty-note-title" value="Thank You for Your Business!" oninput="updateThankYouPreview()" />
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:0.5rem;">
+        <label for="ty-message" style="font-size:0.75rem;">Thank You Message:</label>
+        <textarea id="ty-message" style="min-height:55px; font-size:0.82rem;" placeholder="Write a warm thank you message..." oninput="updateThankYouPreview()">We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.</textarea>
+      </div>
+
+      <!-- Items Summary Box (Hidden if manual or no items) -->
+      <div id="ty-items-preview-wrap" style="display:none; margin-bottom:0.5rem; background:#fff; padding:0.5rem; border-radius:8px; border:1px solid var(--border);">
+        <div style="font-size:0.7rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.25rem;">Purchased Items:</div>
+        <div id="ty-items-list" style="font-size:0.78rem; color:var(--text);"></div>
+      </div>
+
+      <!-- LIVE PREVIEW CARD CONTAINER -->
+      <div style="margin-top:0.75rem;">
+        <label style="font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:0.35rem;">Card Preview:</label>
+        <div id="thank-you-card-render" style="background:linear-gradient(135deg, #141009 0%, #2A2215 100%); color:#FAF6EF; padding:1.5rem; border-radius:16px; border:2px solid #C9982A; box-shadow:0 8px 24px rgba(0,0,0,0.25); text-align:center; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-20px; right:-20px; width:90px; height:90px; background:rgba(201,152,42,0.12); border-radius:50%; pointer-events:none;"></div>
+          
+          <!-- Business Name -->
+          <div id="ty-card-biz-name" style="font-family:'Playfair Display', Georgia, serif; font-size:1.3rem; font-weight:700; color:#C9982A; margin-bottom:0.2rem; letter-spacing:0.5px;">BizTrack Business</div>
+          <div id="ty-card-biz-tag" style="font-size:0.7rem; color:rgba(250,246,239,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem;">Official Customer Appreciation</div>
+          
+          <!-- Heart Icon -->
+          <div style="font-size:2rem; margin-bottom:0.5rem; text-shadow:0 0 10px rgba(201,152,42,0.5);">💌</div>
+
+          <!-- Header Title -->
+          <h3 id="ty-card-header" style="font-family:'Playfair Display', Georgia, serif; font-size:1.1rem; color:#E8BE6A; margin-bottom:0.6rem;">Thank You for Your Patronage!</h3>
+          
+          <!-- Customer Name -->
+          <div style="font-size:0.85rem; color:#FAF6EF; font-weight:600; margin-bottom:0.5rem;">
+            Dear <span id="ty-card-cust-name" style="color:#E8BE6A; text-decoration:underline;">Valued Customer</span>,
+          </div>
+
+          <!-- Message -->
+          <p id="ty-card-msg-text" style="font-size:0.82rem; line-height:1.5; color:rgba(250,246,239,0.9); margin:0 auto 1rem; max-width:420px; font-style:italic;">
+            We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.
+          </p>
+
+          <!-- Items Purchased Box inside Card (If applicable) -->
+          <div id="ty-card-items-box" style="display:none; background:rgba(255,255,255,0.06); border:1px dashed rgba(201,152,42,0.3); border-radius:10px; padding:0.65rem; margin-bottom:1rem; text-align:left;">
+            <div style="font-size:0.65rem; font-weight:700; color:#C9982A; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.3rem;">Order Summary:</div>
+            <div id="ty-card-items-content" style="font-size:0.75rem; color:rgba(250,246,239,0.85); line-height:1.4;"></div>
+            <div id="ty-card-total-row" style="font-size:0.8rem; font-weight:700; color:#E8BE6A; margin-top:0.35rem; border-top:1px solid rgba(255,255,255,0.1); padding-top:0.3rem; text-align:right;"></div>
+          </div>
+
+          <!-- Footer / Contact -->
+          <div style="border-top:1px solid rgba(201,152,42,0.25); padding-top:0.75rem; margin-top:0.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.7rem; color:rgba(250,246,239,0.65);">
+            <div id="ty-card-phone">📞 Contact Us</div>
+            <div id="ty-card-date">📅 Date</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:1.1rem; border-top:1px solid var(--border); padding-top:0.85rem; flex-wrap:wrap;">
+        <button type="button" class="btn-ghost" onclick="closeThankYouModal()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem;">Close</button>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button type="button" class="btn-save" onclick="downloadThankYouPNG()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:var(--ink); color:var(--gold); border:1px solid var(--gold);">📥 Download PNG</button>
+          <button type="button" class="btn-save" onclick="shareThankYouWhatsApp()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:#25D366; color:#fff; border:none;">📱 Share WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
