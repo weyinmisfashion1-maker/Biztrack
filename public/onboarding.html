@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Welcome to BizTrack.ng</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9982A;
+    --gold-lt: #E8BE6A;
+    --ink: #141009;
+    --ink2: #2A2215;
+    --cream: #FAF6EF;
+    --ff-head: 'Playfair Display', Georgia, serif;
+    --ff-body: 'Outfit', system-ui, sans-serif;
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--ff-body);
+    background: var(--ink);
+    color: var(--cream);
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* --- SPLASH SCREEN --- */
+  #splash-screen {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s ease, visibility 0.5s;
+  }
+  .splash-logo {
+    font-family: var(--ff-head);
+    font-size: 2.5rem;
+    color: var(--gold);
+    animation: pulse 2s infinite ease-in-out;
+  }
+  .splash-logo span {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--gold-lt);
+  }
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(201, 152, 42, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    margin-top: 2rem;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* --- WALKTHROUGH SCREEN --- */
+  #walkthrough-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+    background: radial-gradient(ellipse 70% 60% at 50% 100%, rgba(201,152,42,0.1) 0%, transparent 80%), var(--ink);
+  }
+
+  .wt-slides {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .wt-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.4s ease;
+    pointer-events: none;
+  }
+  .wt-slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .wt-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(201, 152, 42, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+    color: var(--gold);
+  }
+  .wt-icon svg { width: 40px; height: 40px; stroke-width: 1.5; }
+
+  .wt-title {
+    font-family: var(--ff-head);
+    font-size: 1.8rem;
+    color: var(--gold-lt);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  .wt-desc {
+    font-size: 1rem;
+    color: rgba(250, 246, 239, 0.8);
+    line-height: 1.5;
+  }
+
+  /* --- CONTROLS --- */
+  .wt-controls {
+    padding: 1.5rem 2rem calc(1.5rem + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .wt-dots {
+    display: flex;
+    gap: 8px;
+  }
+  .wt-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(250, 246, 239, 0.2);
+    transition: all 0.3s ease;
+  }
+  .wt-dot.active {
+    background: var(--gold);
+    width: 24px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .btn-primary:active { transform: scale(0.98); background: var(--gold-lt); }
+
+  .btn-ghost {
+    background: transparent;
+    color: rgba(250, 246, 239, 0.6);
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash-screen">
+    <div class="splash-logo">Biz<em>Track.ng</em></div>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- WALKTHROUGH SCREEN -->
+  <div id="walkthrough-screen">
+    <div class="wt-slides">
+      
+      <!-- Slide 1 -->
+      <div class="wt-slide active" id="slide-0">
+        <div class="wt-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        </div>
+        <h2 class="wt-title">Real-Time Dashboard</h2>
+        <p class="wt-desc">Track your daily revenue, expenses, and net profit instantly. Never lose sight of your business performance.</p>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="wt-slide" id="slide-1">
+        <div class="wt-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+        <h2 class="wt-title">Smart Inventory</h2>
+        <p class="wt-desc">Record sales in seconds. Stock levels deduct automatically to prevent overselling and trigger low-stock alerts.</p>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="wt-slide" id="slide-2">
+        <div class="wt-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h2 class="wt-title">Professional Invoices</h2>
+        <p class="wt-desc">Generate branded invoices and customer appreciation cards. Share them directly to WhatsApp in one tap.</p>
+      </div>
+
+    </div>
+
+    <div class="wt-controls">
+      <div class="wt-dots">
+        <div class="wt-dot active"></div>
+        <div class="wt-dot"></div>
+        <div class="wt-dot"></div>
+      </div>
+      <button class="btn-primary" id="btn-next" onclick="nextSlide()">Continue</button>
+      <button class="btn-ghost" id="btn-skip" onclick="finishWalkthrough()">Skip Tour</button>
+    </div>
+  </div>
+
+<script>
+  // SPLASH SCREEN LOGIC
+  // Show splash for 2.5 seconds, then fade to walkthrough
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const splash = document.getElementById('splash-screen');
+      const wt = document.getElementById('walkthrough-screen');
+      
+      splash.style.opacity = '0';
+      splash.style.visibility = 'hidden';
+      
+      wt.style.visibility = 'visible';
+      wt.style.opacity = '1';
+    }, 2500);
+  });
+
+  // WALKTHROUGH SLIDER LOGIC
+  let currentSlide = 0;
+  const totalSlides = 3;
+
+  function updateUI() {
+    // Update slides
+    document.querySelectorAll('.wt-slide').forEach((slide, idx) => {
+      if (idx === currentSlide) {
+        slide.classList.add('active');
+        slide.style.transform = 'translateX(0)';
+      } else if (idx < currentSlide) {
+        slide.classList.remove('active');
+        slide.style.transform = 'translateX(-20px)';
+      } else {
+        slide.classList.remove('active');
+        slide.style.transform = 'translateX(20px)';
+      }
+    });
+
+    // Update dots
+    document.querySelectorAll('.wt-dot').forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === currentSlide);
+    });
+
+    // Update buttons
+    const btnNext = document.getElementById('btn-next');
+    if (currentSlide === totalSlides - 1) {
+      btnNext.textContent = 'Get Started';
+      document.getElementById('btn-skip').style.opacity = '0';
+      document.getElementById('btn-skip').style.pointerEvents = 'none';
+    } else {
+      btnNext.textContent = 'Continue';
+      document.getElementById('btn-skip').style.opacity = '1';
+      document.getElementById('btn-skip').style.pointerEvents = 'auto';
+    }
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+      currentSlide++;
+      updateUI();
+    } else {
+      finishWalkthrough();
+    }
+  }
+
+  function finishWalkthrough() {
+    localStorage.setItem('biztrack_has_seen_onboarding', 'true');
+    // Redirect to authentication page
+    window.location.assign('login.html');
+  }
+
+  // Handle swipe gestures
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  document.getElementById('walkthrough-screen').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, {passive: true});
+
+  document.getElementById('walkthrough-screen').addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, {passive: true});
+
+  function handleSwipe() {
+    const minSwipeDist = 50;
+    if (touchStartX - touchEndX > minSwipeDist) {
+      // Swiped Left -> Next
+      if (currentSlide < totalSlides - 1) nextSlide();
+    } else if (touchEndX - touchStartX > minSwipeDist) {
+      // Swiped Right -> Prev
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateUI();
+      }
+    }
+  }
+</script>
+</body>
+</html>

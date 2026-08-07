@@ -87,3 +87,9 @@ create policy "Users can update own expenses" on expenses for update using (auth
 create policy "Users can view own stock" on stock for select using (auth.uid() = user_id);
 create policy "Users can insert own stock" on stock for insert with check (auth.uid() = user_id);
 create policy "Users can update own stock" on stock for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "Users can delete own stock" on stock for delete using (auth.uid() = user_id);
+
+-- Extra DELETE Policies for Sales & Expenses
+create policy "Users can delete own sales" on sales for delete using (auth.uid() = user_id);
+create policy "Users can delete own expenses" on expenses for delete using (auth.uid() = user_id);
+

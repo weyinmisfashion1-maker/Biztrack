@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
@@ -46,6 +46,7 @@ let STAFF_PERMS = {
   see_customer_contact: true,
   can_edit_sale: false,
   can_delete_sale: false,
+  can_sell_out_of_stock: false,
   can_add_expense: true,
   can_add_inventory: true,
   see_dashboard_stats: false,
@@ -135,7 +136,8 @@ async function loadProfile() {
     } else {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
-    return data;
+    const extras = loadProfileExtras(user.id);
+    return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
     return null;
@@ -330,9 +332,11 @@ function switchTab(name) {
     panel.classList.toggle('on', panel.id === 'panel-' + name);
   });
 
-  // Load correct contents/handlers
   if (name === 'transactions') renderLatestTransactions();
-  if (name === 'report') renderReport();
+  if (name === 'report') {
+    showReportsHub();
+    renderReport();
+  }
   if (name === 'invoice') populateInvoiceSel();
   if (name === 'profile') populateProfileForm();
   if (name === 'settings') populateSettingsForm();
@@ -345,6 +349,95 @@ function switchTab(name) {
   toggleFabMenu(false);
 }
 
+function loadProfileExtras(userId) {
+  if (!userId) return {};
+  try {
+    const raw = localStorage.getItem('biztrack_profile_extras_' + userId);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveProfileExtras(userId, extras) {
+  if (!userId) return;
+  try {
+    localStorage.setItem('biztrack_profile_extras_' + userId, JSON.stringify(extras));
+  } catch (e) {}
+}
+
+let PROFILE_QR_DATA_URL = null;
+
+function renderProfileQRPreview(url) {
+  const previewImg = getEl('profile-qr-img');
+  const emptyText = getEl('profile-qr-empty');
+  const removeBtn = getEl('btn-remove-qr');
+
+  if (url) {
+    if (previewImg) {
+      previewImg.src = url;
+      previewImg.style.display = 'block';
+    }
+    if (emptyText) emptyText.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'flex';
+  } else {
+    if (previewImg) {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+    if (emptyText) emptyText.style.display = 'block';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+function handleProfileQRUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    return toast('⚠️ Please select a valid image file');
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawSrc = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      // Upscale/Render into a high-res 1000x1000 canvas for maximum camera scannability
+      const canvas = document.createElement('canvas');
+      const targetDim = Math.max(1000, img.width || 800, img.height || 800);
+      canvas.width = targetDim;
+      canvas.height = targetDim;
+      const ctx = canvas.getContext('2d');
+
+      // Crisp background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetDim, targetDim);
+
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, targetDim, targetDim);
+
+      const hdDataUrl = canvas.toDataURL('image/png', 1.0);
+      PROFILE_QR_DATA_URL = hdDataUrl;
+      renderProfileQRPreview(hdDataUrl);
+      toast('✅ High-Definition QR Code processed & ready to scan!');
+    };
+    img.onerror = function() {
+      PROFILE_QR_DATA_URL = rawSrc;
+      renderProfileQRPreview(rawSrc);
+    };
+    img.src = rawSrc;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfileQR() {
+  PROFILE_QR_DATA_URL = null;
+  const fileInput = getEl('input-profile-qr');
+  if (fileInput) fileInput.value = '';
+  renderProfileQRPreview(null);
+  toast('🗑️ QR Code removed.');
+}
+
 function populateProfileForm() {
   if (!PROFILE) return;
   getEl('prof-biz-name').value = PROFILE.business_name || '';
@@ -354,6 +447,17 @@ function populateProfileForm() {
   getEl('prof-acc-num').value = PROFILE.account_number || '';
   getEl('prof-acc-name').value = PROFILE.account_name || '';
   getEl('prof-pin').value = PROFILE.pin || '1234';
+
+  if (getEl('prof-instagram')) getEl('prof-instagram').value = PROFILE.instagram || '';
+  if (getEl('prof-website')) getEl('prof-website').value = PROFILE.website || '';
+
+  if (PROFILE.qr_code_url) {
+    PROFILE_QR_DATA_URL = PROFILE.qr_code_url;
+    renderProfileQRPreview(PROFILE.qr_code_url);
+  } else {
+    renderProfileQRPreview(null);
+  }
+
   // Populate staff permissions toggles
   const perms = PROFILE.staff_permissions || {};
   const merged = { ...STAFF_PERMS, ...perms };
@@ -547,7 +651,11 @@ function populateSaleItems(items = []) {
 }
 
 async function checkStockValidation(items) {
-  const requireStock = INVENTORY_CONTROL.require_stock_before_sale;
+  let requireStock = INVENTORY_CONTROL.require_stock_before_sale;
+  if (IS_LOCKED) {
+    const perms = (PROFILE && PROFILE.staff_permissions) ? { ...STAFF_PERMS, ...PROFILE.staff_permissions } : STAFF_PERMS;
+    requireStock = !perms.can_sell_out_of_stock;
+  }
   const insufficientItems = [];
   const notInInventory = [];
 
@@ -1748,7 +1856,7 @@ function renderReport() {
   if (reportCard) {
     reportCard.innerHTML = `
       <h2 class="card-h">Monthly Breakdown</h2>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">💼¡ Click any month to see detailed sales breakdown</p>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">💼 Click any month to see detailed sales breakdown</p>
       <div style="overflow-x:auto"><table class="rtbl"><thead><tr><th>Month</th><th>Sales</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
@@ -1765,6 +1873,273 @@ function renderReport() {
       <div class="tax-note">Note: Based on Nigerian FIRS rates for SMEs. 0% if revenue < ₦25M.</div>`;
   }
 }
+
+/* --- REPORTS SUB-VIEW NAVIGATION & ANALYTICS --- */
+let salesTrendChartInstance = null;
+
+function renderSalesTrendAnalytics() {
+  const yearSelect = getEl('analytics-year-select');
+  const chartCanvas = getEl('salesTrendChart');
+  if (!chartCanvas) return;
+
+  const allSales = S.sales || [];
+  const allExpenses = S.expenses || [];
+
+  const yearSet = new Set();
+  const currentYearStr = String(new Date().getFullYear());
+  yearSet.add(currentYearStr);
+
+  allSales.forEach(s => {
+    if (s.date) yearSet.add(s.date.slice(0, 4));
+  });
+  allExpenses.forEach(e => {
+    if (e.date) yearSet.add(e.date.slice(0, 4));
+  });
+
+  const sortedYears = Array.from(yearSet).sort().reverse();
+
+  if (yearSelect) {
+    const currentSelVal = yearSelect.value || currentYearStr;
+    yearSelect.innerHTML = sortedYears.map(y => `<option value="${y}" ${y === currentSelVal ? 'selected' : ''}>${y} Financial Year</option>`).join('');
+  }
+
+  const selectedYear = yearSelect?.value || currentYearStr;
+
+  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthlyRevenue = Array(12).fill(0);
+  const monthlyExpenses = Array(12).fill(0);
+  const monthlyProfit = Array(12).fill(0);
+
+  allSales.forEach(sale => {
+    if (sale.date && sale.date.startsWith(selectedYear)) {
+      const monthIdx = parseInt(sale.date.slice(5, 7), 10) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        monthlyRevenue[monthIdx] += (parseFloat(sale.total) || 0);
+      }
+    }
+  });
+
+  allExpenses.forEach(exp => {
+    if (exp.date && exp.date.startsWith(selectedYear)) {
+      const monthIdx = parseInt(exp.date.slice(5, 7), 10) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        monthlyExpenses[monthIdx] += (parseFloat(exp.amount) || 0);
+      }
+    }
+  });
+
+  for (let i = 0; i < 12; i++) {
+    monthlyProfit[i] = monthlyRevenue[i] - monthlyExpenses[i];
+  }
+
+  let maxRev = -1;
+  let peakMonthIndex = 0;
+  let totalRev = 0;
+  let totalProfit = 0;
+  let activeMonthsCount = 0;
+
+  for (let i = 0; i < 12; i++) {
+    totalRev += monthlyRevenue[i];
+    totalProfit += monthlyProfit[i];
+    if (monthlyRevenue[i] > maxRev) {
+      maxRev = monthlyRevenue[i];
+      peakMonthIndex = i;
+    }
+    if (monthlyRevenue[i] > 0 || monthlyExpenses[i] > 0) {
+      activeMonthsCount++;
+    }
+  }
+
+  const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const peakMonthText = maxRev > 0 ? `${fullMonthNames[peakMonthIndex]} (₦${fmt(maxRev)})` : 'No Sales Recorded';
+  const avgRev = activeMonthsCount > 0 ? totalRev / activeMonthsCount : 0;
+
+  let growthStatusText = '📈 Steady Business Growth';
+  let growthBadgeBg = 'var(--green-bg)';
+  let growthBadgeColor = 'var(--green)';
+
+  const currentMonthIndex = new Date().getMonth();
+  const recent3Rev = monthlyRevenue.slice(Math.max(0, currentMonthIndex - 2), currentMonthIndex + 1).reduce((a, b) => a + b, 0);
+  const prior3Rev = monthlyRevenue.slice(Math.max(0, currentMonthIndex - 5), Math.max(0, currentMonthIndex - 2)).reduce((a, b) => a + b, 0);
+
+  if (totalRev === 0) {
+    growthStatusText = 'ℹ️ Awaiting Sales Entries';
+    growthBadgeBg = 'var(--cream2)';
+    growthBadgeColor = 'var(--muted)';
+  } else if (prior3Rev > 0 && recent3Rev < prior3Rev * 0.85) {
+    growthStatusText = '📉 Business Revenue Slowdown';
+    growthBadgeBg = '#FCEAEA';
+    growthBadgeColor = '#B53030';
+  } else if (recent3Rev > prior3Rev && prior3Rev > 0) {
+    growthStatusText = '🚀 Accelerated Growth Trend (+' + Math.round(((recent3Rev - prior3Rev) / prior3Rev) * 100) + '%)';
+    growthBadgeBg = '#E4F2EB';
+    growthBadgeColor = '#1E6641';
+  }
+
+  const badgeEl = getEl('analytics-growth-badge');
+  const peakEl = getEl('analytics-peak-month');
+  const avgEl = getEl('analytics-avg-rev');
+  const totalRevEl = getEl('analytics-total-rev');
+  const totalProfitEl = getEl('analytics-total-profit');
+
+  if (badgeEl) {
+    badgeEl.textContent = growthStatusText;
+    badgeEl.style.background = growthBadgeBg;
+    badgeEl.style.color = growthBadgeColor;
+  }
+  if (peakEl) peakEl.textContent = peakMonthText;
+  if (avgEl) avgEl.textContent = '₦' + fmt(avgRev);
+  if (totalRevEl) totalRevEl.textContent = '₦' + fmt(totalRev);
+  if (totalProfitEl) totalProfitEl.textContent = '₦' + fmt(totalProfit);
+
+  if (typeof Chart === 'undefined') return;
+
+  const ctx = chartCanvas.getContext('2d');
+
+  if (salesTrendChartInstance) {
+    salesTrendChartInstance.destroy();
+  }
+
+  const revGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  revGradient.addColorStop(0, 'rgba(201, 152, 42, 0.35)');
+  revGradient.addColorStop(1, 'rgba(201, 152, 42, 0.0)');
+
+  const profitGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  profitGradient.addColorStop(0, 'rgba(30, 102, 65, 0.35)');
+  profitGradient.addColorStop(1, 'rgba(30, 102, 65, 0.0)');
+
+  salesTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: monthLabels,
+      datasets: [
+        {
+          label: 'Monthly Revenue (₦)',
+          data: monthlyRevenue,
+          borderColor: '#C9982A',
+          backgroundColor: revGradient,
+          fill: true,
+          tension: 0.38,
+          borderWidth: 3,
+          pointBackgroundColor: '#C9982A',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        },
+        {
+          label: 'Net Profit (₦)',
+          data: monthlyProfit,
+          borderColor: '#1E6641',
+          backgroundColor: profitGradient,
+          fill: true,
+          tension: 0.38,
+          borderWidth: 3,
+          pointBackgroundColor: '#1E6641',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            font: { family: 'Outfit', size: 13, weight: '600' },
+            color: '#141009',
+            usePointStyle: true,
+            padding: 16
+          }
+        },
+        tooltip: {
+          backgroundColor: '#141009',
+          titleFont: { family: 'Outfit', size: 13, weight: '700' },
+          bodyFont: { family: 'Outfit', size: 12 },
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) label += ': ';
+              if (context.parsed.y !== null) {
+                label += '₦' + context.parsed.y.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: 'Outfit', size: 12, weight: '600' },
+            color: '#7A6E58'
+          }
+        },
+        y: {
+          grid: { color: 'rgba(221, 212, 190, 0.4)' },
+          ticks: {
+            font: { family: 'Outfit', size: 11 },
+            color: '#7A6E58',
+            callback: function(value) {
+              if (Math.abs(value) >= 1000000) return '₦' + (value / 1000000).toFixed(1) + 'M';
+              if (Math.abs(value) >= 1000) return '₦' + (value / 1000).toFixed(0) + 'k';
+              return '₦' + value;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function openReportSubView(viewName) {
+  const hub = getEl('reports-hub-view');
+  const monthlyView = getEl('reports-monthly-view');
+  const taxView = getEl('reports-tax-view');
+  const analyticsView = getEl('reports-analytics-view');
+
+  if (hub) hub.style.display = 'none';
+  if (monthlyView) monthlyView.style.display = 'none';
+  if (taxView) taxView.style.display = 'none';
+  if (analyticsView) analyticsView.style.display = 'none';
+
+  if (viewName === 'monthly' && monthlyView) {
+    monthlyView.style.display = 'block';
+  } else if (viewName === 'tax' && taxView) {
+    taxView.style.display = 'block';
+  } else if (viewName === 'analytics' && analyticsView) {
+    analyticsView.style.display = 'block';
+    renderSalesTrendAnalytics();
+  }
+}
+
+function showReportsHub() {
+  const hub = getEl('reports-hub-view');
+  const monthlyView = getEl('reports-monthly-view');
+  const taxView = getEl('reports-tax-view');
+  const analyticsView = getEl('reports-analytics-view');
+
+  if (hub) hub.style.display = 'block';
+  if (monthlyView) monthlyView.style.display = 'none';
+  if (taxView) taxView.style.display = 'none';
+  if (analyticsView) analyticsView.style.display = 'none';
+}
+
+window.openReportSubView = openReportSubView;
+window.showReportsHub = showReportsHub;
+window.renderSalesTrendAnalytics = renderSalesTrendAnalytics;
 
 /* --- MONTHLY BREAKDOWN DETAIL --- */
 function showMonthlySalesDetail(month) {
@@ -2612,8 +2987,14 @@ function wireForms() {
       };
       if (!payload.business_name) return toast('⚠️  Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
-      if (error) throw error;
-      PROFILE = payload;
+      const extras = {
+        instagram: (getEl('prof-instagram')?.value || '').trim(),
+        website: (getEl('prof-website')?.value || '').trim(),
+        qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
+      };
+      if (user?.id) saveProfileExtras(user.id, extras);
+
+      PROFILE = { ...payload, ...extras };
       STAFF_PERMS = perms;
       renderProfileBanner(PROFILE);
       toast('✅ Business details & permissions updated!');
@@ -2959,7 +3340,7 @@ function toggleFabMenu(forceState) {
 
 function handleFabAction(tabName) {
   toggleFabMenu(false);
-  switchTab(tabName);
+  if (typeof switchTab === 'function') switchTab(tabName);
 }
 
 function enterInnerApp(tabName) {
@@ -2969,7 +3350,7 @@ function enterInnerApp(tabName) {
   
   if (hero) hero.style.display = 'none';
   if (main) main.style.display = 'block';
-  if (fab) fab.style.display = 'flex';
+  if (fab) fab.style.display = 'none';
   
   switchTab(tabName);
 }
@@ -3566,25 +3947,7 @@ function pickThankYouInvoice(saleId) {
 
   if (getEl('ty-cust-name')) getEl('ty-cust-name').value = custName;
 
-  const items = sale.items || [];
-  const itemsWrap = getEl('ty-items-preview-wrap');
-  const itemsListEl = getEl('ty-items-list');
-  const cardItemsBox = getEl('ty-card-items-box');
-  const cardItemsContent = getEl('ty-card-items-content');
-  const cardTotalRow = getEl('ty-card-total-row');
 
-  if (items.length > 0) {
-    const summaryText = items.map(i => `• ${esc(i.name)} ×${i.qty} (${fmt(i.total || (i.qty * (i.price || 0)))})`).join('<br/>');
-    if (itemsListEl) itemsListEl.innerHTML = summaryText;
-    if (itemsWrap) itemsWrap.style.display = 'block';
-
-    if (cardItemsContent) cardItemsContent.innerHTML = summaryText;
-    if (cardTotalRow) cardTotalRow.innerHTML = `Total Amount: ${fmt(sale.total || sale.total_amount || 0)}`;
-    if (cardItemsBox) cardItemsBox.style.display = 'block';
-  } else {
-    if (itemsWrap) itemsWrap.style.display = 'none';
-    if (cardItemsBox) cardItemsBox.style.display = 'none';
-  }
 
   updateThankYouPreview();
 }
@@ -3603,6 +3966,32 @@ function updateThankYouPreview() {
   const phone = PROFILE?.phoneNumber || PROFILE?.phone_number || '';
   if (getEl('ty-card-phone')) getEl('ty-card-phone').textContent = phone ? ('📞 ' + phone) : '📞 BizTrack Business';
   if (getEl('ty-card-date')) getEl('ty-card-date').textContent = '📅 ' + todayISO();
+
+  const website = PROFILE?.website || '';
+  const webEl = getEl('ty-card-website');
+  if (webEl) {
+    if (website) {
+      webEl.innerHTML = `🌐 ${esc(website)}`;
+      webEl.style.display = 'block';
+    } else {
+      webEl.style.display = 'none';
+    }
+  }
+
+  const instagram = PROFILE?.instagram || '';
+  const igEl = getEl('ty-card-instagram');
+  if (igEl) {
+    if (instagram) {
+      let displayIg = instagram;
+      if (!displayIg.startsWith('@') && !displayIg.startsWith('http')) {
+        displayIg = '@' + displayIg;
+      }
+      igEl.innerHTML = `📸 ${esc(displayIg)}`;
+      igEl.style.display = 'block';
+    } else {
+      igEl.style.display = 'none';
+    }
+  }
 }
 
 async function downloadThankYouPNG() {
@@ -3678,3 +4067,65 @@ window.pickThankYouInvoice = pickThankYouInvoice;
 window.updateThankYouPreview = updateThankYouPreview;
 window.downloadThankYouPNG = downloadThankYouPNG;
 window.shareThankYouWhatsApp = shareThankYouWhatsApp;
+
+/* --- APP WALKTHROUGH CONTROLLER --- */
+let currentWalkthroughIndex = 0;
+let walkthroughTimer = null;
+
+function switchWalkthroughStep(index) {
+  const totalSteps = 6;
+  currentWalkthroughIndex = (index + totalSteps) % totalSteps;
+
+  for (let i = 0; i < totalSteps; i++) {
+    const stepEl = getEl('wt-step-' + i);
+    const innerStepEl = getEl('wt-step-inner-' + i);
+    if (stepEl) stepEl.style.display = i === currentWalkthroughIndex ? 'block' : 'none';
+    if (innerStepEl) innerStepEl.style.display = i === currentWalkthroughIndex ? 'block' : 'none';
+  }
+
+  const pills = document.querySelectorAll('.wt-pill');
+  pills.forEach((pill, i) => {
+    pill.classList.toggle('active', (i % totalSteps) === currentWalkthroughIndex);
+  });
+}
+
+function nextWalkthroughStep() {
+  switchWalkthroughStep(currentWalkthroughIndex + 1);
+}
+
+function prevWalkthroughStep() {
+  switchWalkthroughStep(currentWalkthroughIndex - 1);
+}
+
+function startAutoWalkthrough() {
+  if (walkthroughTimer) clearInterval(walkthroughTimer);
+  walkthroughTimer = setInterval(() => {
+    nextWalkthroughStep();
+  }, 4500);
+}
+
+function toggleAutoWalkthrough() {
+  const btn1 = getEl('btn-auto-wt');
+  const btn2 = getEl('btn-auto-wt-2');
+  if (walkthroughTimer) {
+    clearInterval(walkthroughTimer);
+    walkthroughTimer = null;
+    if (btn1) btn1.textContent = '▶ Play Auto Tour';
+    if (btn2) btn2.textContent = '▶ Play Auto Tour';
+  } else {
+    startAutoWalkthrough();
+    if (btn1) btn1.textContent = '⏸ Pause Auto Tour';
+    if (btn2) btn2.textContent = '⏸ Pause Auto Tour';
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startAutoWalkthrough);
+} else {
+  startAutoWalkthrough();
+}
+
+window.switchWalkthroughStep = switchWalkthroughStep;
+window.nextWalkthroughStep = nextWalkthroughStep;
+window.prevWalkthroughStep = prevWalkthroughStep;
+window.toggleAutoWalkthrough = toggleAutoWalkthrough;

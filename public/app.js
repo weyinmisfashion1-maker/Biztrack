@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
@@ -46,6 +46,7 @@ let STAFF_PERMS = {
   see_customer_contact: true,
   can_edit_sale: false,
   can_delete_sale: false,
+  can_sell_out_of_stock: false,
   can_add_expense: true,
   can_add_inventory: true,
   see_dashboard_stats: false,
@@ -73,7 +74,11 @@ async function checkAuth() {
   try {
     const { data: { session }, error } = await sb.auth.getSession();
     if (error || !session) {
-      window.location.assign('/login.html');
+      if (!localStorage.getItem('biztrack_has_seen_onboarding')) {
+        window.location.assign('/onboarding.html');
+      } else {
+        window.location.assign('/login.html');
+      }
       return null;
     }
     const display = getEl('user-display');
@@ -81,7 +86,7 @@ async function checkAuth() {
     document.body.style.opacity = '1';
     return session.user;
   } catch (e) {
-    window.location.assign('/login.html');
+    window.location.assign('/onboarding.html');
     return null;
   }
 }
@@ -135,7 +140,8 @@ async function loadProfile() {
     } else {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
-    return data;
+    const extras = loadProfileExtras(user.id);
+    return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
     return null;
@@ -225,7 +231,7 @@ async function addAuditLog(entry, userId) {
 /* --- INVENTORY CONTROL --- */
 async function saveInventoryControl(enabled) {
   if (IS_LOCKED) {
-    toast('⚠️  Only the Business Owner can change Inventory Control settings.');
+    toast('  Only the Business Owner can change Inventory Control settings.');
     // Revert the toggle in the UI
     const toggle = getEl('inv-ctrl-require-stock');
     if (toggle) toggle.checked = INVENTORY_CONTROL.require_stock_before_sale;
@@ -243,11 +249,11 @@ async function saveInventoryControl(enabled) {
     // Update the status badge in the UI
     _renderInventoryControlStatus();
     toast(enabled
-      ? '✅ Inventory Control ON — Sales require sufficient stock.'
-      : '✅ Inventory Control OFF — Sales allowed regardless of stock.');
+      ? ' Inventory Control ON — Sales require sufficient stock.'
+      : ' Inventory Control OFF — Sales allowed regardless of stock.');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Failed to save settings locally: ' + (err.message || err.details || JSON.stringify(err)));
+    toast('  Failed to save settings locally: ' + (err.message || err.details || JSON.stringify(err)));
     // Revert toggle on failure
     const toggle = getEl('inv-ctrl-require-stock');
     if (toggle) toggle.checked = INVENTORY_CONTROL.require_stock_before_sale;
@@ -329,10 +335,17 @@ function switchTab(name) {
   document.querySelectorAll('.panel').forEach(panel => {
     panel.classList.toggle('on', panel.id === 'panel-' + name);
   });
+  
+  // Update Bottom Nav if exists
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === name);
+  });
 
-  // Load correct contents/handlers
   if (name === 'transactions') renderLatestTransactions();
-  if (name === 'report') renderReport();
+  if (name === 'report') {
+    showReportsHub();
+    renderReport();
+  }
   if (name === 'invoice') populateInvoiceSel();
   if (name === 'profile') populateProfileForm();
   if (name === 'settings') populateSettingsForm();
@@ -345,6 +358,95 @@ function switchTab(name) {
   toggleFabMenu(false);
 }
 
+function loadProfileExtras(userId) {
+  if (!userId) return {};
+  try {
+    const raw = localStorage.getItem('biztrack_profile_extras_' + userId);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveProfileExtras(userId, extras) {
+  if (!userId) return;
+  try {
+    localStorage.setItem('biztrack_profile_extras_' + userId, JSON.stringify(extras));
+  } catch (e) {}
+}
+
+let PROFILE_QR_DATA_URL = null;
+
+function renderProfileQRPreview(url) {
+  const previewImg = getEl('profile-qr-img');
+  const emptyText = getEl('profile-qr-empty');
+  const removeBtn = getEl('btn-remove-qr');
+
+  if (url) {
+    if (previewImg) {
+      previewImg.src = url;
+      previewImg.style.display = 'block';
+    }
+    if (emptyText) emptyText.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'flex';
+  } else {
+    if (previewImg) {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+    if (emptyText) emptyText.style.display = 'block';
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+
+function handleProfileQRUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    return toast(' Please select a valid image file');
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawSrc = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      // Upscale/Render into a high-res 1000x1000 canvas for maximum camera scannability
+      const canvas = document.createElement('canvas');
+      const targetDim = Math.max(1000, img.width || 800, img.height || 800);
+      canvas.width = targetDim;
+      canvas.height = targetDim;
+      const ctx = canvas.getContext('2d');
+
+      // Crisp background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetDim, targetDim);
+
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, targetDim, targetDim);
+
+      const hdDataUrl = canvas.toDataURL('image/png', 1.0);
+      PROFILE_QR_DATA_URL = hdDataUrl;
+      renderProfileQRPreview(hdDataUrl);
+      toast(' High-Definition QR Code processed & ready to scan!');
+    };
+    img.onerror = function() {
+      PROFILE_QR_DATA_URL = rawSrc;
+      renderProfileQRPreview(rawSrc);
+    };
+    img.src = rawSrc;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfileQR() {
+  PROFILE_QR_DATA_URL = null;
+  const fileInput = getEl('input-profile-qr');
+  if (fileInput) fileInput.value = '';
+  renderProfileQRPreview(null);
+  toast(' QR Code removed.');
+}
+
 function populateProfileForm() {
   if (!PROFILE) return;
   getEl('prof-biz-name').value = PROFILE.business_name || '';
@@ -354,6 +456,17 @@ function populateProfileForm() {
   getEl('prof-acc-num').value = PROFILE.account_number || '';
   getEl('prof-acc-name').value = PROFILE.account_name || '';
   getEl('prof-pin').value = PROFILE.pin || '1234';
+
+  if (getEl('prof-instagram')) getEl('prof-instagram').value = PROFILE.instagram || '';
+  if (getEl('prof-website')) getEl('prof-website').value = PROFILE.website || '';
+
+  if (PROFILE.qr_code_url) {
+    PROFILE_QR_DATA_URL = PROFILE.qr_code_url;
+    renderProfileQRPreview(PROFILE.qr_code_url);
+  } else {
+    renderProfileQRPreview(null);
+  }
+
   // Populate staff permissions toggles
   const perms = PROFILE.staff_permissions || {};
   const merged = { ...STAFF_PERMS, ...perms };
@@ -382,10 +495,10 @@ async function saveStaffPermissions() {
     if (error) throw error;
     STAFF_PERMS = perms;
     if (PROFILE) PROFILE.staff_permissions = perms;
-    toast('✅ Staff permissions saved!');
+    toast(' Staff permissions saved!');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Could not save permissions');
+    toast('  Could not save permissions');
   }
 }
 
@@ -420,9 +533,9 @@ function onItemNameInput(inputEl) {
     const qty = Number(product.qty) || 0;
     if (badgeEl) {
       if (qty <= 0) {
-        badgeEl.innerHTML = `<span style="color:var(--red); font-weight:700; font-size:0.66rem;">⚠️  Out of Stock (0 in inventory)</span>`;
+        badgeEl.innerHTML = `<span style="color:var(--red); font-weight:700; font-size:0.66rem;">  Out of Stock (0 in inventory)</span>`;
       } else if (qty <= 5) {
-        badgeEl.innerHTML = `<span style="color:var(--gold); font-weight:700; font-size:0.66rem;">⚠️  Low Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
+        badgeEl.innerHTML = `<span style="color:var(--gold); font-weight:700; font-size:0.66rem;">  Low Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
       } else {
         badgeEl.innerHTML = `<span style="color:var(--green); font-weight:600; font-size:0.66rem;">✓ In Stock: ${qty} ${esc(product.unit || 'units')} available</span>`;
       }
@@ -430,7 +543,7 @@ function onItemNameInput(inputEl) {
   } else {
     row.dataset.stockId = '';
     if (badgeEl) {
-      badgeEl.innerHTML = val ? `<span style="color:var(--muted); font-size:0.66rem;">✏️  Custom item (Manual entry)</span>` : '';
+      badgeEl.innerHTML = val ? `<span style="color:var(--muted); font-size:0.66rem;">  Custom item (Manual entry)</span>` : '';
     }
   }
   calcTotals();
@@ -547,7 +660,11 @@ function populateSaleItems(items = []) {
 }
 
 async function checkStockValidation(items) {
-  const requireStock = INVENTORY_CONTROL.require_stock_before_sale;
+  let requireStock = INVENTORY_CONTROL.require_stock_before_sale;
+  if (IS_LOCKED) {
+    const perms = (PROFILE && PROFILE.staff_permissions) ? { ...STAFF_PERMS, ...PROFILE.staff_permissions } : STAFF_PERMS;
+    requireStock = !perms.can_sell_out_of_stock;
+  }
   const insufficientItems = [];
   const notInInventory = [];
 
@@ -593,7 +710,7 @@ async function checkStockValidation(items) {
       if (modal && msgEl && btnCancel && btnProceed) {
         msgEl.innerHTML = `
           <div style="background:#FCEAEA; border-left:4px solid var(--red); padding:0.6rem 0.85rem; border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem; font-weight:600; color:var(--red);">
-            🚫 Insufficient Stock — Sale Blocked
+             Insufficient Stock — Sale Blocked
           </div>
           ${blockHtml}
           <p style="margin-top:0.75rem; font-size:0.8rem; color:var(--muted); line-height:1.5;">
@@ -612,7 +729,7 @@ async function checkStockValidation(items) {
         modal.style.display = 'flex';
       } else {
         const wText = insufficientItems.map(w => `• "${w.productName}": Requested ${w.requested}, only ${w.available} available`).join('\n');
-        alert(`🚫 Insufficient stock. Please restock before completing this sale:\n\n${wText}`);
+        alert(` Insufficient stock. Please restock before completing this sale:\n\n${wText}`);
       }
       return false; // Block the sale
     }
@@ -622,7 +739,7 @@ async function checkStockValidation(items) {
 
   // ─€─€ PERMISSIVE MODE (OFF): Allow sales even if stock is zero/insufficient ─€─€
   if (notInInventory.length > 0) {
-    toast(`ℹ️ Inventory not validated for: ${notInInventory.join(', ')}`);
+    toast(` Inventory not validated for: ${notInInventory.join(', ')}`);
   }
   return true;
 }
@@ -731,7 +848,7 @@ async function deleteSale(id) {
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
-    const { data, error } = await sb.from('sales').update({ is_deleted: true }).eq('id', id).eq('user_id', user.id).select();
+    const { data, error } = await sb.from('sales').update({ is_deleted: true }).eq('id', id).or(`user_id.eq.${user.id},user_id.is.null`).select();
     if (error) throw error;
     
     if (!data || data.length === 0) {
@@ -739,7 +856,7 @@ async function deleteSale(id) {
       return;
     }
     
-    toast('✅ Sale deleted!');
+    toast(' Sale deleted!');
     
     const modal = getEl('monthly-detail-modal');
     const wasOpen = modal && modal.style.display === 'flex';
@@ -764,7 +881,7 @@ async function deleteSale(id) {
     }
   } catch (err) {
     console.error('Delete error:', err);
-    toast('⚠️  Error deleting sale');
+    toast('  Error deleting sale');
   }
 }
 
@@ -772,7 +889,7 @@ function lockApp() {
   IS_LOCKED = true;
   localStorage.setItem('biztrack_locked', 'true');
   applyLockUIState();
-  toast('🔒’ App locked in Staff Mode');
+  toast('’ App locked in Staff Mode');
 }
 
 function unlockApp() {
@@ -784,7 +901,7 @@ function unlockApp() {
     IS_LOCKED = false;
     localStorage.setItem('biztrack_locked', 'false');
     applyLockUIState();
-    toast('🔓 Admin Mode unlocked');
+    toast(' Admin Mode unlocked');
   } else {
     alert('Incorrect PIN! Access denied.');
   }
@@ -975,15 +1092,15 @@ async function restoreSale(id) {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await sb.from('sales').update({ is_deleted: false }).eq('id', id).eq('user_id', user.id).select();
+    const { data, error } = await sb.from('sales').update({ is_deleted: false }).eq('id', id).or(`user_id.eq.${user.id},user_id.is.null`).select();
     if (error) throw error;
     
-    toast('✅ Sale restored!');
+    toast(' Sale restored!');
     await loadData();
     renderAll();
   } catch (err) {
     console.error('Restore error:', err);
-    toast('⚠️  Error restoring sale');
+    toast('  Error restoring sale');
   }
 }
 
@@ -999,15 +1116,15 @@ async function permanentlyDeleteSale(id) {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    const { data, error } = await sb.from('sales').delete().eq('id', id).eq('user_id', user.id).select();
+    const { data, error } = await sb.from('sales').delete().eq('id', id).or(`user_id.eq.${user.id},user_id.is.null`).select();
     if (error) throw error;
     
-    toast('🗑️ Sale permanently deleted!');
+    toast(' Sale permanently deleted!');
     await loadData();
     renderAll();
   } catch (err) {
     console.error('Permanent delete error:', err);
-    toast('⚠️  Error permanently deleting sale');
+    toast('  Error permanently deleting sale');
   }
 }
 
@@ -1035,7 +1152,7 @@ function _renderDeletedSalesList() {
   }
   
   if (!S.deletedSales || !S.deletedSales.length) {
-    list.innerHTML = '<li class="empty"><div class="empty-ico">🗑️</div>No deleted sales records.</li>';
+    list.innerHTML = '<li class="empty"><div class="empty-ico"></div>No deleted sales records.</li>';
     return;
   }
 
@@ -1133,17 +1250,17 @@ async function filterSales(status) {
 
 async function markSalePaid(id) {
   try {
-    toast('⏳ Marking as Paid...');
+    toast(' Marking as Paid...');
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     const { error } = await sb.from('sales').update({ payment_status: 'Paid' }).eq('id', id).eq('user_id', user.id);
     if (error) throw error;
-    toast('✅ Marked as Paid!');
+    toast(' Marked as Paid!');
     await loadData();
     renderAll();
   } catch (err) {
     console.error(err);
-    toast('⚠️  Error updating status');
+    toast('  Error updating status');
   }
 }
 
@@ -1219,7 +1336,7 @@ async function _renderSalesList() {
   });
 
   if (!pageItems.length) {
-    list.innerHTML = `<li class="empty"><div class="empty-ico">🧾</div>No matching sales found.</li>`;
+    list.innerHTML = `<li class="empty"><div class="empty-ico"></div>No matching sales found.</li>`;
     return;
   }
 
@@ -1305,7 +1422,7 @@ function viewSaleDetails(id) {
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
       <div>
         <div style="font-size:1.05rem; font-weight:700; color:var(--ink, #1e293b);">${esc(custName)}</div>
-        <div style="font-size:0.75rem; color:var(--muted, #64748b); margin-top:0.15rem;">📅 Date of Sale: ${record.date || ''}</div>
+        <div style="font-size:0.75rem; color:var(--muted, #64748b); margin-top:0.15rem;"> Date of Sale: ${record.date || ''}</div>
       </div>
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem;">
         <span class="badge ${badgeClass}" style="font-size:0.65rem; padding:0.15rem 0.5rem;">${esc(deliveryStatus)}</span>
@@ -1314,10 +1431,10 @@ function viewSaleDetails(id) {
     </div>
 
     <div style="background:rgba(0,0,0,0.03); padding:0.65rem 0.75rem; border-radius:8px; margin-bottom:0.75rem; font-size:0.76rem; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
-      <div><strong>📝ž Contact:</strong> ${esc(record.contact || 'N/A')}</div>
-      <div><strong>📝 Address:</strong> ${esc(record.address || 'N/A')}</div>
-      <div><strong>🚚 Expected Delivery:</strong> ${esc(record.expected_delivery || record.delivery || 'N/A')}</div>
-      <div><strong>💼¬ Feedback:</strong> ${esc(record.feedback || 'None')}</div>
+      <div><strong>ž Contact:</strong> ${esc(record.contact || 'N/A')}</div>
+      <div><strong> Address:</strong> ${esc(record.address || 'N/A')}</div>
+      <div><strong> Expected Delivery:</strong> ${esc(record.expected_delivery || record.delivery || 'N/A')}</div>
+      <div><strong>¬ Feedback:</strong> ${esc(record.feedback || 'None')}</div>
     </div>
 
     <div style="margin-bottom:0.75rem;">
@@ -1401,7 +1518,7 @@ function _renderExpensesList() {
   }
   if (!list) return;
   if (!S.expenses.length) {
-    list.innerHTML = '<li class="empty"><div class="empty-ico">💸</div>No expenses recorded yet.</li>';
+    list.innerHTML = '<li class="empty"><div class="empty-ico"></div>No expenses recorded yet.</li>';
     return;
   }
   list.innerHTML = S.expenses.slice(0, 20).map(expense => `
@@ -1435,7 +1552,7 @@ function viewExpenseDetails(id) {
     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.85rem;">
       <div>
         <div style="font-size:1.1rem; font-weight:700; color:var(--ink, #141009);">${esc(expense.type || 'Expense')}</div>
-        <div style="font-size:0.75rem; color:var(--muted, #7A6E58); margin-top:0.15rem;">📅 Date: ${expense.date || ''}</div>
+        <div style="font-size:0.75rem; color:var(--muted, #7A6E58); margin-top:0.15rem;"> Date: ${expense.date || ''}</div>
       </div>
       <div>
         <span class="badge b-exp" style="font-size:0.7rem; padding:0.2rem 0.55rem;">Expense</span>
@@ -1543,7 +1660,7 @@ function _renderStockModalList() {
   }
 
   if (!items.length) {
-    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem;"><div class="empty-ico">📦</div>No matching inventory products found.</li>';
+    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem;"><div class="empty-ico"></div>No matching inventory products found.</li>';
     return;
   }
 
@@ -1629,7 +1746,7 @@ async function deleteStockItem(id) {
 
   S.stock = (S.stock || []).filter(item => String(item.id) !== String(id));
 
-  toast('🗑️ Product deleted from inventory!');
+  toast(' Product deleted from inventory!');
   renderAll();
   _renderStockModalList();
 }
@@ -1668,7 +1785,7 @@ function renderInsights() {
   getEl('ins-exp').textContent = fmt(expenses);
   getEl('ins-exp-sub').textContent = IS_LOCKED ? `${monthLabel} · ${expPool.length} entr${expPool.length === 1 ? 'y' : 'ies'}` : `${S.expenses.length} entr${S.expenses.length === 1 ? 'y' : 'ies'}`;
   getEl('ins-profit').textContent = fmt(profit);
-  getEl('ins-profit-sub').textContent = profit >= 0 ? 'Positive ✓' : 'Loss ✏️—';
+  getEl('ins-profit-sub').textContent = profit >= 0 ? 'Positive ✓' : 'Loss —';
 
   // Tax card: admin only
   const taxCard = getEl('ins-tax')?.closest('article');
@@ -1694,9 +1811,9 @@ function updateHeroStats() {
   const expenses = S.expenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
   const profit = revenue - expenses;
 
-  getEl('hm-rev').textContent = fmt(revenue);
-  getEl('hm-profit').textContent = fmt(profit);
-  getEl('hm-count').textContent = String(S.sales.length);
+  if(getEl('hm-rev')) getEl('hm-rev').textContent = fmt(revenue);
+  if(getEl('hm-profit')) getEl('hm-profit').textContent = fmt(profit);
+  if(getEl('hm-count')) getEl('hm-count').textContent = String(S.sales.length);
 }
 
 function renderReport() {
@@ -1748,7 +1865,7 @@ function renderReport() {
   if (reportCard) {
     reportCard.innerHTML = `
       <h2 class="card-h">Monthly Breakdown</h2>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">💼¡ Click any month to see detailed sales breakdown</p>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;"> Click any month to see detailed sales breakdown</p>
       <div style="overflow-x:auto"><table class="rtbl"><thead><tr><th>Month</th><th>Sales</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
@@ -1765,6 +1882,273 @@ function renderReport() {
       <div class="tax-note">Note: Based on Nigerian FIRS rates for SMEs. 0% if revenue < ₦25M.</div>`;
   }
 }
+
+/* --- REPORTS SUB-VIEW NAVIGATION & ANALYTICS --- */
+let salesTrendChartInstance = null;
+
+function renderSalesTrendAnalytics() {
+  const yearSelect = getEl('analytics-year-select');
+  const chartCanvas = getEl('salesTrendChart');
+  if (!chartCanvas) return;
+
+  const allSales = S.sales || [];
+  const allExpenses = S.expenses || [];
+
+  const yearSet = new Set();
+  const currentYearStr = String(new Date().getFullYear());
+  yearSet.add(currentYearStr);
+
+  allSales.forEach(s => {
+    if (s.date) yearSet.add(s.date.slice(0, 4));
+  });
+  allExpenses.forEach(e => {
+    if (e.date) yearSet.add(e.date.slice(0, 4));
+  });
+
+  const sortedYears = Array.from(yearSet).sort().reverse();
+
+  if (yearSelect) {
+    const currentSelVal = yearSelect.value || currentYearStr;
+    yearSelect.innerHTML = sortedYears.map(y => `<option value="${y}" ${y === currentSelVal ? 'selected' : ''}>${y} Financial Year</option>`).join('');
+  }
+
+  const selectedYear = yearSelect?.value || currentYearStr;
+
+  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthlyRevenue = Array(12).fill(0);
+  const monthlyExpenses = Array(12).fill(0);
+  const monthlyProfit = Array(12).fill(0);
+
+  allSales.forEach(sale => {
+    if (sale.date && sale.date.startsWith(selectedYear)) {
+      const monthIdx = parseInt(sale.date.slice(5, 7), 10) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        monthlyRevenue[monthIdx] += (parseFloat(sale.total) || 0);
+      }
+    }
+  });
+
+  allExpenses.forEach(exp => {
+    if (exp.date && exp.date.startsWith(selectedYear)) {
+      const monthIdx = parseInt(exp.date.slice(5, 7), 10) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        monthlyExpenses[monthIdx] += (parseFloat(exp.amount) || 0);
+      }
+    }
+  });
+
+  for (let i = 0; i < 12; i++) {
+    monthlyProfit[i] = monthlyRevenue[i] - monthlyExpenses[i];
+  }
+
+  let maxRev = -1;
+  let peakMonthIndex = 0;
+  let totalRev = 0;
+  let totalProfit = 0;
+  let activeMonthsCount = 0;
+
+  for (let i = 0; i < 12; i++) {
+    totalRev += monthlyRevenue[i];
+    totalProfit += monthlyProfit[i];
+    if (monthlyRevenue[i] > maxRev) {
+      maxRev = monthlyRevenue[i];
+      peakMonthIndex = i;
+    }
+    if (monthlyRevenue[i] > 0 || monthlyExpenses[i] > 0) {
+      activeMonthsCount++;
+    }
+  }
+
+  const fullMonthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const peakMonthText = maxRev > 0 ? `${fullMonthNames[peakMonthIndex]} (₦${fmt(maxRev)})` : 'No Sales Recorded';
+  const avgRev = activeMonthsCount > 0 ? totalRev / activeMonthsCount : 0;
+
+  let growthStatusText = ' Steady Business Growth';
+  let growthBadgeBg = 'var(--green-bg)';
+  let growthBadgeColor = 'var(--green)';
+
+  const currentMonthIndex = new Date().getMonth();
+  const recent3Rev = monthlyRevenue.slice(Math.max(0, currentMonthIndex - 2), currentMonthIndex + 1).reduce((a, b) => a + b, 0);
+  const prior3Rev = monthlyRevenue.slice(Math.max(0, currentMonthIndex - 5), Math.max(0, currentMonthIndex - 2)).reduce((a, b) => a + b, 0);
+
+  if (totalRev === 0) {
+    growthStatusText = ' Awaiting Sales Entries';
+    growthBadgeBg = 'var(--cream2)';
+    growthBadgeColor = 'var(--muted)';
+  } else if (prior3Rev > 0 && recent3Rev < prior3Rev * 0.85) {
+    growthStatusText = ' Business Revenue Slowdown';
+    growthBadgeBg = '#FCEAEA';
+    growthBadgeColor = '#B53030';
+  } else if (recent3Rev > prior3Rev && prior3Rev > 0) {
+    growthStatusText = ' Accelerated Growth Trend (+' + Math.round(((recent3Rev - prior3Rev) / prior3Rev) * 100) + '%)';
+    growthBadgeBg = '#E4F2EB';
+    growthBadgeColor = '#1E6641';
+  }
+
+  const badgeEl = getEl('analytics-growth-badge');
+  const peakEl = getEl('analytics-peak-month');
+  const avgEl = getEl('analytics-avg-rev');
+  const totalRevEl = getEl('analytics-total-rev');
+  const totalProfitEl = getEl('analytics-total-profit');
+
+  if (badgeEl) {
+    badgeEl.textContent = growthStatusText;
+    badgeEl.style.background = growthBadgeBg;
+    badgeEl.style.color = growthBadgeColor;
+  }
+  if (peakEl) peakEl.textContent = peakMonthText;
+  if (avgEl) avgEl.textContent = '₦' + fmt(avgRev);
+  if (totalRevEl) totalRevEl.textContent = '₦' + fmt(totalRev);
+  if (totalProfitEl) totalProfitEl.textContent = '₦' + fmt(totalProfit);
+
+  if (typeof Chart === 'undefined') return;
+
+  const ctx = chartCanvas.getContext('2d');
+
+  if (salesTrendChartInstance) {
+    salesTrendChartInstance.destroy();
+  }
+
+  const revGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  revGradient.addColorStop(0, 'rgba(201, 152, 42, 0.35)');
+  revGradient.addColorStop(1, 'rgba(201, 152, 42, 0.0)');
+
+  const profitGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  profitGradient.addColorStop(0, 'rgba(30, 102, 65, 0.35)');
+  profitGradient.addColorStop(1, 'rgba(30, 102, 65, 0.0)');
+
+  salesTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: monthLabels,
+      datasets: [
+        {
+          label: 'Monthly Revenue (₦)',
+          data: monthlyRevenue,
+          borderColor: '#C9982A',
+          backgroundColor: revGradient,
+          fill: true,
+          tension: 0.38,
+          borderWidth: 3,
+          pointBackgroundColor: '#C9982A',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        },
+        {
+          label: 'Net Profit (₦)',
+          data: monthlyProfit,
+          borderColor: '#1E6641',
+          backgroundColor: profitGradient,
+          fill: true,
+          tension: 0.38,
+          borderWidth: 3,
+          pointBackgroundColor: '#1E6641',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            font: { family: 'Outfit', size: 13, weight: '600' },
+            color: '#141009',
+            usePointStyle: true,
+            padding: 16
+          }
+        },
+        tooltip: {
+          backgroundColor: '#141009',
+          titleFont: { family: 'Outfit', size: 13, weight: '700' },
+          bodyFont: { family: 'Outfit', size: 12 },
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) label += ': ';
+              if (context.parsed.y !== null) {
+                label += '₦' + context.parsed.y.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: 'Outfit', size: 12, weight: '600' },
+            color: '#7A6E58'
+          }
+        },
+        y: {
+          grid: { color: 'rgba(221, 212, 190, 0.4)' },
+          ticks: {
+            font: { family: 'Outfit', size: 11 },
+            color: '#7A6E58',
+            callback: function(value) {
+              if (Math.abs(value) >= 1000000) return '₦' + (value / 1000000).toFixed(1) + 'M';
+              if (Math.abs(value) >= 1000) return '₦' + (value / 1000).toFixed(0) + 'k';
+              return '₦' + value;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function openReportSubView(viewName) {
+  const hub = getEl('reports-hub-view');
+  const monthlyView = getEl('reports-monthly-view');
+  const taxView = getEl('reports-tax-view');
+  const analyticsView = getEl('reports-analytics-view');
+
+  if (hub) hub.style.display = 'none';
+  if (monthlyView) monthlyView.style.display = 'none';
+  if (taxView) taxView.style.display = 'none';
+  if (analyticsView) analyticsView.style.display = 'none';
+
+  if (viewName === 'monthly' && monthlyView) {
+    monthlyView.style.display = 'block';
+  } else if (viewName === 'tax' && taxView) {
+    taxView.style.display = 'block';
+  } else if (viewName === 'analytics' && analyticsView) {
+    analyticsView.style.display = 'block';
+    renderSalesTrendAnalytics();
+  }
+}
+
+function showReportsHub() {
+  const hub = getEl('reports-hub-view');
+  const monthlyView = getEl('reports-monthly-view');
+  const taxView = getEl('reports-tax-view');
+  const analyticsView = getEl('reports-analytics-view');
+
+  if (hub) hub.style.display = 'block';
+  if (monthlyView) monthlyView.style.display = 'none';
+  if (taxView) taxView.style.display = 'none';
+  if (analyticsView) analyticsView.style.display = 'none';
+}
+
+window.openReportSubView = openReportSubView;
+window.showReportsHub = showReportsHub;
+window.renderSalesTrendAnalytics = renderSalesTrendAnalytics;
 
 /* --- MONTHLY BREAKDOWN DETAIL --- */
 function showMonthlySalesDetail(month) {
@@ -1837,8 +2221,8 @@ function showMonthlySalesDetail(month) {
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           ${(!IS_LOCKED || (PROFILE?.staff_permissions?.can_print_report ?? STAFF_PERMS.can_print_report)) ? `
-          <button onclick="printMonthlySalesDetail('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">🖨️ Print</button>
-          <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer">📥 Download PNG</button>
+          <button onclick="printMonthlySalesDetail('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer"> Print</button>
+          <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer"> Download PNG</button>
           ` : ''}
           <button onclick="closeMonthlySalesDetail()" style="display:inline-flex;align-items:center;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">✕ Close</button>
         </div>
@@ -2043,7 +2427,7 @@ async function downloadMonthlySalesAsPNG(month) {
   if (!tableHtml) return toast('No records to download');
   
   try {
-    toast('⏳ Preparing download...');
+    toast(' Preparing download...');
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
@@ -2063,10 +2447,10 @@ async function downloadMonthlySalesAsPNG(month) {
     link.href = canvas.toDataURL('image/png');
     link.download = `biztrack-sales-${month}.png`;
     link.click();
-    toast('✅ Downloaded as PNG!');
+    toast(' Downloaded as PNG!');
   } catch (err) {
     console.error('Download error:', err);
-    toast('⚠️  Download failed');
+    toast('  Download failed');
   }
 }
 
@@ -2089,10 +2473,10 @@ function printMonthlySalesDetail(month) {
     `);
     printWindow.document.close();
     setTimeout(() => printWindow.print(), 500);
-    toast('🖨️ Opened print preview');
+    toast(' Opened print preview');
   } catch (err) {
     console.error('Print error:', err);
-    toast('⚠️  Print failed');
+    toast('  Print failed');
   }
 }
 
@@ -2124,10 +2508,13 @@ function toggleInvMode(mode) {
 function addManualItemRow() {
   const div = document.createElement('div');
   div.className = 'item-row';
+  div.style.display = 'flex';
+  div.style.gap = '0.4rem';
+  div.style.marginBottom = '0.4rem';
   div.innerHTML = `
-    <input type="text" class="m-iname" placeholder="Item name" oninput="previewInvoice()" />
-    <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" />
-    <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()" />
+    <input type="text" class="m-iname" placeholder="e.g. Pillows" oninput="previewInvoice()" style="flex:2; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px;" />
+    <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="flex:0.6; padding:0.4rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:center;" />
+    <input type="number" class="m-iprice" placeholder="0" oninput="previewInvoice()" style="flex:1; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:right;" />
   `;
   getEl('man-items-rows')?.appendChild(div);
 }
@@ -2156,9 +2543,9 @@ async function handleLogoUpload(event) {
       renderLogoPreview();
       const { error } = await sb.from('profiles').upsert(PROFILE);
       if (error) throw error;
-      toast('✅ Logo saved!');
+      toast(' Logo saved!');
       previewInvoice();
-    } catch (err) { toast('⚠️  Save failed.'); }
+    } catch (err) { toast('  Save failed.'); }
   };
   reader.readAsDataURL(file);
 }
@@ -2173,7 +2560,7 @@ function renderLogoPreview() {
 async function saveInvoiceAsImage() {
   const view = getEl('invoice-view');
   if (!view) return;
-  toast('⌛ Generating image...');
+  toast(' Generating image...');
   try {
     const canvas = await html2canvas(view, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
     const dataUrl = canvas.toDataURL('image/png');
@@ -2194,24 +2581,24 @@ async function saveInvoiceAsImage() {
         title: 'BizTrack Invoice',
         url: savedFile.uri,
       });
-      toast('✅ Ready to share!');
+      toast(' Ready to share!');
     } else {
       const link = document.createElement('a');
       link.download = `Invoice-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
-      toast('✅ Saved as PNG!');
+      toast(' Saved as PNG!');
     }
   } catch (err) { 
     console.error(err);
-    toast('⚠️  Image Failed.'); 
+    toast('  Image Failed.'); 
   }
 }
 
 async function shareInvoicePDF() {
   const view = getEl('invoice-view');
   if (!view) return;
-  toast('⌛ Generating PDF...');
+  toast(' Generating PDF...');
   try {
     const canvas = await html2canvas(view, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
     const imgData = canvas.toDataURL('image/png');
@@ -2248,14 +2635,14 @@ async function shareInvoicePDF() {
         title: 'BizTrack Invoice',
         url: savedFile.uri,
       });
-      toast('✅ PDF Ready!');
+      toast(' PDF Ready!');
     } else {
       pdf.save(`Invoice-${Date.now()}.pdf`);
-      toast('✅ PDF Downloaded!');
+      toast(' PDF Downloaded!');
     }
   } catch (err) {
     console.error(err);
-    toast('⚠️  PDF Failed.');
+    toast('  PDF Failed.');
   }
 }
 
@@ -2263,11 +2650,11 @@ async function saveManualInvoice() {
   if (INVOICE_MODE !== 'manual') return;
   const items = getManualItems();
   if (!items.length) {
-    return toast('⚠️  Please add at least one item to the invoice.');
+    return toast('  Please add at least one item to the invoice.');
   }
 
   try {
-    toast('⏳ Saving Invoice...');
+    toast(' Saving Invoice...');
     const { data: { user } } = await sb.auth.getUser();
     
     const subtotalNoFee = items.reduce((sum, i) => sum + i.qty * i.price, 0);
@@ -2294,7 +2681,7 @@ async function saveManualInvoice() {
     const { error } = await sb.from('sales').insert([payload]);
     if (error) throw error;
     
-    toast('✅ Invoice saved to Pending Sales!');
+    toast(' Invoice saved to Pending Sales!');
     
     getEl('man-cust-name').value = '';
     getEl('man-cust-addr').value = '';
@@ -2317,7 +2704,7 @@ async function saveManualInvoice() {
     
   } catch (err) {
     console.error('Error saving manual invoice:', err);
-    toast('⚠️  Error saving invoice');
+    toast('  Error saving invoice');
   }
 }
 
@@ -2467,7 +2854,7 @@ function renderProfileBanner(profile) {
          ${logoHtml}
          <div style="min-width:0; flex:1;">
            <h3 style="margin:0; font-size:0.82rem; font-weight:700; color:var(--text); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(profile.business_name || 'My Business')}</h3>
-           <div style="font-size:0.65rem; color:var(--muted); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📝 ${esc(profile.location || 'No Location Set')}</div>
+           <div style="font-size:0.65rem; color:var(--muted); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"> ${esc(profile.location || 'No Location Set')}</div>
          </div>
        </div>
        <div style="text-align:right; flex-shrink:0;">
@@ -2500,7 +2887,7 @@ function _renderInvoiceSalesPicker() {
   }
 
   if (!sales.length) {
-    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem; text-align:center;"><div class="empty-ico">📋</div>No recorded sales found for invoicing.</li>';
+    listEl.innerHTML = '<li class="empty" style="padding:2rem 1rem; text-align:center;"><div class="empty-ico"></div>No recorded sales found for invoicing.</li>';
     return;
   }
 
@@ -2518,13 +2905,13 @@ function _renderInvoiceSalesPicker() {
             <span class="badge" style="font-size:0.65rem; padding:0.1rem 0.4rem; ${payBadgeStyle}">${esc(payStatus)}</span>
           </div>
           <div class="li-sub" style="font-size:0.72rem; color:var(--muted); margin-top:0.15rem;">
-            📅 ${sale.date} · ${esc(itemsSummary)}
+             ${sale.date} · ${esc(itemsSummary)}
           </div>
         </div>
         <div class="li-right" style="display:flex; align-items:center; gap:0.6rem; flex-shrink:0;">
           <div style="font-size:0.92rem; font-weight:700; color:var(--green);">${fmt(sale.total)}</div>
           <button type="button" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.35rem 0.85rem; font-size:0.76rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;">
-            🧾 Generate Invoice
+             Generate Invoice
           </button>
         </div>
       </li>`;
@@ -2543,6 +2930,10 @@ function openInvoiceModalForSale(saleId) {
   if (manualContainer) manualContainer.style.display = 'none';
   const saveManualBtn = getEl('btn-save-manual-invoice');
   if (saveManualBtn) saveManualBtn.style.display = 'none';
+  const cancelManualBtn = getEl('btn-cancel-manual-invoice');
+  if (cancelManualBtn) cancelManualBtn.style.display = 'none';
+  const closeBtn = getEl('btn-close-invoice');
+  if (closeBtn) closeBtn.style.display = 'inline-flex';
   const editBtn = getEl('btn-edit-invoice');
   if (editBtn) editBtn.style.display = 'inline-flex';
 
@@ -2561,6 +2952,10 @@ function openInvoiceModalManual() {
   if (manualContainer) manualContainer.style.display = 'block';
   const saveManualBtn = getEl('btn-save-manual-invoice');
   if (saveManualBtn) saveManualBtn.style.display = 'inline-flex';
+  const cancelManualBtn = getEl('btn-cancel-manual-invoice');
+  if (cancelManualBtn) cancelManualBtn.style.display = 'inline-flex';
+  const closeBtn = getEl('btn-close-invoice');
+  if (closeBtn) closeBtn.style.display = 'none';
   const editBtn = getEl('btn-edit-invoice');
   if (editBtn) editBtn.style.display = 'none';
 
@@ -2575,6 +2970,25 @@ function openInvoiceModalManual() {
 function closeInvoiceModal() {
   const modal = getEl('invoice-modal');
   if (modal) modal.style.display = 'none';
+}
+
+function cancelManualInvoice() {
+  getEl('man-cust-name').value = '';
+  getEl('man-cust-addr').value = '';
+  getEl('man-delivery').value = '0';
+  getEl('man-discount').value = '0';
+  
+  // Reset items to a single empty row
+  const container = getEl('man-items-rows');
+  if (container) {
+    container.innerHTML = '';
+    if (typeof window.addManualItemRow === 'function') {
+      window.addManualItemRow();
+    }
+  }
+  
+  previewInvoice();
+  closeInvoiceModal();
 }
 
 function renderAll() {
@@ -2595,7 +3009,7 @@ function wireForms() {
       const { data: { user } } = await sb.auth.getUser();
       const pinVal = getEl('prof-pin').value.trim();
       if (!/^\d{4}$/.test(pinVal)) {
-        return toast('⚠️  PIN must be exactly 4 digits');
+        return toast('  PIN must be exactly 4 digits');
       }
       const perms = readStaffPermsFromUI();
       const payload = {
@@ -2610,17 +3024,23 @@ function wireForms() {
         logo: PROFILE?.logo || null,
         staff_permissions: perms
       };
-      if (!payload.business_name) return toast('⚠️  Business Name is required');
+      if (!payload.business_name) return toast('  Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
-      if (error) throw error;
-      PROFILE = payload;
+      const extras = {
+        instagram: (getEl('prof-instagram')?.value || '').trim(),
+        website: (getEl('prof-website')?.value || '').trim(),
+        qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
+      };
+      if (user?.id) saveProfileExtras(user.id, extras);
+
+      PROFILE = { ...payload, ...extras };
       STAFF_PERMS = perms;
       renderProfileBanner(PROFILE);
-      toast('✅ Business details & permissions updated!');
+      toast(' Business details & permissions updated!');
       switchTab('sales');
     } catch (err) { 
       console.error(err);
-      toast('⚠️  Update failed: ' + (err.message || 'Unknown error')); 
+      toast('  Update failed: ' + (err.message || 'Unknown error')); 
     }
   });
 
@@ -2629,12 +3049,12 @@ function wireForms() {
     try {
       const custName = (getEl('cust-name')?.value || '').trim();
       if (!custName) {
-        return toast('⚠️  Customer Name is required');
+        return toast('  Customer Name is required');
       }
 
       const items = getItems();
       if (!items || !items.length) {
-        return toast('⚠️  Please add at least one item with a valid name');
+        return toast('  Please add at least one item with a valid name');
       }
 
       // Check stock availability & prompt if insufficient
@@ -2644,7 +3064,7 @@ function wireForms() {
       const userRes = await sb.auth.getUser();
       const user = userRes?.data?.user;
       if (!user) {
-        return toast('⚠️  Session expired. Please log in again.');
+        return toast('  Session expired. Please log in again.');
       }
 
       const payload = { 
@@ -2678,12 +3098,12 @@ function wireForms() {
       renderAll();
       event.target.reset();
       resetItemRows();
-      const message = SALE_EDIT_ID ? '✅ Sale updated!' : '✅ Sale recorded & inventory updated!';
+      const message = SALE_EDIT_ID ? ' Sale updated!' : ' Sale recorded & inventory updated!';
       clearSaleEditMode();
       toast(message);
     } catch (err) { 
       console.error('Error saving sale:', err);
-      toast('⚠️  Error saving sale: ' + (err.message || 'Check required fields')); 
+      toast('  Error saving sale: ' + (err.message || 'Check required fields')); 
     }
   });
 
@@ -2709,10 +3129,10 @@ function wireForms() {
         if (insertError) throw insertError;
       }
       await loadData(); renderAll(); event.target.reset();
-      const message = EXPENSE_EDIT_ID ? '✅ Expense updated!' : '✅ Expense saved!';
+      const message = EXPENSE_EDIT_ID ? ' Expense updated!' : ' Expense saved!';
       clearExpenseEditMode();
       toast(message);
-    } catch (err) { toast('⚠️  Error saving expense'); }
+    } catch (err) { toast('  Error saving expense'); }
   });
 
   getEl('form-inventory')?.addEventListener('submit', async event => {
@@ -2731,7 +3151,7 @@ function wireForms() {
       };
       
       if (!payload.name) {
-        return toast('⚠️  Product Name is required');
+        return toast('  Product Name is required');
       }
 
       if (STOCK_EDIT_ID) {
@@ -2766,10 +3186,10 @@ function wireForms() {
       await loadData(); 
       renderAll(); 
       closeAddProductModal(); 
-      toast(STOCK_EDIT_ID ? '✅ Stock updated!' : '✅ Stock added to inventory!'); 
+      toast(STOCK_EDIT_ID ? ' Stock updated!' : ' Stock added to inventory!'); 
     } catch (err) { 
       console.error(err);
-      toast('⚠️  Error saving inventory'); 
+      toast('  Error saving inventory'); 
     }
   });
 
@@ -2785,7 +3205,7 @@ async function init() {
   try {
     await loadData();
     PROFILE = await loadProfile();
-  } catch (err) { toast('⚠️  Load failed.'); }
+  } catch (err) { toast('  Load failed.'); }
   renderProfileBanner(PROFILE);
   loadSettings(user.id);
   renderLogoPreview();
@@ -2833,6 +3253,7 @@ function editInvoiceSale() {
     return;
   }
   
+  closeInvoiceModal();
   enterSaleEditMode(id);
 }
 
@@ -2872,7 +3293,7 @@ function renderLatestTransactions() {
   const latest = combined.slice(0, 30);
 
   if (latest.length === 0) {
-    txListEl.innerHTML = `<li class="empty"><div class="empty-ico">💸</div>No transactions recorded yet.</li>`;
+    txListEl.innerHTML = `<li class="empty"><div class="empty-ico"></div>No transactions recorded yet.</li>`;
     return;
   }
 
@@ -2959,7 +3380,7 @@ function toggleFabMenu(forceState) {
 
 function handleFabAction(tabName) {
   toggleFabMenu(false);
-  switchTab(tabName);
+  if (typeof switchTab === 'function') switchTab(tabName);
 }
 
 function enterInnerApp(tabName) {
@@ -2969,7 +3390,7 @@ function enterInnerApp(tabName) {
   
   if (hero) hero.style.display = 'none';
   if (main) main.style.display = 'block';
-  if (fab) fab.style.display = 'flex';
+  if (fab) fab.style.display = 'none';
   
   switchTab(tabName);
 }
@@ -3031,7 +3452,7 @@ function saveSettings() {
     SETTINGS.invoice_notes = getEl('setting-invoice-notes')?.value || '';
     
     localStorage.setItem('biztrack_settings_' + user.id, JSON.stringify(SETTINGS));
-    toast('✅ Settings updated!');
+    toast(' Settings updated!');
     renderAll();
   });
 }
@@ -3081,7 +3502,7 @@ async function changeAdminPin() {
   const pinInput = getEl('admin-new-pin');
   const pinVal = pinInput ? pinInput.value.trim() : '';
   if (!/^\d{4}$/.test(pinVal)) {
-    return toast('⚠️  PIN must be exactly 4 digits');
+    return toast('  PIN must be exactly 4 digits');
   }
   try {
     const { data: { user } } = await sb.auth.getUser();
@@ -3101,16 +3522,16 @@ async function changeAdminPin() {
     if (detailsPin) detailsPin.value = pinVal;
     
     pinInput.value = '';
-    toast('✅ Owner PIN updated successfully!');
+    toast(' Owner PIN updated successfully!');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Failed to update PIN');
+    toast('  Failed to update PIN');
   }
 }
 
 async function exportDatabase() {
   try {
-    toast('⏳ Generating backup...');
+    toast(' Generating backup...');
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
@@ -3139,10 +3560,10 @@ async function exportDatabase() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast('✅ Backup file downloaded!');
+    toast(' Backup file downloaded!');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Failed to export database');
+    toast('  Failed to export database');
   }
 }
 
@@ -3151,7 +3572,7 @@ async function importDatabase(event) {
   if (!file) return;
 
   try {
-    toast('⏳ Importing data...');
+    toast(' Importing data...');
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
@@ -3182,16 +3603,16 @@ async function importDatabase(event) {
 
         await loadData();
         renderAll();
-        toast('✅ Backup restored successfully!');
+        toast(' Backup restored successfully!');
       } catch (err) {
         console.error(err);
-        toast('⚠️  Failed to restore backup: ' + err.message);
+        toast('  Failed to restore backup: ' + err.message);
       }
     };
     reader.readAsText(file);
   } catch (err) {
     console.error(err);
-    toast('⚠️  Error reading backup file');
+    toast('  Error reading backup file');
   } finally {
     event.target.value = '';
   }
@@ -3205,7 +3626,7 @@ async function resetDatabase() {
   }
 
   try {
-    toast('⏳ Resetting database...');
+    toast(' Resetting database...');
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
@@ -3217,10 +3638,10 @@ async function resetDatabase() {
 
     await loadData();
     renderAll();
-    toast('✅ Database reset successfully!');
+    toast(' Database reset successfully!');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Failed to reset database');
+    toast('  Failed to reset database');
   }
 }
 
@@ -3245,10 +3666,10 @@ async function saveStaffPermissions() {
     if (error) throw error;
     PROFILE = payload;
     STAFF_PERMS = perms;
-    toast('✅ Settings & staff permissions saved!');
+    toast(' Settings & staff permissions saved!');
   } catch (err) {
     console.error(err);
-    toast('⚠️  Failed to save staff permissions');
+    toast('  Failed to save staff permissions');
   }
 }
 
@@ -3286,7 +3707,7 @@ async function deleteExpense(id) {
     localStorage.setItem('biztrack_expenses', JSON.stringify(updatedLocal));
   } catch (e) {}
 
-  toast('🗑️ Expense deleted!');
+  toast(' Expense deleted!');
   renderAll();
 }
 
@@ -3404,6 +3825,7 @@ window.renderInventoryDashboard = renderInventoryDashboard;
 window.openInvoiceModalForSale = openInvoiceModalForSale;
 window.openInvoiceModalManual = openInvoiceModalManual;
 window.closeInvoiceModal = closeInvoiceModal;
+window.cancelManualInvoice = cancelManualInvoice;
 window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
 
 
@@ -3456,7 +3878,7 @@ function selectThankYouMode(mode) {
     if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
 
     const badge = getEl('ty-mode-badge');
-    if (badge) badge.textContent = '✏️ Manual Creation';
+    if (badge) badge.textContent = ' Manual Creation';
 
     const banner = getEl('ty-selected-invoice-banner');
     if (banner) banner.style.display = 'none';
@@ -3499,7 +3921,7 @@ function renderThankYouInvoicePickerList() {
   if (sales.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:1.5rem; color:var(--muted); font-size:0.82rem;">
-        ${search ? '🔍 No recorded invoices match your search.' : '🧾 No recorded sales found in your database yet.<br/><span style="font-size:0.75rem;">Record a sale first or use "Create Manually".</span>'}
+        ${search ? ' No recorded invoices match your search.' : ' No recorded sales found in your database yet.<br/><span style="font-size:0.75rem;">Record a sale first or use "Create Manually".</span>'}
       </div>`;
     return;
   }
@@ -3525,7 +3947,7 @@ function renderThankYouInvoicePickerList() {
             <span style="font-size:0.65rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:999px; background:${isPaid ? 'var(--green-bg, #E4F2EB)' : 'var(--red-bg, #FCEAEA)'}; color:${isPaid ? 'var(--green, #1E6641)' : 'var(--red, #B53030)'};">${status}</span>
           </div>
           <div style="font-size:0.75rem; color:var(--muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-            📅 ${dt} · 📦 ${itemsSummary}
+             ${dt} ·  ${itemsSummary}
           </div>
           <div style="font-size:0.82rem; font-weight:700; color:var(--gold); margin-top:0.15rem;">
             ${totalAmt}
@@ -3551,7 +3973,7 @@ function pickThankYouInvoice(saleId) {
   if (getEl('ty-step-editor')) getEl('ty-step-editor').style.display = 'block';
 
   const badge = getEl('ty-mode-badge');
-  if (badge) badge.textContent = '🧾 From Recorded Invoice';
+  if (badge) badge.textContent = ' From Recorded Invoice';
 
   const banner = getEl('ty-selected-invoice-banner');
   if (banner) banner.style.display = 'block';
@@ -3566,25 +3988,7 @@ function pickThankYouInvoice(saleId) {
 
   if (getEl('ty-cust-name')) getEl('ty-cust-name').value = custName;
 
-  const items = sale.items || [];
-  const itemsWrap = getEl('ty-items-preview-wrap');
-  const itemsListEl = getEl('ty-items-list');
-  const cardItemsBox = getEl('ty-card-items-box');
-  const cardItemsContent = getEl('ty-card-items-content');
-  const cardTotalRow = getEl('ty-card-total-row');
 
-  if (items.length > 0) {
-    const summaryText = items.map(i => `• ${esc(i.name)} ×${i.qty} (${fmt(i.total || (i.qty * (i.price || 0)))})`).join('<br/>');
-    if (itemsListEl) itemsListEl.innerHTML = summaryText;
-    if (itemsWrap) itemsWrap.style.display = 'block';
-
-    if (cardItemsContent) cardItemsContent.innerHTML = summaryText;
-    if (cardTotalRow) cardTotalRow.innerHTML = `Total Amount: ${fmt(sale.total || sale.total_amount || 0)}`;
-    if (cardItemsBox) cardItemsBox.style.display = 'block';
-  } else {
-    if (itemsWrap) itemsWrap.style.display = 'none';
-    if (cardItemsBox) cardItemsBox.style.display = 'none';
-  }
 
   updateThankYouPreview();
 }
@@ -3603,6 +4007,32 @@ function updateThankYouPreview() {
   const phone = PROFILE?.phoneNumber || PROFILE?.phone_number || '';
   if (getEl('ty-card-phone')) getEl('ty-card-phone').textContent = phone ? ('📞 ' + phone) : '📞 BizTrack Business';
   if (getEl('ty-card-date')) getEl('ty-card-date').textContent = '📅 ' + todayISO();
+
+  const website = PROFILE?.website || '';
+  const webEl = getEl('ty-card-website');
+  if (webEl) {
+    if (website) {
+      webEl.innerHTML = `🌐 ${esc(website)}`;
+      webEl.style.display = 'block';
+    } else {
+      webEl.style.display = 'none';
+    }
+  }
+
+  const instagram = PROFILE?.instagram || '';
+  const igEl = getEl('ty-card-instagram');
+  if (igEl) {
+    if (instagram) {
+      let displayIg = instagram;
+      if (!displayIg.startsWith('@') && !displayIg.startsWith('http')) {
+        displayIg = '@' + displayIg;
+      }
+      igEl.innerHTML = `📸 ${esc(displayIg)}`;
+      igEl.style.display = 'block';
+    } else {
+      igEl.style.display = 'none';
+    }
+  }
 }
 
 async function downloadThankYouPNG() {
@@ -3613,17 +4043,17 @@ async function downloadThankYouPNG() {
   }
 
   try {
-    toast('⏳ Generating Thank You Card image...');
+    toast(' Generating Thank You Card image...');
     const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, backgroundColor: null });
     const custName = (getEl('ty-cust-name')?.value || 'customer').toLowerCase().replace(/[^a-z0-9]/g, '_');
     const link = document.createElement('a');
     link.download = `thank-you-card-${custName}-${todayISO()}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    toast('💌 Thank You Card downloaded!');
+    toast(' Thank You Card downloaded!');
   } catch (err) {
     console.error('Download error:', err);
-    toast('⚠️ Image Download Failed');
+    toast(' Image Download Failed');
   }
 }
 
@@ -3633,7 +4063,7 @@ function shareThankYouWhatsApp() {
   const header = getEl('ty-card-header')?.textContent || 'Thank You!';
   const msg = getEl('ty-card-msg-text')?.textContent || '';
 
-  let text = `💌 *${header}*
+  let text = ` *${header}*
 
 Dear *${custName}*,
 
@@ -3659,7 +4089,7 @@ ${msg}
   text += `Warm regards,
 *${bizName}*
 `;
-  if (PROFILE?.phoneNumber) text += `📞 Phone: ${PROFILE.phoneNumber}
+  if (PROFILE?.phoneNumber) text += ` Phone: ${PROFILE.phoneNumber}
 `;
 
   const encoded = encodeURIComponent(text);
@@ -3678,3 +4108,65 @@ window.pickThankYouInvoice = pickThankYouInvoice;
 window.updateThankYouPreview = updateThankYouPreview;
 window.downloadThankYouPNG = downloadThankYouPNG;
 window.shareThankYouWhatsApp = shareThankYouWhatsApp;
+
+/* --- APP WALKTHROUGH CONTROLLER --- */
+let currentWalkthroughIndex = 0;
+let walkthroughTimer = null;
+
+function switchWalkthroughStep(index) {
+  const totalSteps = 6;
+  currentWalkthroughIndex = (index + totalSteps) % totalSteps;
+
+  for (let i = 0; i < totalSteps; i++) {
+    const stepEl = getEl('wt-step-' + i);
+    const innerStepEl = getEl('wt-step-inner-' + i);
+    if (stepEl) stepEl.style.display = i === currentWalkthroughIndex ? 'block' : 'none';
+    if (innerStepEl) innerStepEl.style.display = i === currentWalkthroughIndex ? 'block' : 'none';
+  }
+
+  const pills = document.querySelectorAll('.wt-pill');
+  pills.forEach((pill, i) => {
+    pill.classList.toggle('active', (i % totalSteps) === currentWalkthroughIndex);
+  });
+}
+
+function nextWalkthroughStep() {
+  switchWalkthroughStep(currentWalkthroughIndex + 1);
+}
+
+function prevWalkthroughStep() {
+  switchWalkthroughStep(currentWalkthroughIndex - 1);
+}
+
+function startAutoWalkthrough() {
+  if (walkthroughTimer) clearInterval(walkthroughTimer);
+  walkthroughTimer = setInterval(() => {
+    nextWalkthroughStep();
+  }, 4500);
+}
+
+function toggleAutoWalkthrough() {
+  const btn1 = getEl('btn-auto-wt');
+  const btn2 = getEl('btn-auto-wt-2');
+  if (walkthroughTimer) {
+    clearInterval(walkthroughTimer);
+    walkthroughTimer = null;
+    if (btn1) btn1.textContent = ' Play Auto Tour';
+    if (btn2) btn2.textContent = ' Play Auto Tour';
+  } else {
+    startAutoWalkthrough();
+    if (btn1) btn1.textContent = ' Pause Auto Tour';
+    if (btn2) btn2.textContent = ' Pause Auto Tour';
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startAutoWalkthrough);
+} else {
+  startAutoWalkthrough();
+}
+
+window.switchWalkthroughStep = switchWalkthroughStep;
+window.nextWalkthroughStep = nextWalkthroughStep;
+window.prevWalkthroughStep = prevWalkthroughStep;
+window.toggleAutoWalkthrough = toggleAutoWalkthrough;
