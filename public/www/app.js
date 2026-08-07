@@ -90,10 +90,7 @@ async function checkAuth() {
 async function signOut() {
   try {
     const { data: { user } } = await sb.auth.getUser();
-    if (user) {
-      localStorage.removeItem('biztrack_settings_' + user.id);
-    }
-    localStorage.removeItem('biztrack_expenses');
+    localStorage.clear();
     localStorage.setItem('biztrack_locked', 'true');
     
     // Clear global state
@@ -149,11 +146,11 @@ async function loadData() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    // Fetch using OR to include legacy rows where user_id is NULL
+    // Fetch user's records strictly
     const [sales, expenses, stock] = await Promise.all([
-      sb.from('sales').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('date', { ascending: false }),
-      sb.from('expenses').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('date', { ascending: false }),
-      sb.from('stock').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('name', { ascending: true })
+      sb.from('sales').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+      sb.from('expenses').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+      sb.from('stock').select('*').eq('user_id', user.id).order('name', { ascending: true })
     ]);
 
     if (sales.error) console.error('Sales error', sales.error);
@@ -163,39 +160,6 @@ async function loadData() {
     let allSales = sales.data || [];
     let allExpenses = expenses.data || [];
     let allStock = stock.data || [];
-
-    // Client-side auto-migration for legacy null user_id records
-    const nullSales = allSales.filter(s => !s.user_id);
-    const nullExpenses = allExpenses.filter(e => !e.user_id);
-    const nullStock = allStock.filter(p => !p.user_id);
-
-    if (nullSales.length > 0 || nullExpenses.length > 0 || nullStock.length > 0) {
-      console.log(`[Migration] Found legacy records with NULL user_id. Associating them with user ID: ${user.id}`);
-      
-      // Migrate sales
-      for (const s of nullSales) {
-        sb.from('sales').update({ user_id: user.id }).eq('id', s.id).then(({ error }) => {
-          if (error) console.warn('[Migration] Failed to migrate sale', s.id, error);
-        });
-        s.user_id = user.id;
-      }
-      
-      // Migrate expenses
-      for (const e of nullExpenses) {
-        sb.from('expenses').update({ user_id: user.id }).eq('id', e.id).then(({ error }) => {
-          if (error) console.warn('[Migration] Failed to migrate expense', e.id, error);
-        });
-        e.user_id = user.id;
-      }
-      
-      // Migrate stock
-      for (const p of nullStock) {
-        sb.from('stock').update({ user_id: user.id }).eq('id', p.id).then(({ error }) => {
-          if (error) console.warn('[Migration] Failed to migrate stock item', p.id, error);
-        });
-        p.user_id = user.id;
-      }
-    }
 
     S.sales = allSales.filter(sale => !sale.is_deleted);
     S.deletedSales = allSales.filter(sale => sale.is_deleted);
@@ -1269,7 +1233,7 @@ async function _renderSalesList() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    let query = sb.from('sales').select('*', { count: 'exact' }).or(`user_id.eq.${user.id},user_id.is.null`).eq('is_deleted', false).order('date', { ascending: false });
+    let query = sb.from('sales').select('*', { count: 'exact' }).eq('user_id', user.id).eq('is_deleted', false).order('date', { ascending: false });
     if (CURRENT_SALES_FILTER !== 'All') {
       query = query.eq('payment_status', CURRENT_SALES_FILTER);
     }
