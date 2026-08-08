@@ -2862,7 +2862,7 @@ function _renderInvoiceSalesPicker() {
     const itemsSummary = (sale.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
 
     return `
-      <li class="li" style="display:flex; justify-content:space-between; align-items:center; padding:0.65rem 0.85rem; border-radius:8px; margin-bottom:0.4rem; border:1px solid var(--border); background:#fff; cursor:pointer;" onclick="openInvoiceModalForSale('${sale.id}')" title="Click to pop up invoice on screen">
+      <li class="li" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; padding:0.65rem 0.85rem; border-radius:8px; margin-bottom:0.4rem; border:1px solid var(--border); background:#fff; cursor:pointer;" onclick="openInvoiceModalForSale('${sale.id}')" title="Click to pop up invoice on screen">
         <div class="li-body" style="flex:1; min-width:0; padding-right:0.5rem;">
           <div class="li-name" style="font-size:0.88rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:0.4rem;">
             ${esc(custName)}

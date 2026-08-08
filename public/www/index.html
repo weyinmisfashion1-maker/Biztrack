@@ -355,14 +355,14 @@ ul{list-style:none}
 /* == LIST ROOT (required id) == */
 #list-root,#exp-list,#inv-list{list-style:none}
 .li{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  gap:.75rem;padding:.875rem 1rem;
-  background:#fff;border:1px solid var(--border);
-  border-radius:var(--r-sm);margin-bottom:.5rem;
-  transition:border-color .15s;
+display:flex;align-items:center;justify-content:space-between;
+padding:.75rem .85rem;background:#fff;border:1px solid var(--border);
+border-radius:var(--r-md);margin-bottom:.5rem;
+flex-wrap:wrap;gap:0.5rem;
 }
+.li:active{transform:scale(.98)}
 .li:hover{border-color:var(--gold)}
-.li-body{flex:1;min-width:0}
+.li-body{flex:1 1 150px;min-width:0}
 .li-name{font-weight:var(--fw-semi);font-size:.9rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li-sub{font-size:.72rem;color:var(--muted);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li-right{text-align:right;flex-shrink:0}
@@ -416,10 +416,11 @@ ul{list-style:none}
   align-items: flex-start;
   margin-bottom: 0.5rem;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 .inv-biz-info {
   text-align: left;
-  max-width: 60%;
+  flex: 1 1 150px;
 }
 .inv-biz-name {
   font-family: var(--ff-head);
@@ -457,7 +458,7 @@ ul{list-style:none}
 /* Mid Section */
 .inv-mid-sec {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 0.75rem;
   margin-bottom: 0.5rem;
   align-items: flex-end;
@@ -568,7 +569,7 @@ ul{list-style:none}
 /* Bottom layout (Bank left, totals right) */
 .inv-bottom-sec {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
@@ -1798,7 +1799,7 @@ body.dark-mode #invoice-view * {
     <div class="card" style="padding: 0.85rem !important;">
       <div class="field" style="margin-bottom: 0.65rem;">
         <label for="input-search">Search Sales</label>
-        <div style="display:flex; gap:0.4rem; align-items:center;">
+        <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
           <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1;"/>
           <button type="button" id="btn-search-sales" onclick="triggerSalesSearch()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0 0.85rem; font-size:0.78rem; font-weight:700; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem; flex-shrink:0;">
              Search
@@ -2086,8 +2087,8 @@ body.dark-mode #invoice-view * {
           </div>
         </div>
 
-        <button type="button" onclick="openInvoiceModalManual()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
-            Create Custom / Manual Invoice
+        <button type="button" onclick="openInvoiceModalManual()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:0.35rem; flex: 1 1 auto; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
+             Create Custom / Manual Invoice
         </button>
       </div>
     </div>
