@@ -1182,12 +1182,14 @@ body.dark-mode #invoice-view * {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  height: 38px !important;
+  min-height: 38px !important;
   box-sizing: border-box !important;
+  flex-wrap: wrap !important;
+  gap: 0.25rem !important;
 }
 
 #panel-recent-sales .li-body {
-  flex: 1 !important;
+  flex: 1 1 120px !important;
   min-width: 0 !important;
   padding-right: 0.4rem !important;
 }
@@ -1216,6 +1218,7 @@ body.dark-mode #invoice-view * {
   align-items: center !important;
   gap: 0.3rem !important;
   flex-shrink: 0 !important;
+  flex-wrap: wrap !important;
 }
 
 #panel-recent-sales .li-amt {
@@ -1800,7 +1803,7 @@ body.dark-mode #invoice-view * {
       <div class="field" style="margin-bottom: 0.65rem;">
         <label for="input-search">Search Sales</label>
         <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
-          <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1;"/>
+          <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1 1 150px;"/>
           <button type="button" id="btn-search-sales" onclick="triggerSalesSearch()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0 0.85rem; font-size:0.78rem; font-weight:700; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem; flex-shrink:0;">
              Search
           </button>
@@ -1811,7 +1814,7 @@ body.dark-mode #invoice-view * {
       </div>
       
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
-        <nav class="tabs" id="sales-filter-tabs" role="tablist" style="margin-bottom:0; flex:1;">
+        <nav class="tabs" id="sales-filter-tabs" role="tablist" style="margin-bottom:0; flex:1 1 200px; display:flex; flex-wrap:wrap; gap:0.25rem;">
           <button type="button" class="tab on" id="sf-all" onclick="filterSales('All')">All</button>
           <button type="button" class="tab" id="sf-paid" onclick="filterSales('Paid')">Paid</button>
           <button type="button" class="tab" id="sf-pending" onclick="filterSales('Pending')">Unpaid</button>
