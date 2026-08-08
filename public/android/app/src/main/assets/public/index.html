@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  alert("Error: " + msg + "\nLine: " + lineNo + "\n" + (error && error.stack ? error.stack : ''));
+  return false;
+};
+window.addEventListener('unhandledrejection', function(event) {
+  alert("Unhandled Promise Rejection: " + event.reason);
+});
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="description" content="BizTrack.ng — Daily sales, expenses, inventory and invoices for Nigerian small business owners"/>
+<title>BizTrack.ng — Nigeria Business Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ===================== DESIGN TOKENS ===================== */
+:root{
+  --gold:#C9982A;--gold-lt:#E8BE6A;--gold-soft:rgba(201,152,42,.1);
+  --ink:#141009;--ink2:#2A2215;--ink3:#4A3F2F;
+  --cream:#FAF6EF;--cream2:#F3EDE0;--cream3:#EAE1CC;
+  --text:#1C1509;--muted:#7A6E58;--border:#DDD4BE;
+  --green:#1E6641;--green-bg:#E4F2EB;
+  --red:#B53030;--red-bg:#FCEAEA;
+  --blue-bg:#EAF0FD;--blue:#2A4EA6;
+  --r:12px;--r-sm:8px;--r-xs:6px;
+  --sh:0 2px 16px rgba(20,16,9,.08);
+  --ff-head:'Playfair Display',Georgia,serif;
+  --ff-body:'Outfit',system-ui,sans-serif;
+  --fw-light:300;--fw:400;--fw-med:500;--fw-semi:600;--fw-bold:700;
+}
+
+/* ===================== RESET ===================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--ff-body);background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh;opacity:1;transition:opacity .3s}
+button,input,select,textarea{font-family:var(--ff-body)}
+button{cursor:pointer}
+img{max-width:100%;display:block}
+ul{list-style:none}
+
+/* ===================== ACCESSIBILITY ===================== */
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:3px;border-radius:var(--r-xs)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes glow{
+  0%,100%{box-shadow:0 0 0 0 rgba(201,152,42,.3)}
+  50%{box-shadow:0 0 0 8px rgba(201,152,42,0)}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{
+  from{opacity:0;transform:translateX(-50%) translateY(16px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}
+}
+
+/* ===================== HERO SECTION ===================== */
+#hero {
+  background: var(--ink);
+  color: var(--cream);
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .875rem 1.25rem;
+  border-bottom: 1px solid rgba(201,152,42,.18);
+  z-index: 50;
+  background: var(--ink2);
+  flex-shrink: 0;
+}
+.brand {
+  font-family: var(--ff-head); font-size: 1.3rem;
+  color: var(--gold); letter-spacing: .04em; text-decoration: none;
+}
+.brand span { font-style: italic; font-weight: 400; color: var(--gold-lt) }
+.hero-nav-tag { font-size: .65rem; color: rgba(250,246,239,.35); letter-spacing: .1em; text-transform: uppercase }
+
+.hero-body {
+  padding: 1.5rem 1.25rem;
+  background:
+    radial-gradient(ellipse 70% 60% at 10% 90%,rgba(201,152,42,.15) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 50% at 90% 10%,rgba(201,152,42,.08) 0%,transparent 65%),
+    var(--ink);
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:rgba(201,152,42,.12);border:1px solid rgba(201,152,42,.25);
+  border-radius:999px;padding:.3rem .9rem;
+  font-size:.68rem;font-weight:var(--fw-semi);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold-lt);
+  margin-bottom:1.25rem;
+  animation:fadeSlideUp .5s ease both;
+}
+.pill-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gold);animation:glow 2s ease infinite;flex-shrink:0;
+}
+.hero-h1{
+  font-family:var(--ff-head);font-size:clamp(2rem,8vw,3.2rem);
+  font-weight:700;line-height:1.12;color:var(--cream);
+  margin-bottom:.75rem;
+  animation:fadeSlideUp .55s .08s ease both;
+}
+.hero-h1 em{color:var(--gold);font-style:italic}
+.hero-p{
+  font-size:.95rem;font-weight:var(--fw-light);
+  color:rgba(250,246,239,.6);max-width:320px;
+  margin:0 auto 2rem;
+  animation:fadeSlideUp .55s .16s ease both;
+}
+.hero-actions{
+  display:flex;flex-direction:column;gap:.75rem;align-items:center;
+  animation:fadeSlideUp .55s .24s ease both;
+}
+/* == PRIMARY BUTTON (required id) == */
+#btn-primary{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r-sm);
+  padding:.85rem 2rem;font-size:.95rem;font-weight:var(--fw-bold);
+  letter-spacing:.02em;transition:background .18s,transform .18s,box-shadow .18s;
+  width:100%;max-width:280px;justify-content:center;
+}
+#btn-primary:hover{background:var(--gold-lt);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,152,42,.4)}
+#btn-primary:active{transform:translateY(0)}
+.btn-ghost{
+  background:transparent;color:rgba(250,246,239,.65);
+  border:1px solid rgba(250,246,239,.2);border-radius:var(--r-sm);
+  padding:.75rem 1.5rem;font-size:.88rem;font-weight:var(--fw-med);
+  transition:border-color .15s,color .15s;
+  width:100%;max-width:280px;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+.hero-metrics{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(201,152,42,.12);
+  border-top:1px solid rgba(201,152,42,.12);
+  border-radius:0;margin-top:2.5rem;
+  animation:fadeSlideUp .55s .32s ease both;
+}
+.hero-metric{background:var(--ink);padding:1rem .5rem;text-align:center}
+.hero-metric:first-child{border-radius:0 0 0 var(--r)}
+.hero-metric:last-child{border-radius:0 0 var(--r) 0}
+.hm-val{
+  display:block;font-family:var(--ff-head);font-size:1.2rem;
+  font-weight:700;color:var(--gold);line-height:1;margin-bottom:.25rem;
+}
+.hm-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(250,246,239,.35)}
+
+.wt-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 152, 42, 0.35);
+  background: rgba(0, 0, 0, 0.4);
+  color: rgba(250, 246, 239, 0.65);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.wt-pill:hover, .wt-pill.active {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold-lt);
+  transform: scale(1.12);
+  box-shadow: 0 0 10px rgba(201, 152, 42, 0.5);
+}
+
+/* ===================== MAIN SECTION ===================== */
+#main-content{max-width:680px;margin:0 auto;padding:1.25rem 1rem 3rem}
+
+/* == INSIGHTS PANEL (required id) == */
+#insights-panel{
+  display:grid;grid-template-columns:1fr 1fr;gap:.4rem;
+  margin-bottom:.45rem;
+}
+.insight{
+  background:var(--cream2);border:1px solid var(--border);
+  border-radius:8px;padding:.45rem .6rem;
+  border-left:3px solid var(--gold);position:relative;overflow:hidden;
+  animation:fadeSlideUp .3s ease both;
+}
+.insight:nth-child(1){animation-delay:.05s}
+.insight:nth-child(2){animation-delay:.1s;border-left-color:var(--red)}
+.insight:nth-child(3){animation-delay:.15s;border-left-color:var(--green)}
+.insight:nth-child(4){animation-delay:.2s;border-left-color:var(--blue)}
+.insight::after{
+  content:'';position:absolute;top:-12px;right:-12px;
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(201,152,42,.06);pointer-events:none;
+}
+.insight:nth-child(2)::after{background:rgba(181,48,48,.06)}
+.insight:nth-child(3)::after{background:rgba(30,102,65,.06)}
+.insight-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.08rem}
+.insight-val{font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--text);line-height:1.1}
+.insight-sub{font-size:.62rem;color:var(--muted);margin-top:.08rem}
+
+/* == TABS == */
+.tabs{
+  display:flex;background:var(--cream2);border:1px solid var(--border);
+  border-radius:var(--r);padding:.25rem;gap:.2rem;
+  margin-bottom:1.125rem;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:max-content;border:none;
+  background:transparent;border-radius:calc(var(--r) - 4px);
+  padding:.5rem .7rem;font-size:.75rem;font-weight:var(--fw-med);
+  color:var(--muted);transition:all .15s;white-space:nowrap;
+}
+.tab.on{background:var(--ink);color:var(--gold);font-weight:var(--fw-semi)}
+.tab:hover:not(.on){background:var(--cream3);color:var(--text)}
+
+.profile-banner{
+  display:block;
+  width:100%;
+  margin:0 auto .45rem;
+  padding:0;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  overflow:hidden;
+}
+.profile-banner h3{
+  font-family:var(--ff-head);font-size:1.05rem;margin-bottom:.35rem;color:var(--ink)
+}
+.profile-banner .profile-card{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;
+}
+.profile-banner .profile-item{
+  background:#fff;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:.85rem;line-height:1.45;
+}
+.profile-banner .profile-label{
+  display:block;font-size:.72rem;font-weight:600;color:var(--muted);
+  margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.08em;
+}
+.profile-banner .profile-value{
+  font-size:.95rem;font-weight:600;color:var(--ink);
+}
+
+/* == PANELS == */
+.panel{display:none;animation:fadeSlideUp .22s ease both}
+.panel.on{display:block}
+
+/* == CARD == */
+.card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--r);padding:1.25rem;
+  box-shadow:var(--sh);margin-bottom:1rem;
+}
+.card-h{
+  font-family:var(--ff-head);font-size:1.05rem;font-weight:700;
+  color:var(--text);margin-bottom:1rem;
+}
+
+/* == FORM FIELDS == */
+.field{margin-bottom:.875rem}
+.field label{
+  display:block;font-size:.65rem;font-weight:var(--fw-semi);
+  text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:.35rem;
+}
+.req-mark{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{
+  width:100%;padding:.7rem .9rem;
+  background:var(--cream);border:1.5px solid var(--border);
+  border-radius:var(--r-sm);color:var(--text);font-size:.9rem;
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:.7}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,152,42,.14);
+  background:#fff;
+}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A6E58' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .9rem center;
+  padding-right:2.2rem;cursor:pointer;
+}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* == ITEMS == */
+.items-legend{
+  font-size:.65rem;font-weight:var(--fw-semi);text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem;
+}
+.items-col-head{
+  display:grid;grid-template-columns:3fr 1fr 2fr;
+  gap:.4rem;margin-bottom:.3rem;
+}
+.items-col-head span{font-size:.6rem;font-weight:var(--fw-semi);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.item-row{display:grid;grid-template-columns:3fr 1fr 2fr;gap:.4rem;margin-bottom:.4rem}
+.item-row input{margin:0}
+.add-row{
+  width:100%;padding:.55rem;background:transparent;
+  border:1.5px dashed var(--border);border-radius:var(--r-sm);
+  color:var(--muted);font-size:.8rem;transition:all .15s;margin-top:.15rem;
+}
+.add-row:hover{border-color:var(--gold);color:var(--gold)}
+
+/* == TOTALS == */
+.totals{
+  background:var(--cream2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:.875rem;margin:.875rem 0;
+}
+.tot-row{
+  display:flex;justify-content:space-between;
+  font-size:.84rem;color:var(--muted);margin-bottom:.3rem;
+}
+.tot-row:last-child{margin-bottom:0}
+.tot-row.big{
+  font-family:var(--ff-head);font-size:1.05rem;font-weight:700;
+  color:var(--gold);border-top:1px solid var(--border);
+  padding-top:.55rem;margin-top:.35rem;
+}
+.neg{color:var(--red)}
+
+/* == SUBMIT BTN == */
+.btn-save{
+  width:100%;padding:.85rem;background:var(--gold);color:var(--ink);
+  border:none;border-radius:var(--r-sm);font-size:.95rem;font-weight:var(--fw-bold);
+  letter-spacing:.02em;transition:background .18s,transform .18s,box-shadow .18s;
+}
+.btn-save:hover{background:var(--gold-lt);transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,152,42,.35)}
+.btn-save:active{transform:translateY(0)}
+
+/* == LIST ROOT (required id) == */
+#list-root,#exp-list,#inv-list{list-style:none}
+.li{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:.75rem;padding:.875rem 1rem;
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--r-sm);margin-bottom:.5rem;
+  transition:border-color .15s;
+}
+.li:hover{border-color:var(--gold)}
+.li-body{flex:1;min-width:0}
+.li-name{font-weight:var(--fw-semi);font-size:.9rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-sub{font-size:.72rem;color:var(--muted);margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-right{text-align:right;flex-shrink:0}
+.li-amt{font-family:var(--ff-head);font-size:1rem;font-weight:700;color:var(--gold)}
+.li-amt.red{color:var(--red)}
+.badge{
+  display:inline-block;font-size:.58rem;font-weight:var(--fw-bold);
+  padding:.15rem .55rem;border-radius:20px;text-transform:uppercase;
+  letter-spacing:.05em;margin-top:.25rem;
+}
+.b-pend{background:rgba(201,152,42,.12);color:#7A5800}
+.b-done{background:var(--green-bg);color:var(--green)}
+.b-fail{background:var(--red-bg);color:var(--red)}
+.b-exp{background:var(--red-bg);color:var(--red)}
+.b-inv{background:var(--blue-bg);color:var(--blue)}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.88rem}
+.empty-ico{font-size:2rem;margin-bottom:.5rem}
+
+/* == INVOICE PREVIEW (Elegant Minimalist Asymmetrical) == */
+/* == INVOICE PREVIEW (Elegant Minimalist Asymmetrical) == */
+#invoice-view {
+  display: none;
+  background: #fff;
+  border-top: 3px solid var(--gold) !important;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 0.85rem 1.15rem;
+  margin-top: 0;
+  color: var(--text);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  font-family: var(--ff-body);
+  overflow: hidden;
+  word-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+#invoice-view * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Asymmetrical Header */
+.inv-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+}
+.inv-biz-info {
+  text-align: left;
+  max-width: 60%;
+}
+.inv-biz-name {
+  font-family: var(--ff-head);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 0.15rem;
+}
+.inv-biz-details {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.inv-logo-wrap {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.inv-logo-placeholder {
+  font-family: var(--ff-head);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.inv-logo-img {
+  max-height: 36px;
+  max-width: 90px;
+  object-fit: contain;
+}
+
+/* Mid Section */
+.inv-mid-sec {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  align-items: flex-end;
+}
+.inv-bill-to {
+  text-align: left;
+  background: var(--cream);
+  border-left: 3px solid var(--gold);
+  padding: 0.4rem 0.6rem;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.inv-bill-to h3 {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--gold);
+  margin-bottom: 0.15rem;
+  text-transform: uppercase;
+}
+.inv-bill-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.1rem;
+}
+.inv-bill-details {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.25;
+}
+.inv-bill-details div {
+  margin-bottom: 0.04rem;
+}
+
+.inv-meta-sec {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.inv-large-title {
+  font-family: var(--ff-head);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 0.1rem;
+}
+.inv-meta-table {
+  font-size: 0.65rem;
+  color: var(--text);
+  width: 100%;
+  max-width: 170px;
+}
+.inv-meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.04rem 0;
+}
+.inv-meta-label {
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 0.58rem;
+}
+.inv-meta-val {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Minimalist Table */
+.inv-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.5rem;
+}
+.inv-tbl th {
+  color: var(--gold);
+  font-weight: 700;
+  text-align: left;
+  padding: 0.28rem 0.4rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-top: 1.5px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
+  background: transparent;
+}
+.inv-tbl th:nth-child(3), .inv-tbl th:nth-child(4), .inv-tbl th:nth-child(5) {
+  text-align: right;
+}
+.inv-tbl td {
+  padding: 0.28rem 0.4rem;
+  border-bottom: 1px solid var(--cream2);
+  font-size: 0.7rem;
+  color: var(--text);
+}
+.inv-tbl td:nth-child(3), .inv-tbl td:nth-child(4), .inv-tbl td:nth-child(5) {
+  text-align: right;
+}
+.inv-tbl tr:last-child td {
+  border-bottom: 1.5px solid var(--border);
+}
+
+/* Bottom layout (Bank left, totals right) */
+.inv-bottom-sec {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.inv-bank-box {
+  background: var(--cream);
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  text-align: left;
+}
+.inv-bank-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.18rem;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.1rem;
+}
+.inv-bank-row {
+  font-size: 0.68rem;
+  margin-bottom: 0.08rem;
+  display: flex;
+  gap: 0.35rem;
+}
+.inv-bank-label {
+  font-weight: 600;
+  color: var(--muted);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.inv-totals-sec {
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+}
+.inv-tot-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.1rem 0.2rem;
+  color: var(--muted);
+}
+.inv-tot-row span:last-child {
+  font-weight: 700;
+  color: var(--text);
+}
+.inv-tot-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.2rem 0;
+  margin-top: 0.15rem;
+  border-top: 2px solid var(--gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+.inv-tot-bar span:last-child {
+  font-size: 0.95rem;
+  color: var(--gold);
+}
+
+/* Serif italic Thanks banner */
+.inv-thanks-banner {
+  text-align: center;
+  border-top: 1px double var(--border);
+  border-bottom: 1px double var(--border);
+  padding: 0.25rem 0;
+  margin-bottom: 0;
+  font-family: Georgia, serif;
+  font-size: 0.88rem;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.btn-print{
+  width:100%;padding:.75rem;background:var(--ink);color:var(--cream);
+  border:none;border-radius:var(--r-sm);font-size:.9rem;font-weight:var(--fw-semi);
+  margin-top:.75rem;transition:opacity .15s;
+}
+.btn-print:hover{opacity:.82}
+
+/* == REPORT TABLE == */
+.rtbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.rtbl th{
+  padding:.5rem .625rem;text-align:left;
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);border-bottom:1.5px solid var(--gold);
+}
+.rtbl td{padding:.55rem .625rem;border-bottom:1px solid var(--border);color:var(--ink3)}
+.rtbl tr.tot td{background:var(--ink);color:#FAF6EF;font-weight:var(--fw-semi)}
+.rtbl tr:hover:not(.tot) td{background:var(--cream2)}
+.pos{color:var(--green);font-weight:var(--fw-semi)}
+.neg2{color:var(--red);font-weight:var(--fw-semi)}
+
+/* == TAX CARD GRID == */
+.tax-grid{display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:1rem}
+.tg-item{}
+.tg-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.2rem}
+.tg-val{font-family:var(--ff-head);font-size:1.1rem;font-weight:700;color:var(--text)}
+.tg-val.gold{color:var(--gold)}
+.tg-val.purple{color:#5B3FA0}
+.tax-note{
+  font-size:.75rem;color:var(--muted);padding:.75rem;
+  background:var(--cream2);border-radius:var(--r-sm);
+  border-left:3px solid var(--gold);
+}
+
+/* == TOAST == */
+#toast{
+  position:fixed;bottom:1.25rem;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:var(--gold);
+  padding:.6rem 1.25rem;border-radius:999px;
+  font-size:.83rem;font-weight:var(--fw-semi);
+  border:1px solid rgba(201,152,42,.25);
+  pointer-events:none;opacity:0;z-index:999;
+  transition:opacity .25s,transform .25s;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===================== FOOTER SECTION ===================== */
+#site-footer{
+  display: none; /* Hidden on landing page */
+  background:var(--ink2);color:rgba(250,246,239,.45);
+  text-align:center;padding:2rem 1.25rem 2.5rem;
+  font-size:.78rem;line-height:1.7;
+}
+.footer-brand{
+  font-family:var(--ff-head);font-size:1.1rem;
+  color:var(--gold);margin-bottom:.35rem;
+}
+.footer-flow{
+  display:flex;align-items:center;justify-content:center;
+  gap:.5rem;font-size:.68rem;margin-bottom:.75rem;
+  color:rgba(250,246,239,.3);
+}
+.footer-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.4}
+.footer-tax{
+  font-size:.7rem;color:rgba(250,246,239,.28);
+  max-width:360px;margin:.5rem auto 0;
+}
+.footer-copy{margin-top:.875rem;font-size:.65rem;opacity:.3}
+
+/* ===================== RESPONSIVE BREAKPOINTS (mobile-first) ===================== */
+@media(min-width:460px){
+  .hero-body{padding:3rem 1.5rem 3.5rem}
+  #main-content{padding:1.5rem 1.25rem 3rem}
+  #insights-panel{gap:.75rem}
+}
+@media(min-width:600px){
+  #insights-panel{grid-template-columns:repeat(4,1fr)}
+  .hero-h1{font-size:2.9rem}
+  .card{padding:1.5rem}
+}
+@media(min-width:680px){
+  .hero-top{padding:.875rem 1.5rem}
+}
+
+@media print{
+  #hero,.tabs,.btn-save,.add-row,
+  #panel-sales,#panel-expense,#panel-inventory,#panel-report,
+  #site-footer,#toast,#invoice-actions,.page-header,.card,.btn-back{display:none!important}
+  #invoice-modal{position:static!important;background:transparent!important;padding:0!important;display:block!important;width:100%!important;height:auto!important;}
+  #invoice-modal > div{max-width:100%!important;max-height:none!important;box-shadow:none!important;border:none!important;background:transparent!important;padding:0!important;}
+  #invoice-modal > div > div:first-child,#invoice-modal > div > div:last-child,#inv-mode-manual{display:none!important;}
+  #panel-invoice,#invoice-view{display:block!important}
+  body{background:#fff;margin:0;padding:0}
+  @page { size: portrait; margin: 8mm; }
+  #invoice-view {
+    border: none!important;
+    box-shadow: none!important;
+    padding: 0!important;
+    margin: 0!important;
+    page-break-inside: avoid!important;
+    break-inside: avoid!important;
+    page-break-after: avoid!important;
+    break-after: avoid!important;
+  }
+  .inv-footer-banner {
+    margin-left: 0!important;
+    margin-right: 0!important;
+    margin-bottom: 0!important;
+  }
+}
+
+/* ===================== REDESIGN DASHBOARD & PAGE-BASED NAV ===================== */
+/* Inner app content defaults */
+#main-content {
+  display: none; /* Hidden by default until "Start Tracking" is clicked */
+}
+
+/* Page Headers for subpages */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.35rem;
+}
+.page-header h2 {
+  font-family: var(--ff-head);
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 0;
+}
+.btn-back {
+  background: var(--ink);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--r-sm);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: var(--fw-semi);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+}
+.btn-back:hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* Quick Actions Grid on Dashboard */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem 0.45rem;
+  margin-bottom: 0.5rem;
+}
+.qa-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.35rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.qa-card:hover {
+  border-color: var(--gold);
+  background: var(--cream2);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(201,152,42,.12);
+}
+.qa-icon {
+  font-size: 1.05rem;
+  background: var(--cream);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.qa-card:hover .qa-icon {
+  background: var(--ink);
+  color: var(--gold-lt);
+}
+.qa-lbl {
+  font-weight: 600;
+  font-size: 0.7rem;
+  color: var(--text);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Latest Transactions */
+.transactions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.trans-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+.trans-item:hover {
+  border-color: var(--gold);
+}
+.trans-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.trans-title {
+  font-weight: var(--fw-semi);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.trans-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.trans-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.trans-amt {
+  font-family: var(--ff-head);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.trans-amt.in {
+  color: var(--green);
+}
+.trans-amt.out {
+  color: var(--red);
+}
+
+/* Floating Action Button (FAB) */
+.fab-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.fab-trigger {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  box-shadow: 0 4px 16px rgba(20, 16, 9, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: var(--fw-semi);
+  transition: transform 0.25s, background-color 0.2s;
+  outline: none;
+}
+.fab-trigger:hover {
+  background: var(--ink2);
+}
+.fab-trigger.open {
+  transform: rotate(45deg);
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: var(--red);
+}
+.fab-menu {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.22s, transform 0.22s;
+}
+.fab-menu.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+.fab-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
+}
+.fab-label {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-xs);
+  font-size: 0.75rem;
+  font-weight: var(--fw-semi);
+  box-shadow: var(--sh);
+  border: 1px solid rgba(201,152,42,.15);
+  white-space: nowrap;
+}
+.fab-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+.fab-icon-btn:hover {
+  background: var(--gold-lt);
+  transform: scale(1.05);
+}
+}
+
+/* ===================== DARK MODE & SETTINGS SLIDERS ===================== */
+body.dark-mode {
+  --cream: #141009;
+  --cream2: #1E170E;
+  --cream3: #2D2215;
+  --text: #F5EFEB;
+  --muted: #A3937C;
+  --border: #4A3F2F;
+  background: var(--cream);
+  color: var(--text);
+}
+body.dark-mode .card,
+body.dark-mode .li,
+body.dark-mode .trans-item,
+body.dark-mode .qa-card,
+body.dark-mode .profile-item {
+  background: #1C150E !important;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .field input,
+body.dark-mode .field select,
+body.dark-mode .field textarea {
+  background: #251D14;
+  border-color: var(--border);
+  color: var(--text);
+}
+body.dark-mode .field input:focus,
+body.dark-mode .field select:focus,
+body.dark-mode .field textarea:focus {
+  background: #2D231A;
+  border-color: var(--gold);
+}
+body.dark-mode .li-name,
+body.dark-mode .trans-title,
+body.dark-mode .card-h,
+body.dark-mode .page-header h2 {
+  color: #F5EFEB;
+}
+body.dark-mode .profile-banner {
+  background: rgba(28,21,14,.95);
+  border-color: var(--border);
+}
+body.dark-mode .profile-banner h3 {
+  color: #F5EFEB;
+}
+body.dark-mode #monthly-detail-modal > div {
+  background: var(--cream);
+}
+body.dark-mode #invoice-view {
+  background: #ffffff !important; /* Retain readable white base on invoice views */
+  color: #141009;
+}
+body.dark-mode #invoice-view * {
+  color: initial;
+}
+
+/* Premium Switch Toggle components */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-container:last-child {
+  border-bottom: none;
+}
+.toggle-lbl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.toggle-title {
+  font-weight: var(--fw-semi);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.toggle-desc {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: .3s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: .3s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background-color: var(--gold);
+}
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+/* Zero-Scroll Recent Sales Fit-Screen Design */
+#panel-recent-sales {
+  max-width: 650px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .page-header {
+  margin-bottom: 0.35rem !important;
+  padding-bottom: 0.2rem !important;
+}
+
+#panel-recent-sales .page-header h2 {
+  font-size: 1.05rem !important;
+  margin: 0 !important;
+}
+
+#panel-recent-sales .card {
+  padding: 0.65rem !important;
+  margin-bottom: 0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .field {
+  margin-bottom: 0.35rem !important;
+}
+
+#panel-recent-sales .field label {
+  font-size: 0.7rem !important;
+  margin-bottom: 0.15rem !important;
+}
+
+#panel-recent-sales .field input {
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.78rem !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+}
+
+#panel-recent-sales #list-root {
+  margin: 0.35rem 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+  overflow: hidden !important;
+}
+
+#panel-recent-sales .li {
+  padding: 0.3rem 0.55rem !important;
+  margin-bottom: 0.25rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: var(--bg-surface, #ffffff) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
+}
+
+#panel-recent-sales .li-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-right: 0.4rem !important;
+}
+
+#panel-recent-sales .li-name {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+}
+
+#panel-recent-sales .li-sub {
+  font-size: 0.63rem !important;
+  color: var(--muted, #64748b) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 0.02rem !important;
+  line-height: 1.1 !important;
+}
+
+#panel-recent-sales .li-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  flex-shrink: 0 !important;
+}
+
+#panel-recent-sales .li-amt {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+}
+
+#panel-recent-sales .badge {
+  font-size: 0.55rem !important;
+  padding: 0.08rem 0.35rem !important;
+  border-radius: 4px !important;
+}
+
+#panel-recent-sales .btn-ghost {
+  padding: 0.15rem 0.35rem !important;
+  font-size: 0.65rem !important;
+  margin-left: 0.15rem !important;
+  border-radius: 4px !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* High Visibility Brand Theme Pagination Buttons */
+#panel-recent-sales .sales-prev-btn,
+#panel-recent-sales .sales-next-btn {
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-recent-sales .sales-prev-btn {
+  background: var(--cream2, #F3EDE0) !important;
+  color: var(--text, #1C1509) !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+}
+
+#panel-recent-sales .sales-next-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  box-shadow: 0 2px 6px rgba(201, 152, 42, 0.3) !important;
+}
+
+#panel-recent-sales .sales-next-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(201, 152, 42, 0.4) !important;
+}
+
+#panel-recent-sales .sales-prev-btn:hover {
+  background: var(--cream3, #EAE1CC) !important;
+}
+
+#panel-recent-sales .sales-page-info {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  color: var(--ink3, #4A3F2F) !important;
+}
+
+/* Zero-Scroll Record Sale Form Styling */
+#panel-sales {
+  max-width: 780px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-sales .row3 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.45rem !important;
+}
+
+#panel-sales .field {
+  margin-bottom: 0.3rem !important;
+}
+
+#panel-sales .field label {
+  font-size: 0.68rem !important;
+  margin-bottom: 0.1rem !important;
+  font-weight: 600 !important;
+  color: var(--text, #1C1509) !important;
+}
+
+#panel-sales .field input,
+#panel-sales .field select {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.76rem !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+  box-sizing: border-box !important;
+}
+
+#panel-sales .btn-save {
+  padding: 0.3rem 1rem !important;
+  font-size: 0.78rem !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+}
+
+/* Brand Gold Action Bar & Button Styles for Record/Edit Sale */
+#panel-sales #sale-submit-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 1.15rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(201, 152, 42, 0.3) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-sales #sale-submit-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 14px rgba(201, 152, 42, 0.45) !important;
+}
+
+#panel-sales #sale-cancel-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: #141009 !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(201, 152, 42, 0.25) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-sales #sale-cancel-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  color: #141009 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(201, 152, 42, 0.35) !important;
+}
+
+/* Fail-Safe Action Bar for Millions */
+#panel-sales .sale-action-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: linear-gradient(135deg, rgba(201, 152, 42, 0.12) 0%, rgba(201, 152, 42, 0.05) 100%) !important;
+  border: 1px solid rgba(201, 152, 42, 0.25) !important;
+  padding: 0.35rem 0.65rem !important;
+  border-radius: 8px !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.15rem !important;
+  box-sizing: border-box !important;
+  gap: 0.5rem !important;
+}
+
+#panel-sales .sale-totals-block {
+  flex: 1 !important;
+  min-width: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#panel-sales .sale-totals-sub-line {
+  font-size: 0.63rem !important;
+  color: var(--muted, #7A6E58) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.1 !important;
+}
+
+#panel-sales .sale-totals-sub-line strong {
+  color: var(--ink, #141009) !important;
+  font-weight: 600 !important;
+}
+
+#panel-sales .sale-total-main-line {
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  color: #000000 !important;
+  white-space: nowrap !important;
+  line-height: 1.2 !important;
+  margin-top: 0.05rem !important;
+}
+
+#panel-sales .sale-total-main-line span#tot-total {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+#panel-sales .sale-buttons-block {
+  display: flex !important;
+  gap: 0.4rem !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  min-width: max-content !important;
+}
+
+@media (max-width: 550px) {
+  #panel-sales .row3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Zero-Scroll Record Expense Form & Collapsible Recent Expenses */
+#panel-expense {
+  max-width: 780px;
+  margin: 0 auto;
+  overflow: hidden !important;
+}
+
+#panel-expense .row2 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0.45rem !important;
+}
+
+#panel-expense .field {
+  margin-bottom: 0.3rem !important;
+}
+
+#panel-expense .field label {
+  font-size: 0.68rem !important;
+  margin-bottom: 0.1rem !important;
+  font-weight: 600 !important;
+  color: var(--text, #1C1509) !important;
+}
+
+#panel-expense .field input,
+#panel-expense .field select {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.76rem !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border, #DDD4BE) !important;
+  box-sizing: border-box !important;
+}
+
+#panel-expense #expense-submit-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: var(--ink, #141009) !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 1.15rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 3px 10px rgba(201, 152, 42, 0.3) !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-expense #expense-submit-btn:hover {
+  background: linear-gradient(135deg, var(--gold-lt, #E8BE6A) 0%, var(--gold, #C9982A) 100%) !important;
+  transform: translateY(-1px) !important;
+}
+
+#panel-expense #expense-cancel-btn {
+  background: linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%) !important;
+  color: #141009 !important;
+  border: 1px solid var(--gold-lt, #E8BE6A) !important;
+  padding: 0.35rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+}
+
+#panel-expense .exp-li-compact {
+  padding: 0.3rem 0.55rem !important;
+  margin-bottom: 0.25rem !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: var(--bg-surface, #ffffff) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 38px !important;
+  box-sizing: border-box !important;
+}
+</style>
+<script>
+  window.addEventListener('error', function(e) {
+    alert('JS Error: ' + e.message + '\nat ' + e.filename + ':' + e.lineno + ':' + e.colno);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    alert('Promise Rejection: ' + (e.reason ? e.reason.message || e.reason : e));
+  });
+</script>
+</head>
+<body>
+
+<!-- HERO SECTION -->
+<section id="hero" aria-label="Welcome banner">
+
+  <header class="hero-top" role="banner">
+    <a href="#hero" class="brand" aria-label="BizTrack.ng homepage">Biz<em>Track.ng</em></a>
+    <div style="display:flex;align-items:center;gap:1.5rem">
+      <span id="user-display" style="font-size:.75rem;color:rgba(250,246,239,.6)"></span>
+      <button id="btn-staff-lock" onclick="window.lockApp()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:600;cursor:pointer;display:none">Lock (Staff Mode)</button>
+      <button id="btn-staff-unlock" onclick="window.unlockApp()" style="background:var(--gold);border:none;color:var(--ink);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:700;cursor:pointer;display:none">🔓 Unlock Admin</button>
+      <button onclick="window.signOut()" style="background:transparent;border:1px solid rgba(201,152,42,.4);color:var(--gold);padding:.3rem .8rem;border-radius:var(--r-xs);font-size:.7rem;font-weight:600;cursor:pointer">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="hero-body">
+    <h1 class="hero-h1">Your business,<br><em>tracked daily.</em></h1>
+
+    <p class="hero-p">
+      Record every sale, expense &amp; invoice in seconds.
+      Know your profit.
+    </p>
+
+    <!-- APP WALKTHROUGH FEATURE SHOWCASE (Prominently at Top of Page 1) -->
+    <div class="hero-walkthrough-container" style="max-width:620px; margin:1rem auto 1.5rem; padding:1.25rem; background:rgba(255,255,255,0.06); border:1.5px solid rgba(201,152,42,0.4); border-radius:18px; text-align:left; backdrop-filter:blur(10px); box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid rgba(201,152,42,0.2); padding-bottom:0.75rem;">
+        <div>
+          <span style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold-lt); display:block; margin-bottom:0.15rem;">📱 APP WALKTHROUGH & TOUR</span>
+          <h3 style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--cream); margin:0;">Explore BizTrack Features</h3>
+        </div>
+        <!-- Step Navigation Indicator Pills -->
+        <div id="walkthrough-pills" style="display:flex; gap:0.35rem;">
+          <button type="button" class="wt-pill active" onclick="switchWalkthroughStep(0)" title="Step 1: Dashboard">1</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(1)" title="Step 2: Record Sales">2</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(2)" title="Step 3: Inventory">3</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(3)" title="Step 4: Invoices">4</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(4)" title="Step 5: Reports">5</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(5)" title="Step 6: Appreciation">6</button>
+        </div>
+      </div>
+
+      <!-- Dynamic Step Content Card -->
+      <div id="walkthrough-card-display" style="background:var(--ink2); border:1px solid rgba(201,152,42,0.3); border-radius:14px; padding:1.25rem; min-height:180px; position:relative;">
+        <!-- Step 1: Real-Time Financial Dashboard -->
+        <div class="wt-step-content" id="wt-step-0" style="display:block;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(201,152,42,0.15); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📊</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">1. Real-Time Financial Dashboard</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Track daily revenue, expenses, net profit &amp; live transaction feeds.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid var(--gold); font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Get instant clarity on your business profitability at any time of the day without manually calculating receipts.
+          </div>
+        </div>
+
+        <!-- Step 2: Fast Sales Recording & Automatic Stock Deductions -->
+        <div class="wt-step-content" id="wt-step-1" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(30,102,65,0.2); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🛒</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:#22c55e; margin-bottom:0.15rem;">2. Fast Sales Recording</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Record customer sales, discounts, delivery fees &amp; auto-deduct stock.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid #22c55e; font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Streamlines point-of-sale checkout and prevents overselling by checking inventory balance before completing sales.
+          </div>
+        </div>
+
+        <!-- Step 3: Complete Inventory & Stock Control -->
+        <div class="wt-step-content" id="wt-step-2" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(201,152,42,0.15); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📦</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">3. Inventory &amp; Stock Control</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Manage stock counts, restock history, low-stock warnings &amp; strict locks.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid var(--gold); font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Know exactly when products are running low so you never lose customers due to out-of-stock items.
+          </div>
+        </div>
+
+        <!-- Step 4: Professional Invoices & Receipts -->
+        <div class="wt-step-content" id="wt-step-3" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(201,152,42,0.15); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🧾</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">4. Professional Invoices &amp; Receipts</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Generate branded invoices with bank details, QR Code &amp; WhatsApp share.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid var(--gold); font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Impress customers with digital invoices downloadable as PNG/PDF or shared straight to WhatsApp.
+          </div>
+        </div>
+
+        <!-- Step 5: Sales Trend Analytics & Tax Estimator -->
+        <div class="wt-step-content" id="wt-step-4" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(30,102,65,0.2); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📈</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:#22c55e; margin-bottom:0.15rem;">5. Sales Trend Analytics &amp; Tax</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Analyze Jan–Dec monthly growth line charts &amp; SME FIRS tax estimates.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid #22c55e; font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Visualize monthly growth patterns from Jan to Dec and plan tax liabilities accurately.
+          </div>
+        </div>
+
+        <!-- Step 6: Customer Appreciation Cards -->
+        <div class="wt-step-content" id="wt-step-5" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.6rem; background:rgba(201,152,42,0.15); width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">💌</span>
+            <div>
+              <h4 style="font-size:1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">6. Customer Appreciation Cards</h4>
+              <p style="font-size:0.78rem; color:rgba(250,246,239,0.7); margin:0;">Create personalized thank you cards for customers &amp; share via WhatsApp.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:8px; border-left:3px solid var(--gold); font-size:0.78rem; color:rgba(250,246,239,0.88); line-height:1.45;">
+            💡 <strong>Key Benefit:</strong> Boost customer retention and loyalty by sending beautiful branded thank you messages.
+          </div>
+        </div>
+      </div>
+
+      <!-- Walkthrough Controls Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; flex-wrap:wrap; gap:0.5rem;">
+        <button type="button" class="btn-ghost" onclick="prevWalkthroughStep()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.75rem;">← Previous Step</button>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <button type="button" class="btn-ghost" onclick="toggleAutoWalkthrough()" id="btn-auto-wt" style="width:auto; padding:0.35rem 0.75rem; font-size:0.72rem; color:var(--gold-lt); border-color:rgba(201,152,42,0.4);">⏸ Pause Auto Tour</button>
+          <button type="button" class="btn-ghost" onclick="nextWalkthroughStep()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.75rem; color:var(--gold-lt); border-color:var(--gold);">Next Step →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <button id="btn-primary" onclick="enterInnerApp('dashboard')" aria-label="Start tracking your business">
+        Start Tracking
+      </button>
+      <button class="btn-ghost" onclick="enterInnerApp('profile')" aria-label="Edit business details">
+        Business Details
+      </button>
+      <button class="btn-ghost" onclick="enterInnerApp('report')" aria-label="View your financial reports">
+        View Reports
+      </button>
+    </div>
+
+    <div class="hero-metrics" role="region" aria-label="Live business snapshot">
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-rev" aria-label="Total revenue">₦0</span>
+        <span class="hm-lbl">Revenue</span>
+      </div>
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-profit" aria-label="Net profit">₦0</span>
+        <span class="hm-lbl">Profit</span>
+      </div>
+      <div class="hero-metric">
+        <span class="hm-val" id="hm-count" aria-label="Number of sales">0</span>
+        <span class="hm-lbl">Orders</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- MAIN SECTION -->
+<main id="main-content" role="main" tabindex="-1" aria-label="Business management workspace">
+
+  <!-- PANEL: DASHBOARD -->
+  <section id="panel-dashboard" class="panel on" role="tabpanel" aria-label="Dashboard">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="goToLandingPage()">← Back to Home</button>
+      <h2>Dashboard</h2>
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button id="dash-btn-staff-lock" onclick="window.lockApp()" style="background:transparent;border:1px solid var(--gold);color:var(--gold);padding:.35rem .75rem;border-radius:var(--r-xs);font-size:.75rem;font-weight:600;cursor:pointer;display:none">Lock Staff Mode</button>
+        <button id="dash-btn-staff-unlock" onclick="window.unlockApp()" style="background:var(--gold);border:none;color:var(--ink);padding:.35rem .75rem;border-radius:var(--r-xs);font-size:.75rem;font-weight:700;cursor:pointer;display:none">🔓 Unlock Admin</button>
+      </div>
+    </div>
+
+    <section id="profile-banner" class="profile-banner" aria-label="Business profile information" style="display:none"></section>
+
+    <!-- INSIGHTS PANEL (required id) -->
+    <section id="insights-panel" aria-label="Financial overview">
+      <article class="insight" aria-label="Total revenue">
+        <div class="insight-lbl">Revenue</div>
+        <div class="insight-val" id="ins-rev">₦0.00</div>
+        <div class="insight-sub" id="ins-rev-sub">0 sales</div>
+      </article>
+      <article class="insight" aria-label="Total expenses">
+        <div class="insight-lbl">Expenses</div>
+        <div class="insight-val" id="ins-exp">₦0.00</div>
+        <div class="insight-sub" id="ins-exp-sub">0 entries</div>
+      </article>
+      <article class="insight" aria-label="Net profit">
+        <div class="insight-lbl">Net Profit</div>
+        <div class="insight-val" id="ins-profit">₦0.00</div>
+        <div class="insight-sub" id="ins-profit-sub">Revenue −’ Expenses</div>
+      </article>
+      <article class="insight" aria-label="FIRS tax estimate">
+        <div class="insight-lbl">FIRS Tax Est.</div>
+        <div class="insight-val" id="ins-tax">₦0.00</div>
+        <div class="insight-sub" id="ins-tax-sub">0% — Exempt</div>
+      </article>
+    </section>
+
+        <!-- QUICK ACTIONS -->
+    <section style="margin-top: 0.4rem;">
+      <h3 class="card-h" style="margin-bottom: 0.35rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gold);">Quick Actions</h3>
+      <div class="quick-actions-grid">
+        <div class="qa-card" id="qa-sales-card" onclick="switchTab('sales')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"></path></svg></div>
+          <div class="qa-lbl">Record Sale</div>
+        </div>
+        <div class="qa-card" id="qa-recent-sales-card" onclick="switchTab('recent-sales')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
+          <div class="qa-lbl">Recent Sales</div>
+        </div>
+        <div class="qa-card" id="qa-expense-card" onclick="switchTab('expense')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
+          <div class="qa-lbl">Record Expense</div>
+        </div>
+        <div class="qa-card" id="qa-inventory-card" onclick="switchTab('inventory')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+          <div class="qa-lbl">Inventory</div>
+        </div>
+        <div class="qa-card" id="qa-invoice-card" onclick="switchTab('invoice')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+          <div class="qa-lbl">Invoice</div>
+        </div>
+        <div class="qa-card" id="qa-report-card" onclick="switchTab('report')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+          <div class="qa-lbl">Reports</div>
+        </div>
+        <div class="qa-card" id="qa-profile-card" onclick="switchTab('profile')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path></svg></div>
+          <div class="qa-lbl">Business Details</div>
+        </div>
+        <div class="qa-card" id="qa-settings-card" onclick="switchTab('settings')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+          <div class="qa-lbl">Settings</div>
+        </div>
+        <div class="qa-card" id="qa-admin-card" onclick="switchTab('admin')">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
+          <div class="qa-lbl">Admin Center</div>
+        </div>
+        <div class="qa-card" id="qa-utility-card" onclick="openUtilityFeaturesModal()">
+          <div class="qa-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></div>
+          <div class="qa-lbl">Utilities</div>
+        </div>
+        <div class="qa-card" id="qa-walkthrough-card" onclick="switchTab('walkthrough')" style="border-color:var(--gold);">
+          <div class="qa-icon" style="font-size:1.15rem;">📱</div>
+          <div class="qa-lbl" style="color:var(--gold); font-weight:700;">App Walkthrough</div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- PANEL: APP WALKTHROUGH -->
+  <section id="panel-walkthrough" class="panel" role="tabpanel" aria-labelledby="tab-walkthrough">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>📱 App Walkthrough & Guide</h2>
+    </div>
+
+    <!-- Interactive App Walkthrough Feature Showcase -->
+    <div class="card" style="padding:1.5rem; border-radius:18px; background:var(--ink); color:var(--cream); border:1.5px solid var(--gold); margin-bottom:1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; border-bottom:1px solid rgba(201,152,42,0.3); padding-bottom:0.75rem;">
+        <div>
+          <span style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--gold-lt); display:block; margin-bottom:0.15rem;">📱 BIZTRACK FEATURE GUIDE</span>
+          <h3 style="font-family:var(--ff-head); font-size:1.25rem; font-weight:700; color:var(--gold-lt); margin:0;">App Walkthrough & Feature Tour</h3>
+        </div>
+        <!-- Step Navigation Indicator Pills -->
+        <div style="display:flex; gap:0.35rem;">
+          <button type="button" class="wt-pill active" onclick="switchWalkthroughStep(0)" title="Step 1: Dashboard">1</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(1)" title="Step 2: Record Sales">2</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(2)" title="Step 3: Inventory">3</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(3)" title="Step 4: Invoices">4</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(4)" title="Step 5: Reports">5</button>
+          <button type="button" class="wt-pill" onclick="switchWalkthroughStep(5)" title="Step 6: Appreciation">6</button>
+        </div>
+      </div>
+
+      <!-- Dynamic Step Content Card -->
+      <div style="background:var(--ink2); border:1px solid rgba(201,152,42,0.3); border-radius:14px; padding:1.25rem; min-height:200px; position:relative;">
+        <!-- Step 1: Real-Time Financial Dashboard -->
+        <div class="wt-step-content" id="wt-step-inner-0" style="display:block;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(201,152,42,0.15); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📊</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">1. Real-Time Financial Dashboard</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Track daily revenue, expenses, net profit &amp; live transaction feeds.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid var(--gold); font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Get instant clarity on your business profitability at any time of the day without manually calculating paper receipts.
+          </div>
+        </div>
+
+        <!-- Step 2: Fast Sales Recording & Automatic Stock Deductions -->
+        <div class="wt-step-content" id="wt-step-inner-1" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(30,102,65,0.2); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🛒</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:#22c55e; margin-bottom:0.15rem;">2. Fast Sales Recording</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Record customer sales, discounts, delivery fees &amp; auto-deduct stock.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid #22c55e; font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Streamlines point-of-sale checkout and prevents overselling by checking inventory balance before completing sales.
+          </div>
+        </div>
+
+        <!-- Step 3: Complete Inventory & Stock Control -->
+        <div class="wt-step-content" id="wt-step-inner-2" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(201,152,42,0.15); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📦</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">3. Inventory &amp; Stock Control</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Manage stock counts, restock history, low-stock warnings &amp; strict locks.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid var(--gold); font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Know exactly when products are running low so you never lose customers due to out-of-stock items.
+          </div>
+        </div>
+
+        <!-- Step 4: Professional Invoices & Receipts -->
+        <div class="wt-step-content" id="wt-step-inner-3" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(201,152,42,0.15); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">🧾</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">4. Professional Invoices &amp; Receipts</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Generate branded invoices with bank details, QR Code &amp; WhatsApp share.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid var(--gold); font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Impress customers with digital invoices downloadable as PNG/PDF or shared straight to WhatsApp.
+          </div>
+        </div>
+
+        <!-- Step 5: Sales Trend Analytics & Tax Estimator -->
+        <div class="wt-step-content" id="wt-step-inner-4" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(30,102,65,0.2); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">📈</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:#22c55e; margin-bottom:0.15rem;">5. Sales Trend Analytics &amp; Tax</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Analyze Jan–Dec monthly growth line charts &amp; SME FIRS tax estimates.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid #22c55e; font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Visualize monthly growth patterns from Jan to Dec and plan tax liabilities accurately.
+          </div>
+        </div>
+
+        <!-- Step 6: Customer Appreciation Cards -->
+        <div class="wt-step-content" id="wt-step-inner-5" style="display:none;">
+          <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem;">
+            <span style="font-size:1.8rem; background:rgba(201,152,42,0.15); width:48px; height:48px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">💌</span>
+            <div>
+              <h4 style="font-size:1.1rem; font-weight:700; color:var(--gold-lt); margin-bottom:0.15rem;">6. Customer Appreciation Cards</h4>
+              <p style="font-size:0.82rem; color:rgba(250,246,239,0.7); margin:0;">Create personalized thank you cards for customers &amp; share via WhatsApp.</p>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); padding:0.85rem; border-radius:8px; border-left:4px solid var(--gold); font-size:0.82rem; color:rgba(250,246,239,0.9); line-height:1.5;">
+            💡 <strong>Key Benefit:</strong> Boost customer retention and loyalty by sending beautiful branded thank you messages.
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <button type="button" class="btn-ghost" onclick="prevWalkthroughStep()" style="width:auto; padding:0.4rem 1rem; font-size:0.8rem;">← Previous Step</button>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <button type="button" class="btn-ghost" onclick="toggleAutoWalkthrough()" id="btn-auto-wt-2" style="width:auto; padding:0.4rem 0.85rem; font-size:0.78rem; color:var(--gold-lt); border-color:rgba(201,152,42,0.4);">⏸ Pause Auto Tour</button>
+          <button type="button" class="btn-ghost" onclick="nextWalkthroughStep()" style="width:auto; padding:0.4rem 1rem; font-size:0.8rem; color:var(--gold-lt); border-color:var(--gold);">Next Step →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABS (Hidden but kept for script reference compatibility) -->
+  <nav class="tabs" role="tablist" aria-label="App sections" style="display:none!important;">
+    <button class="tab"    role="tab" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab"    role="tab" id="tab-sales"     aria-selected="false" aria-controls="panel-sales"     onclick="switchTab('sales')"    >Record Sale</button>
+    <button class="tab"    role="tab" id="tab-recent-sales" onclick="switchTab('recent-sales')">Recent Sales</button>
+    <button class="tab"    role="tab" id="tab-expense"   aria-selected="false" aria-controls="panel-expense"   onclick="switchTab('expense')"  >Expense</button>
+    <button class="tab"    role="tab" id="tab-inventory" aria-selected="false" aria-controls="panel-inventory" onclick="switchTab('inventory')" >Inventory</button>
+    <button class="tab"    role="tab" id="tab-invoice"   aria-selected="false" aria-controls="panel-invoice"   onclick="switchTab('invoice')"  >Invoice</button>
+    <button class="tab"    role="tab" id="tab-report"    aria-selected="false" aria-controls="panel-report"    onclick="switchTab('report')"   >Report</button>
+    <button class="tab"    role="tab" id="tab-profile"   aria-selected="false" aria-controls="panel-profile"   onclick="switchTab('profile')"  >Details</button>
+    <button class="tab"    role="tab" id="tab-settings"  onclick="switchTab('settings')">Settings</button>
+    <button class="tab"    role="tab" id="tab-admin"     onclick="switchTab('admin')">Admin</button>
+    <button class="tab"    role="tab" id="tab-transactions" onclick="switchTab('transactions')">Transactions</button>
+
+    <button class="tab"    role="tab" id="tab-unlock-admin" onclick="window.unlockApp()" style="display:none;color:var(--gold);font-weight:600">🔓 Unlock Admin</button>
+  </nav>
+
+  <!-- PANEL: DAILY SALE -->
+  <section id="panel-sales" class="panel" role="tabpanel" aria-labelledby="tab-sales">
+    <div class="page-header" style="margin-bottom: 0.25rem; padding-bottom: 0.15rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Record Sale</h2>
+    </div>
+    <div class="card" style="padding: 0.55rem 0.75rem !important;">
+      <h2 class="card-h" style="font-size: 0.85rem; margin-bottom: 0.35rem;">New Sale Record</h2>
+      <form id="form-sale" novalidate autocomplete="off">
+
+        <!-- Customer & Order Meta Grid -->
+        <div style="display:grid; grid-template-columns: 1fr 1.4fr 1.1fr 1.3fr; gap:0.45rem; margin-bottom:0.35rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-date" style="font-size:0.65rem; margin-bottom:0.15rem;">Date <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="date" id="sale-date" name="sale-date" required aria-required="true" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-name" style="font-size:0.65rem; margin-bottom:0.15rem;">Customer Name <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="cust-name" placeholder="e.g. Amaka Okonkwo" required aria-required="true" autocomplete="none" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-phone" style="font-size:0.65rem; margin-bottom:0.15rem;">Phone / Contact <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="tel" id="cust-phone" placeholder="08012345678" required aria-required="true" autocomplete="none" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="cust-address" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Address</label>
+            <input type="text" id="cust-address" placeholder="Street, City" autocomplete="none" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+        </div>
+
+        <!-- Delivery, Payment & Financial Options Grid -->
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.45rem; margin-bottom:0.35rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-status" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Status</label>
+            <select id="sale-status" name="sale-status" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;">
+              <option value="Pending">Pending</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-payment-status" style="font-size:0.65rem; margin-bottom:0.15rem;">Payment Status</label>
+            <select id="sale-payment-status" name="sale-payment-status" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;">
+              <option value="Paid">Paid (Completed)</option>
+              <option value="Pending">Pending (Unpaid)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-delivery" style="font-size:0.65rem; margin-bottom:0.15rem;">Expected Delivery</label>
+            <input type="date" id="sale-delivery" name="sale-delivery" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-delivery-fee" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Fee (₦)</label>
+            <input type="number" id="sale-delivery-fee" name="sale-delivery-fee" placeholder="0.00" min="0" step="0.01" value="0" oninput="calcTotals()" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="sale-disc" style="font-size:0.65rem; margin-bottom:0.15rem;">Discount (%)</label>
+            <input type="number" id="sale-disc" name="sale-disc" placeholder="0" min="0" max="100" value="0" oninput="calcTotals()" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
+          </div>
+        </div>
+
+        <!-- Items Purchased Container -->
+        <datalist id="inventory-item-suggestions"></datalist>
+        <fieldset style="border:1px solid var(--border); padding:0.25rem 0.45rem; margin-bottom:0.35rem; border-radius:6px; background:#fafafa; max-height:140px; overflow-y:auto;">
+          <legend class="items-legend" style="font-size:0.65rem; font-weight:700; padding:0 0.2rem;">Items Purchased <span class="req-mark" aria-hidden="true">*</span></legend>
+          <div id="items-rows">
+            <div class="item-row" style="display:flex; flex-direction:column; gap:0.15rem; margin-bottom:0.25rem; padding:0.25rem 0.35rem; border:1px solid var(--border); border-radius:6px; background:#fff;">
+              <div style="display:flex; gap:0.3rem; align-items:center;">
+                <input type="text"   id="item-name-0"  name="item-name-0"  class="iname" list="inventory-item-suggestions" placeholder="Type item name or select inventory product…" aria-label="Item name" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="flex:2.2; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1" oninput="calcTotals()" style="flex:0.6; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01" oninput="calcTotals()" style="flex:0.9; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0.1rem 0.35rem; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
+              </div>
+              <div class="stock-badge-info" style="font-size:0.66rem; color:var(--muted); padding-left:0.15rem;"></div>
+            </div>
+          </div>
+          <button type="button" class="add-row" onclick="addItemRow()" aria-label="Add another item line" style="padding:0.15rem 0.5rem; font-size:0.68rem; margin-top:0.15rem; background:var(--cream2); border:1px solid var(--border); border-radius:4px; cursor:pointer;">+ Add item</button>
+        </fieldset>
+
+        <!-- Compact Action & Totals Bar -->
+        <div class="sale-action-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.25rem; padding-top:0.25rem; border-top:1px solid var(--border);">
+          <div class="sale-totals-block totals" aria-live="polite" aria-label="Sale totals" style="font-size:0.75rem;">
+            <div class="sale-totals-sub-line" style="font-size:0.7rem; color:var(--muted);">
+              <span>Fee: <strong id="tot-delivery">₦0.00</strong></span> · 
+              <span>Sub: <strong id="tot-sub">₦0.00</strong></span> · 
+              <span class="neg">Disc: <strong class="neg" id="tot-disc">-₦0.00</strong></span>
+            </div>
+            <div class="sale-total-main-line" style="font-size:0.95rem; font-weight:700; color:var(--ink);">
+              <span>Total:</span> <span id="tot-total" style="color:var(--green, #137333);">₦0.00</span>
+            </div>
+          </div>
+
+          <div class="sale-buttons-block" style="display:flex; gap:0.4rem;">
+            <button type="submit" id="sale-submit-btn" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.4rem 1.35rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer;">Save</button>
+            <button type="button" id="sale-cancel-btn" style="display:none; background:var(--cream2); color:var(--ink); border:1px solid var(--border); padding:0.4rem 1rem; font-size:0.82rem; border-radius:6px; cursor:pointer;" onclick="clearSaleEditMode()">Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- PANEL: RECENT SALES -->
+  <section id="panel-recent-sales" class="panel" role="tabpanel" aria-labelledby="tab-recent-sales">
+    <div class="page-header" style="margin-bottom: 0.65rem; padding-bottom: 0.4rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Recent Sales</h2>
+    </div>
+    <div class="card" style="padding: 0.85rem !important;">
+      <div class="field" style="margin-bottom: 0.65rem;">
+        <label for="input-search">Search Sales</label>
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1;"/>
+          <button type="button" id="btn-search-sales" onclick="triggerSalesSearch()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0 0.85rem; font-size:0.78rem; font-weight:700; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem; flex-shrink:0;">
+            🔒 Search
+          </button>
+          <button type="button" id="btn-clear-search" onclick="clearSalesSearch()" style="background:var(--cream2, #F3EDE0); color:var(--muted, #7A6E58); border:1px solid var(--border, #DDD4BE); padding:0 0.65rem; font-size:0.75rem; font-weight:600; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; flex-shrink:0;">
+            ✕ Clear
+          </button>
+        </div>
+      </div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+        <nav class="tabs" id="sales-filter-tabs" role="tablist" style="margin-bottom:0; flex:1;">
+          <button type="button" class="tab on" id="sf-all" onclick="filterSales('All')">All</button>
+          <button type="button" class="tab" id="sf-paid" onclick="filterSales('Paid')">Paid</button>
+          <button type="button" class="tab" id="sf-pending" onclick="filterSales('Pending')">Unpaid</button>
+        </nav>
+
+        <!-- Top Pagination Controls -->
+        <div class="sales-pagination-controls" style="display:flex; align-items:center; gap:0.4rem;">
+          <button type="button" class="btn-ghost sales-prev-btn" onclick="prevSalesPage()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Prev</button>
+          <span class="sales-page-info" style="font-size:0.75rem; font-weight:var(--fw-semi); color:var(--muted)">Page 1 of 1</span>
+          <button type="button" class="btn-ghost sales-next-btn" onclick="nextSalesPage()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">Next →</button>
+        </div>
+      </div>
+
+      <ul id="list-root" aria-label="Recorded sales" aria-live="polite"></ul>
+      
+      <!-- Bottom Pagination Controls -->
+      <div class="sales-pagination-controls" style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+        <button type="button" class="btn-ghost sales-prev-btn" onclick="prevSalesPage()" style="width:auto; padding:0.3rem 0.75rem; font-size:0.78rem;">← Previous</button>
+        <span class="sales-page-info" style="font-size:0.8rem; font-weight:var(--fw-semi); color:var(--muted)">Page 1 of 1</span>
+        <button type="button" class="btn-ghost sales-next-btn" onclick="nextSalesPage()" style="width:auto; padding:0.3rem 0.75rem; font-size:0.78rem;">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL: EXPENSE -->
+  <section id="panel-expense" class="panel" role="tabpanel" aria-labelledby="tab-expense">
+    <div class="page-header" style="margin-bottom: 0.35rem; padding-bottom: 0.2rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Record Expense</h2>
+    </div>
+
+    <div class="card" style="padding: 0.65rem 0.85rem !important;">
+      <h2 class="card-h" style="margin-bottom: 0.35rem;">Record Daily Expense</h2>
+      <form id="form-expense" novalidate>
+        <div class="row2">
+          <div class="field">
+            <label for="exp-date">Date <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="date" id="exp-date" name="exp-date" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="exp-type">Expense Type <span class="req-mark" aria-hidden="true">*</span></label>
+            <select id="exp-type" name="exp-type" required aria-required="true">
+              <option value="">Select type…</option>
+              <option>Materials / Raw goods</option>
+              <option>Transport / Logistics</option>
+              <option>Rent</option>
+              <option>Salaries / Wages</option>
+              <option>Utilities</option>
+              <option>Marketing</option>
+              <option>Equipment</option>
+              <option>Packaging</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="exp-amount">Amount (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="number" id="exp-amount" name="exp-amount" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+          </div>
+          <div class="field">
+            <label for="exp-desc">Description</label>
+            <input type="text" id="exp-desc" name="exp-desc" placeholder="Brief description of expense" autocomplete="off"/>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.3rem;">
+          <button type="submit" id="expense-submit-btn">Save Expense</button>
+          <button type="button" id="expense-cancel-btn" style="display:none;" onclick="clearExpenseEditMode()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Collapsible Recent Expenses Card -->
+    <div class="card" style="margin-top: 0.45rem; padding: 0.5rem 0.85rem !important;">
+      <button type="button" id="exp-collapse-toggle" onclick="toggleExpensesAccordion()" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none; padding:0.2rem 0; cursor:pointer; text-align:left;" aria-expanded="false">
+        <div style="display:flex; align-items:center; gap:0.45rem;">
+          <span style="font-size:0.95rem;">💸</span>
+          <h3 style="font-size:0.85rem; font-weight:700; color:var(--ink, #141009); margin:0;">Recent Expenses</h3>
+          <span id="exp-count-badge" class="badge" style="background:rgba(201,152,42,0.12); color:var(--gold-dark, #C9982A); font-size:0.6rem; font-weight:600; padding:0.1rem 0.4rem; border-radius:4px;">0 recorded</span>
+        </div>
+        <div id="exp-chevron" style="font-size:0.75rem; color:var(--muted, #7A6E58); transition:transform 0.25s ease;">–¼</div>
+      </button>
+
+      <div id="exp-collapsible-content" style="max-height:0; overflow:hidden; opacity:0; transition:max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease; margin-top:0;">
+        <ul id="exp-list" aria-label="Recorded expenses" aria-live="polite" style="margin-top:0.35rem; padding:0; list-style:none;"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANEL: INVENTORY -->
+  <section id="panel-inventory" class="panel" role="tabpanel" aria-labelledby="tab-inventory">
+    <div class="page-header" style="margin-bottom:0.65rem; padding-bottom:0.35rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Inventory</h2>
+    </div>
+
+    <!-- Inventory Dashboard Summary Cards -->
+    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:0.55rem; margin-bottom:0.75rem;">
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--gold);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Total Products</div>
+        <div id="inv-dash-total-products" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--text); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid #2A4EA6;">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Total Units</div>
+        <div id="inv-dash-total-units" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--text); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid #E8BE6A;">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Low Stock</div>
+        <div id="inv-dash-low-stock" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--gold); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--red);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Out of Stock</div>
+        <div id="inv-dash-out-stock" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--red); margin-top:0.15rem;">0</div>
+      </div>
+      <div style="grid-column: span 2; background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--green);">
+        <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Stock Value (Selling Price Total)</div>
+        <div id="inv-dash-value" style="font-family:var(--ff-head); font-size:1.2rem; font-weight:700; color:var(--green); margin-top:0.15rem;">₦0.00</div>
+      </div>
+    </div>
+
+    <!-- Inventory Zero-Scroll Action Grid -->
+    <div style="display:grid; grid-template-columns:1fr; gap:0.65rem; margin-top:0.5rem;">
+
+      <!-- Card 1: Add Product to Inventory Trigger -->
+      <div class="card" style="padding:0.85rem 1rem !important; margin-bottom:0;" onclick="openAddProductModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; cursor:pointer;">
+          <div>
+            <h3 style="font-size:0.9rem; font-weight:700; color:var(--ink, #141009); margin:0;">Add Product to Inventory</h3>
+            <p style="font-size:0.72rem; color:var(--muted); margin:0.15rem 0 0 0;">Create a new inventory product record in a pop-up dialog</p>
+          </div>
+          <button type="button" id="btn-open-add-product" onclick="event.stopPropagation(); openAddProductModal();" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
+            ➕ Add Product
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: View Stock Inventory List Trigger -->
+      <div class="card" style="padding:0.85rem 1rem !important; margin-bottom:0;" onclick="openStockListModal()">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; cursor:pointer;">
+          <div>
+            <h3 style="font-size:0.9rem; font-weight:700; color:var(--ink, #141009); margin:0;">Stock Inventory List</h3>
+            <p style="font-size:0.72rem; color:var(--muted); margin:0.15rem 0 0 0;">View, search, edit, or delete saved stock items in a pop-up</p>
+          </div>
+          <button type="button" id="btn-view-stock-modal" onclick="event.stopPropagation(); openStockListModal();" style="background:var(--cream2, #F3EDE0); color:var(--ink, #141009); border:1px solid var(--border, #DDD4BE); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem;">
+            📦 View Stock List (<span id="inv-stock-count-badge">0</span>)
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MODAL: ADD / EDIT PRODUCT POP-UP -->
+  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeAddProductModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:540px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Header -->
+      <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">➕</span>
+          <h3 id="add-product-modal-title" style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Add Product to Inventory</h3>
+        </div>
+        <button type="button" onclick="closeAddProductModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Form Container -->
+      <div style="padding:1.15rem; overflow-y:auto; flex:1;">
+        <form id="form-inventory" novalidate>
+          <div class="row2">
+            <div class="field">
+              <label for="inv-name">Product Name <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="text" id="inv-name" name="inv-name" placeholder="e.g. Ankara Fabric" required aria-required="true" autocomplete="off"/>
+            </div>
+            <div class="field">
+              <label for="inv-category">Category</label>
+              <input type="text" id="inv-category" name="inv-category" placeholder="e.g. Fabrics" autocomplete="off"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="inv-qty">Qty in Stock <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="number" id="inv-qty" name="inv-qty" placeholder="0" min="0" required aria-required="true"/>
+            </div>
+            <div class="field">
+              <label for="inv-unit">Unit of Measure</label>
+              <input type="text" id="inv-unit" name="inv-unit" placeholder="pieces, yards, kg…"/>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="inv-cost">Cost Price (₦) <span class="req-mark" aria-hidden="true">*</span></label>
+              <input type="number" id="inv-cost" name="inv-cost" placeholder="0.00" min="0" step="0.01" required aria-required="true"/>
+            </div>
+            <div class="field">
+              <label for="inv-sell">Selling Price (₦)</label>
+              <input type="number" id="inv-sell" name="inv-sell" placeholder="0.00" min="0" step="0.01"/>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:0.6rem; margin-top:0.75rem; justify-content:flex-end;">
+            <button type="button" class="btn-ghost" onclick="closeAddProductModal()" style="width:auto; padding:0.5rem 1rem;">Cancel</button>
+            <button type="submit" class="btn-save" id="inventory-submit-btn" style="width:auto; padding:0.5rem 1.25rem;">Add to Inventory</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STOCK LIST POP-UP -->
+  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeStockListModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:680px; width:100%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Header -->
+      <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">📦</span>
+          <h3 style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Inventory Stock List</h3>
+        </div>
+        <button type="button" onclick="closeStockListModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div style="padding:0.65rem 1rem; background:var(--cream2); border-bottom:1px solid var(--border); display:flex; gap:0.5rem; align-items:center;">
+        <input type="text" id="stock-modal-search" placeholder="Search product name, category, or SKU..." oninput="filterStockModalList()" style="flex:1; padding:0.45rem 0.75rem; font-size:0.8rem; border-radius:6px; border:1px solid var(--border); background:#fff;" />
+        <button type="button" onclick="closeStockListModal()" style="background:var(--gold); color:var(--ink); border:none; border-radius:6px; padding:0.45rem 0.85rem; font-size:0.78rem; font-weight:700; cursor:pointer; flex-shrink:0;">+ Add New</button>
+      </div>
+
+      <!-- Scrollable List Content -->
+      <div id="stock-modal-body" style="flex:1; overflow-y:auto; padding:0.75rem 1rem; -webkit-overflow-scrolling:touch;">
+        <ul id="stock-modal-list" aria-label="Inventory products" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:0.65rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; color:var(--muted);">
+        <span id="stock-modal-summary">Showing 0 products</span>
+        <button type="button" onclick="closeStockListModal()" style="background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.35rem 0.85rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: INSUFFICIENT STOCK WARNING -->
+  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:#fff; border-radius:var(--r, 12px); max-width:440px; width:100%; padding:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:4px solid var(--red, #B53030);">
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+        <span style="font-size:1.5rem;">⚠️ </span>
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--red, #B53030); margin:0;">Insufficient Stock Warning</h3>
+      </div>
+      <p id="stock-warning-msg" style="font-size:0.85rem; color:var(--text); margin-bottom:1.25rem; line-height:1.5;"></p>
+      <div style="display:flex; justify-content:flex-end; gap:0.6rem;">
+        <button type="button" id="stock-warning-cancel-btn" style="background:var(--cream2); color:var(--text); border:1px solid var(--border); padding:0.45rem 1rem; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer;">Cancel Sale</button>
+        <button type="button" id="stock-warning-proceed-btn" style="background:var(--red); color:#fff; border:none; padding:0.45rem 1rem; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer;">Proceed Anyway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: INVOICE -->
+  <section id="panel-invoice" class="panel" role="tabpanel" aria-labelledby="tab-invoice">
+    <div class="page-header" style="margin-bottom: 0.35rem; padding-bottom: 0.2rem;">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Invoice Designer</h2>
+    </div>
+
+    <!-- Top Action & Logo Bar -->
+    <div class="card" style="padding: 0.65rem 0.85rem !important; margin-bottom: 0.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <input type="file" id="biz-logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(event)"/>
+          <button type="button" class="btn-ghost" style="width:auto; padding:0.35rem 0.85rem; font-size:0.78rem;" onclick="document.getElementById('biz-logo-upload').click()">Upload Logo</button>
+          <div id="logo-preview-wrap" style="width:38px; height:38px; border:1px solid var(--border); border-radius:var(--r-xs); display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--cream)">
+            <span style="font-size:.65rem; color:var(--muted)">No Logo</span>
+          </div>
+        </div>
+
+        <button type="button" onclick="openInvoiceModalManual()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.45rem 1.15rem; font-size:0.82rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; box-shadow:0 2px 8px rgba(201,152,42,0.25);">
+          ✏️  Create Custom / Manual Invoice
+        </button>
+      </div>
+    </div>
+
+    <!-- Sales Picker Card for Invoicing -->
+    <div class="card" style="padding: 0.65rem 0.85rem !important;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.4rem;">
+        <div>
+          <h2 class="card-h" style="font-size: 0.88rem; margin:0;">Select a Sale to Generate Invoice</h2>
+          <p style="font-size:0.72rem; color:var(--muted); margin:0.1rem 0 0 0;">Click on any sale below to pop up the invoice preview on your screen</p>
+        </div>
+        <input type="text" id="inv-sales-search" placeholder="Search sales by customer or date..." oninput="filterInvoiceSalesPicker()" style="padding:0.35rem 0.65rem; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); width:220px;" />
+      </div>
+
+      <!-- Sales List Picker -->
+      <div id="inv-sales-picker-container" style="max-height:58vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+        <ul id="inv-sales-picker-list" aria-label="Select sale to invoice" style="list-style:none; padding:0; margin:0;"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL: INVOICE POP-UP DIALOG -->
+  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeInvoiceModal()">
+    <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:760px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
+      <!-- Modal Header -->
+      <div style="padding:0.75rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.15rem;">✏️</span>
+          <h3 id="invoice-modal-title" style="font-family:var(--ff-head); font-size:1.1rem; margin:0; color:var(--gold);">Invoice Preview</h3>
+        </div>
+        <button type="button" onclick="closeInvoiceModal()" style="background:transparent; border:none; color:var(--gold); font-size:1.3rem; cursor:pointer; line-height:1; padding:0.2rem 0.5rem;" title="Close Modal">✕</button>
+      </div>
+
+      <!-- Hidden select element for backwards compatibility -->
+      <select id="inv-sale-sel" style="display:none;" onchange="previewInvoice()"></select>
+
+      <!-- Manual Inputs Container (if manual mode) -->
+      <div id="inv-mode-manual" style="display:none; padding:0.85rem 1.15rem; background:var(--cream2); border-bottom:1px solid var(--border);">
+        <div class="row2" style="margin-bottom:0.4rem;">
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-cust-name" style="font-size:0.68rem;">Customer Name</label>
+            <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-cust-addr" style="font-size:0.68rem;">Customer Address (Optional)</label>
+            <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+        </div>
+
+        <fieldset style="border:1px solid var(--border); padding:0.25rem 0.45rem; margin-bottom:0.4rem; border-radius:6px; background:#fff;">
+          <legend class="items-legend" style="font-size:0.65rem; font-weight:700;">Invoice Items</legend>
+          <div id="man-items-rows">
+            <div class="item-row" style="display:flex; gap:0.3rem; margin-bottom:0.2rem;">
+              <input type="text" class="m-iname" placeholder="Item name" oninput="previewInvoice()" style="flex:2; height:26px; font-size:0.75rem;"/>
+              <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="flex:0.6; height:26px; font-size:0.75rem;"/>
+              <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()" style="flex:1; height:26px; font-size:0.75rem;"/>
+            </div>
+          </div>
+          <button type="button" class="add-row" onclick="addManualItemRow()" style="padding:0.15rem 0.5rem; font-size:0.68rem;">+ Add Item</button>
+        </fieldset>
+
+        <div class="row2">
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-delivery" style="font-size:0.68rem;">Delivery Fee (₦)</label>
+            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label for="man-discount" style="font-size:0.68rem;">Discount (%)</label>
+            <input type="number" id="man-discount" value="0" oninput="previewInvoice()" style="height:28px; font-size:0.78rem;"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable Invoice Document View -->
+      <div style="flex:1; overflow-y:auto; padding:0.5rem 0.75rem; -webkit-overflow-scrolling:touch;">
+        <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
+      </div>
+
+      <!-- Action Buttons Footer -->
+      <div style="padding:0.65rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div id="invoice-actions" style="display:flex; gap:0.4rem; flex-wrap:wrap; flex:1;">
+          <button class="btn-print" style="padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700; margin:0;" onclick="window.shareInvoicePDF()">Share PDF</button>
+          <button class="btn-save" style="padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700;" onclick="window.saveInvoiceAsImage()">Save PNG</button>
+          <button class="btn-save" id="btn-save-manual-invoice" style="display:none; padding:0.4rem 0.85rem; font-size:0.78rem; font-weight:700;" onclick="window.saveManualInvoice()">Save to Sales</button>
+          <button class="btn-save" id="btn-edit-invoice" style="display:none; background:var(--cream); color:var(--text); border:1px solid var(--border); padding:0.4rem 0.85rem; font-size:0.78rem;" onclick="window.editInvoiceSale()">Edit Sale</button>
+        </div>
+        <button type="button" onclick="closeInvoiceModal()" style="background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.4rem 1rem; font-size:0.78rem; font-weight:600; cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: REPORT -->
+  <section id="panel-report" class="panel" role="tabpanel" aria-labelledby="tab-report">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Financial Reports</h2>
+    </div>
+
+    <!-- 1. REPORTS HUB LANDING PAGE (Select Feature) -->
+    <div id="reports-hub-view" style="display:block;">
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:1.25rem;">Select a report feature below to view detailed analytics:</p>
+      
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; margin-bottom:1rem;">
+        <!-- Card 1: Monthly Breakdown -->
+        <div class="qa-card" onclick="openReportSubView('monthly')" style="padding:1.5rem 1.25rem; cursor:pointer; border:1.5px solid var(--border); background:#ffffff; text-align:left; align-items:flex-start; flex-direction:row; gap:1rem; border-radius:12px;">
+          <div class="qa-icon" style="width:48px; height:48px; font-size:1.6rem; flex-shrink:0; background:var(--cream2); border-radius:10px; display:flex; align-items:center; justify-content:center;">📊</div>
+          <div>
+            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:0.35rem;">Monthly Breakdown</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:0;">View monthly sales counts, total revenue, expenses, and net profit with itemized logs.</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Tax Estimation (FIRS) -->
+        <div class="qa-card" onclick="openReportSubView('tax')" style="padding:1.5rem 1.25rem; cursor:pointer; border:1.5px solid var(--border); background:#ffffff; text-align:left; align-items:flex-start; flex-direction:row; gap:1rem; border-radius:12px;">
+          <div class="qa-icon" style="width:48px; height:48px; font-size:1.6rem; flex-shrink:0; background:var(--cream2); border-radius:10px; display:flex; align-items:center; justify-content:center;">📑</div>
+          <div>
+            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:0.35rem;">Tax Estimation (FIRS)</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:0;">Calculate estimated SME tax liabilities based on current Nigerian FIRS tax rate brackets.</p>
+          </div>
+        </div>
+
+        <!-- Card 3: Sales Trend Analytics -->
+        <div class="qa-card" onclick="openReportSubView('analytics')" style="padding:1.5rem 1.25rem; cursor:pointer; border:1.5px solid var(--border); background:#ffffff; text-align:left; align-items:flex-start; flex-direction:row; gap:1rem; border-radius:12px;">
+          <div class="qa-icon" style="width:48px; height:48px; font-size:1.6rem; flex-shrink:0; background:var(--cream2); border-radius:10px; display:flex; align-items:center; justify-content:center;">📈</div>
+          <div>
+            <h3 style="font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:0.35rem;">Sales Trend Analytics</h3>
+            <p style="font-size:0.8rem; color:var(--muted); line-height:1.4; margin:0;">Track monthly business performance and identify growth patterns with interactive line charts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MONTHLY BREAKDOWN VIEW -->
+    <div id="reports-monthly-view" style="display:none;">
+      <div style="margin-bottom:1rem;">
+        <button type="button" class="btn-ghost" onclick="showReportsHub()" style="padding:0.4rem 0.85rem; font-size:0.8rem; font-weight:600;">← Back to Reports Hub</button>
+      </div>
+      <div class="card" id="report-card" aria-live="polite"></div>
+    </div>
+
+    <!-- 3. TAX ESTIMATION VIEW -->
+    <div id="reports-tax-view" style="display:none;">
+      <div style="margin-bottom:1rem;">
+        <button type="button" class="btn-ghost" onclick="showReportsHub()" style="padding:0.4rem 0.85rem; font-size:0.8rem; font-weight:600;">← Back to Reports Hub</button>
+      </div>
+      <div class="card" id="tax-card" aria-live="polite"></div>
+    </div>
+
+    <!-- 4. SALES TREND ANALYTICS VIEW -->
+    <div id="reports-analytics-view" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+        <button type="button" class="btn-ghost" onclick="showReportsHub()" style="padding:0.4rem 0.85rem; font-size:0.8rem; font-weight:600;">← Back to Reports Hub</button>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <label for="analytics-year-select" style="font-size:0.8rem; font-weight:700; color:var(--muted);">Financial Year:</label>
+          <select id="analytics-year-select" onchange="renderSalesTrendAnalytics()" style="padding:0.35rem 0.75rem; border-radius:8px; border:1px solid var(--border); font-size:0.82rem; font-weight:700; background:#fff; color:var(--text); cursor:pointer;">
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="padding:1.5rem; border-radius:16px; background:#ffffff; border:1.5px solid var(--border); margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.85rem;">
+          <div>
+            <h2 class="card-h" style="margin-bottom:0.25rem; font-size:1.25rem;">Sales Trend Analytics</h2>
+            <p style="font-size:0.85rem; color:var(--muted); margin:0;">Track monthly business performance and identify growth patterns</p>
+          </div>
+          <div id="analytics-growth-badge" style="background:var(--green-bg); color:var(--green); font-weight:700; font-size:0.8rem; padding:0.4rem 0.85rem; border-radius:20px; border:1px solid rgba(30,102,65,0.2); display:flex; align-items:center; gap:0.35rem;">
+            📈 Growth Trend Status
+          </div>
+        </div>
+
+        <!-- Line Chart Container -->
+        <div style="position:relative; width:100%; min-height:320px; max-height:420px; margin-bottom:1.5rem;">
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+
+        <!-- Monthly Performance Highlights Summary Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.85rem; border-top:1.5px solid var(--border); padding-top:1.25rem;">
+          <div style="background:var(--cream); padding:0.85rem 1rem; border-radius:10px; border:1px solid var(--border);">
+            <div style="font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.2rem;">Highest Sales Month</div>
+            <div id="analytics-peak-month" style="font-size:1.05rem; font-weight:700; color:var(--gold);">--</div>
+          </div>
+          <div style="background:var(--cream); padding:0.85rem 1rem; border-radius:10px; border:1px solid var(--border);">
+            <div style="font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.2rem;">Avg. Monthly Revenue</div>
+            <div id="analytics-avg-rev" style="font-size:1.05rem; font-weight:700; color:var(--green);">₦0.00</div>
+          </div>
+          <div style="background:var(--cream); padding:0.85rem 1rem; border-radius:10px; border:1px solid var(--border);">
+            <div style="font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.2rem;">Annual Revenue Total</div>
+            <div id="analytics-total-rev" style="font-size:1.05rem; font-weight:700; color:var(--ink);">₦0.00</div>
+          </div>
+          <div style="background:var(--cream); padding:0.85rem 1rem; border-radius:10px; border:1px solid var(--border);">
+            <div style="font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.2rem;">Annual Net Profit</div>
+            <div id="analytics-total-profit" style="font-size:1.05rem; font-weight:700; color:var(--text);">₦0.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL: MONTHLY SALES DETAIL -->
+  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;overflow-y:auto;padding:2rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
+    <div style="background:var(--cream);border-radius:var(--r);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.15)">
+      <div id="monthly-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: PROFILE -->
+  <section id="panel-profile" class="panel" role="tabpanel" aria-labelledby="tab-profile">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Business Details</h2>
+    </div>
+    <div class="card">
+      <h2 class="card-h">Business Details</h2>
+      <form id="form-profile" novalidate>
+        <div class="field">
+          <label for="prof-biz-name">Business Name <span class="req-mark" aria-hidden="true">*</span></label>
+          <input type="text" id="prof-biz-name" required />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="prof-phone">Phone Number</label>
+            <input type="tel" id="prof-phone" />
+          </div>
+          <div class="field">
+            <label for="prof-loc">Location / Address</label>
+            <input type="text" id="prof-loc" />
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="prof-bank">Bank Name</label>
+            <input type="text" id="prof-bank" />
+          </div>
+          <div class="field">
+            <label for="prof-acc-num">Account Number</label>
+            <input type="text" id="prof-acc-num" />
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="prof-acc-name">Account Name</label>
+            <input type="text" id="prof-acc-name" />
+          </div>
+          <div class="field">
+            <label for="prof-pin">Owner PIN (4 Digits) <span class="req-mark" aria-hidden="true">*</span></label>
+            <input type="text" id="prof-pin" required pattern="\d{4}" maxlength="4" placeholder="1234" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="prof-instagram">📸 Instagram Profile / Handle</label>
+            <input type="text" id="prof-instagram" placeholder="e.g. @mybusiness or https://instagram.com/mybusiness" />
+          </div>
+          <div class="field">
+            <label for="prof-website">🌐 Business Website Link</label>
+            <input type="url" id="prof-website" placeholder="e.g. https://mybusiness.ng" />
+          </div>
+        </div>
+
+        <!-- Business QR Code Upload -->
+        <div class="field" style="margin-top:1rem; border-top:1.5px solid var(--border); padding-top:1rem;">
+          <label style="font-size:0.88rem; font-weight:700; color:var(--text); display:block; margin-bottom:0.25rem;">📱 Business QR Code (For Instagram & Website)</label>
+          <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.75rem;">Upload your business QR code image for your website or Instagram profile below:</p>
+
+          <div style="display:flex; flex-wrap:wrap; gap:1.25rem; align-items:center;">
+            <div style="flex:1; min-width:220px;">
+              <label for="input-profile-qr" class="btn-ghost" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.55rem 1rem; font-size:0.82rem; font-weight:600; cursor:pointer; width:auto; text-align:center;">
+                📤 Upload QR Code Image
+              </label>
+              <input type="file" id="input-profile-qr" accept="image/*" style="display:none;" onchange="handleProfileQRUpload(event)" />
+            </div>
+
+            <!-- High-Res Scannable Preview Box -->
+            <div id="profile-qr-preview-box" style="width:220px; height:220px; border:2px solid var(--gold); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ffffff; position:relative; overflow:hidden; padding:0.5rem; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
+              <div id="profile-qr-empty" style="font-size:0.8rem; font-weight:600; color:var(--muted); text-align:center; padding:0.5rem;">No QR Code Uploaded</div>
+              <img id="profile-qr-img" src="" alt="Business QR Code" style="display:none; width:100%; height:100%; object-fit:contain; image-rendering:-webkit-optimize-contrast; image-rendering:pixelated;" />
+              <button type="button" id="btn-remove-qr" onclick="removeProfileQR()" style="display:none; position:absolute; top:8px; right:8px; background:rgba(181,48,48,0.95); color:#fff; border:none; border-radius:50%; width:26px; height:26px; font-size:0.8rem; font-weight:700; cursor:pointer; align-items:center; justify-content:center; line-height:1; z-index:5;" title="Remove QR Code">✕</button>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-save">Update Business Details</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- PANEL: SETTINGS -->
+  <section id="panel-settings" class="panel" role="tabpanel" aria-labelledby="tab-settings">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Settings</h2>
+    </div>
+
+    <form id="form-settings" novalidate>
+      <!-- CARD 1: CURRENCY & REGIONAL SETTINGS -->
+      <div class="card">
+        <h3 class="card-h" style="margin-bottom: 0.5rem;">Currency & Regional</h3>
+        <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">Select your default currency symbol for transactions, invoices, and financial reports.</p>
+        
+        <div class="field" style="margin-bottom: 0;">
+          <label for="setting-currency">Currency Symbol</label>
+          <select id="setting-currency" name="setting-currency" onchange="window.saveSettings()">
+            <option value="₦">Naira (₦)</option>
+            <option value="$">US Dollar ($)</option>
+            <option value="₦¬">Euro (₦¬)</option>
+            <option value="£">British Pound (£)</option>
+            <option value="₦µ">Ghana Cedi (₦µ)</option>
+          </select>
+        </div>
+      </div>
+
+
+    </form>
+  </section>
+
+  <!-- PANEL: ADMIN CENTER -->
+  <section id="panel-admin" class="panel" role="tabpanel" aria-labelledby="tab-admin">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Admin Center</h2>
+    </div>
+
+    <!-- CARD 1: SYSTEM CONTROLS -->
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 0.75rem;">System Lock & PIN</h3>
+      
+      <div class="toggle-container" style="border-bottom: none; margin-bottom: 0.75rem;">
+        <div class="toggle-lbl-group">
+          <span class="toggle-title">Quick Lock (Staff Mode)</span>
+          <span class="toggle-desc">Instantly lock the application into restricted Staff Mode</span>
+        </div>
+        <button type="button" class="btn-ghost" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="window.lockApp()">🔒’ Lock App</button>
+      </div>
+
+      <div class="field" style="border-top: 1px solid var(--border); padding-top: 0.85rem; margin-bottom: 0;">
+        <label for="admin-new-pin">Change Admin PIN (4 Digits)</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="admin-new-pin" placeholder="e.g. 1234" pattern="\d{4}" maxlength="4" style="flex: 1; height: 34px; font-size: 0.82rem;"/>
+          <button type="button" class="btn-save" style="width: auto; padding: 0.45rem 1.15rem; font-size: 0.82rem; margin: 0;" onclick="window.changeAdminPin()">Update PIN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: STAFF ACCESS CONTROL (Moved from Settings to Admin Center) -->
+    <div class="card" id="admin-staff-card">
+      <h3 class="card-h" style="margin-bottom: 0.25rem;">Staff Access Control</h3>
+      <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem; line-height:1.4;">Configure what features staff members can access and perform when the app is locked in Staff Mode.</p>
+      
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:1rem; font-size:0.82rem;">
+        <!-- Tabs -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Tabs Visibility</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_sales" onchange="window.saveStaffPermissions()"> Sales Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_expense" onchange="window.saveStaffPermissions()"> Expenses Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_inventory" onchange="window.saveStaffPermissions()"> Inventory Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_invoice" onchange="window.saveStaffPermissions()"> Invoices Tab
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-tab_report" onchange="window.saveStaffPermissions()"> Reports Tab
+          </label>
+        </div>
+
+        <!-- Actions -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Allowed Actions</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_add_expense" onchange="window.saveStaffPermissions()"> Add Expense
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_add_inventory" onchange="window.saveStaffPermissions()"> Add Inventory
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_edit_sale" onchange="window.saveStaffPermissions()"> Edit Sales
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_delete_sale" onchange="window.saveStaffPermissions()"> Delete Sales
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_sell_out_of_stock" onchange="window.saveStaffPermissions()"> Sell Out-of-Stock
+          </label>
+        </div>
+
+        <!-- Data Visibility -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Data Visibility</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_amounts" onchange="window.saveStaffPermissions()"> See Sale Amounts
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_customer_contact" onchange="window.saveStaffPermissions()"> See Customer Contact
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-see_dashboard_stats" onchange="window.saveStaffPermissions()"> View Dashboard Stats
+          </label>
+        </div>
+
+        <!-- Printing & Exports -->
+        <div>
+          <strong style="display:block; margin-bottom:0.4rem; color:var(--gold); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Printing & Exports</strong>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_print_report" onchange="window.saveStaffPermissions()"> Print Reports
+          </label>
+          <label style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="perm-can_print_invoice" onchange="window.saveStaffPermissions()"> Print Invoices
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: BACKUPS & MAINTENANCE -->
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 1rem;">Backups & Maintenance</h3>
+      <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 1.25rem;">Download complete copies of your inventory, expense, and sales data or restore from a previously exported file.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button type="button" class="btn-save" style="background: var(--ink); color: var(--gold); border: 1px solid var(--gold);" onclick="window.exportDatabase()">💾  Export Database Backup (JSON)</button>
+        
+        <div style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem;">
+          <label style="display: block; font-size: 0.65rem; font-weight: var(--fw-semi); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem;">Restore from Backup</label>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <input type="file" id="db-import-file" accept=".json" style="display: none;" onchange="window.importDatabase(event)"/>
+            <button type="button" class="btn-ghost" style="flex: 1;" onclick="document.getElementById('db-import-file').click()">Upload Backup File (.json)</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem;">
+          <label style="display: block; font-size: 0.65rem; font-weight: var(--fw-semi); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; color: var(--red);">Danger Zone</label>
+          <button type="button" class="btn-save" style="background: var(--red); color: white;" onclick="window.resetDatabase()">⚠️  Factory Reset App Database</button>
+        </div>
+      </div>
+    </div>
+
+          <div class="card" id="admin-deleted-records-card">
+      <h3 class="card-h" style="margin-bottom: 1rem;">Deleted Sales Log</h3>
+      <ul id="deleted-list-root" aria-label="Deleted sales history" class="list-root"></ul>
+    </div>
+  </section>
+
+  <!-- PANEL: TRANSACTIONS -->
+  <section id="panel-transactions" class="panel" role="tabpanel" aria-labelledby="tab-transactions">
+    <div class="page-header">
+      <button type="button" class="btn-back" onclick="switchTab('dashboard')">← Back to Dashboard</button>
+      <h2>Latest Transactions</h2>
+    </div>
+    
+    <div class="card">
+      <h3 class="card-h" style="margin-bottom: 1.25rem;">Transaction Feed</h3>
+      <ul id="dashboard-tx-list" class="transactions-list">
+        <!-- Populated dynamically by app.js -->
+      </ul>
+    </div>
+  </section>
+
+
+</main>
+
+<!-- FOOTER SECTION -->
+<footer id="site-footer" role="contentinfo">
+  <div class="footer-brand">BizTrack.ng</div>
+  <div class="footer-flow" aria-hidden="true">
+    <span>Daily Records</span>
+    <span class="footer-dot"></span>
+    <span>Monthly Totals</span>
+    <span class="footer-dot"></span>
+    <span>Annual Report</span>
+  </div>
+  <p>Built for Nigerian small business owners · All values in ₦</p>
+  <p class="footer-tax">
+    Tax estimates use FIRS SME rates: 0% below ₦25M · 20% on ₦25M–₦100M · 30% above ₦100M.
+    Consult a licensed accountant for official filings.
+  </p>
+  <p class="footer-copy">&copy; 2026 BizTrack.ng · No data leaves your device</p>
+</footer>
+
+<!-- Floating Action Button (FAB) -->
+<div class="fab-container" id="app-fab" style="display:none;">
+  <div class="fab-menu" id="fab-menu-list">
+    <button class="fab-item" id="fab-action-sale" onclick="handleFabAction('sales')">
+      <span class="fab-label">Record Sale</span>
+      <div class="fab-icon-btn">📝</div>
+    </button>
+    <button class="fab-item" id="fab-action-expense" onclick="handleFabAction('expense')">
+      <span class="fab-label">Record Expense</span>
+      <div class="fab-icon-btn">💸</div>
+    </button>
+    <button class="fab-item" id="fab-action-invoice" onclick="handleFabAction('invoice')">
+      <span class="fab-label">Create Invoice</span>
+      <div class="fab-icon-btn">🧾</div>
+    </button>
+    <button class="fab-item" id="fab-action-stock" onclick="handleFabAction('inventory')">
+      <span class="fab-label">Add Product</span>
+      <div class="fab-icon-btn">📦</div>
+    </button>
+  </div>
+  <button type="button" class="fab-trigger" id="fab-trigger-btn" onclick="toggleFabMenu()" aria-label="Quick Actions">+</button>
+</div>
+
+<!-- MODAL: SALE DETAILS -->
+<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
+  <div class="card" style="max-width:520px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #1e293b);">🧾 Sale Record Details</h2>
+      <button type="button" onclick="closeSaleDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <div id="sdm-content">
+      <!-- Content injected dynamically via JS -->
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem; border-top:1px solid rgba(0,0,0,0.08); padding-top:0.75rem;">
+      <button type="button" class="btn-ghost" onclick="closeSaleDetailModal()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem;">Close</button>
+      <button type="button" class="btn-save" id="sdm-edit-btn" style="width:auto; padding:0.35rem 1rem; font-size:0.8rem;">Edit Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXPENSE DETAILS -->
+<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
+  <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #141009);">💸 Expense Details</h2>
+      <button type="button" onclick="closeExpenseDetailModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <div id="edm-content">
+      <!-- Injected dynamically via JS -->
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem; border-top:1px solid rgba(0,0,0,0.08); padding-top:0.75rem;">
+      <button type="button" class="btn-ghost" onclick="closeExpenseDetailModal()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem;">Close</button>
+      <button type="button" class="btn-ghost" id="edm-delete-btn" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem; color:var(--red, #B53030); border-color:rgba(181,48,48,0.3);">Delete</button>
+      <button type="button" class="btn-save" id="edm-edit-btn" style="width:auto; padding:0.35rem 1rem; font-size:0.8rem;">Edit Expense</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- MODAL: UTILITY FEATURES SELECTOR -->
+<div id="utility-features-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:998; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeUtilityFeaturesModal()">
+  <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">🛠️ Utility Features</h2>
+      <button type="button" onclick="closeUtilityFeaturesModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">Select a utility tool to enhance your business:</p>
+
+    <div style="display:grid; grid-template-columns:1fr; gap:0.75rem;">
+      <!-- Utility Item 1: Thank You Card -->
+      <div class="qa-card" onclick="closeUtilityFeaturesModal(); openThankYouModal();" style="padding:1rem; text-align:left; align-items:flex-start; cursor:pointer; border:1.5px solid var(--border); background:#fff; flex-direction:row; gap:0.85rem;">
+        <div class="qa-icon" style="width:42px; height:42px; font-size:1.3rem; flex-shrink:0; background:var(--cream2);">💌</div>
+        <div style="flex:1;">
+          <strong style="font-size:0.92rem; color:var(--text); display:block; margin-bottom:0.15rem;">Thank You Card Generator</strong>
+          <span style="font-size:0.75rem; color:var(--muted); line-height:1.35; display:block;">Create custom branded Thank You notes for your customers (Manual or from Invoice).</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; margin-top:1rem; border-top:1px solid var(--border); padding-top:0.75rem;">
+      <button type="button" class="btn-ghost" onclick="closeUtilityFeaturesModal()" style="width:auto; padding:0.35rem 0.85rem; font-size:0.8rem;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: THANK YOU CARD GENERATOR -->
+<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeThankYouModal()">
+  <div class="card" style="max-width:540px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
+      <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;">💌 Thank You Card Generator</h2>
+      <button type="button" onclick="closeThankYouModal()" style="background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--muted); line-height:1; padding:0.2rem 0.5rem;">✕</button>
+    </div>
+
+    <!-- STEP 1: OPTIONS CHOICE (Create Manually vs Choose from Invoice) -->
+        <!-- STEP 1: OPTIONS CHOICE (Create Manually vs Choose from Invoice) -->
+    <div id="ty-step-options" style="display:block;">
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">How would you like to create your Thank You card?</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <div class="qa-card" onclick="selectThankYouMode('manual')" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
+          <div class="qa-icon" style="width:44px; height:44px; font-size:1.5rem; margin-bottom:0.4rem;">✏️</div>
+          <strong style="font-size:0.9rem; color:var(--text); margin-bottom:0.25rem; display:block;">Create Manually</strong>
+          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Write a custom message and enter customer details from scratch.</span>
+        </div>
+
+        <div class="qa-card" onclick="openThankYouInvoicePicker()" style="padding:1.25rem 0.85rem; text-align:center; align-items:center; cursor:pointer; border:1.5px solid var(--border);">
+          <div class="qa-icon" style="width:44px; height:44px; font-size:1.5rem; margin-bottom:0.4rem;">🧾</div>
+          <strong style="font-size:0.9rem; color:var(--text); margin-bottom:0.25rem; display:block;">Choose from Invoice</strong>
+          <span style="font-size:0.72rem; color:var(--muted); line-height:1.35;">Browse all recorded invoices and select a customer to auto-fill details.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: INVOICE PICKER POP-UP LIST -->
+    <div id="ty-step-invoice-picker" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Back to Options</button>
+        <span style="font-size:0.75rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px;">Select Recorded Invoice</span>
+      </div>
+
+      <div class="field" style="margin-bottom:0.75rem;">
+        <input type="text" id="ty-invoice-search" placeholder="🔍 Search by customer name or item..." oninput="renderThankYouInvoicePickerList()" style="width:100%; font-size:0.85rem; padding:0.55rem 0.8rem;" />
+      </div>
+
+      <div id="ty-invoice-picker-list" style="max-height:320px; overflow-y:auto; padding-right:4px; display:flex; flex-direction:column; gap:0.6rem;">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- STEP 3: EDITOR & PREVIEW -->
+    <div id="ty-step-editor" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <button type="button" class="btn-ghost" onclick="resetThankYouMode()" style="width:auto; padding:0.25rem 0.6rem; font-size:0.75rem;">← Change Mode</button>
+        <span id="ty-mode-badge" style="font-size:0.72rem; font-weight:600; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px;"></span>
+      </div>
+
+      <!-- Selected Invoice Banner (Shown when mode === 'invoice') -->
+      <div id="ty-selected-invoice-banner" style="display:none; background:var(--cream2, #f3ede0); border:1px solid var(--border); border-radius:10px; padding:0.65rem 0.85rem; margin-bottom:0.75rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem;">
+          <div>
+            <span style="font-size:0.65rem; font-weight:700; color:var(--gold); text-transform:uppercase;">Selected Invoice:</span>
+            <div id="ty-banner-cust" style="font-size:0.88rem; font-weight:700; color:var(--ink);">Customer Name</div>
+            <div id="ty-banner-details" style="font-size:0.75rem; color:var(--muted);">Date & Amount</div>
+          </div>
+          <button type="button" class="btn-ghost" onclick="openThankYouInvoicePicker()" style="width:auto; padding:0.3rem 0.65rem; font-size:0.75rem; color:var(--gold); border-color:var(--gold);">🔄 Change Invoice</button>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="row2" style="gap:0.5rem; margin-bottom:0.5rem;">
+        <div class="field">
+          <label for="ty-cust-name" style="font-size:0.75rem;">Customer Name:</label>
+          <input type="text" id="ty-cust-name" placeholder="e.g. Mrs. Blessing" oninput="updateThankYouPreview()" />
+        </div>
+        <div class="field">
+          <label for="ty-note-title" style="font-size:0.75rem;">Card Header / Title:</label>
+          <input type="text" id="ty-note-title" value="Thank You for Your Business!" oninput="updateThankYouPreview()" />
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:0.5rem;">
+        <label for="ty-message" style="font-size:0.75rem;">Thank You Message:</label>
+        <textarea id="ty-message" style="min-height:55px; font-size:0.82rem;" placeholder="Write a warm thank you message..." oninput="updateThankYouPreview()">We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.</textarea>
+      </div>
+
+
+
+      <div style="margin-top:0.75rem;">
+        <label style="font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:0.35rem;">Card Preview:</label>
+        <div id="thank-you-card-render" style="background:linear-gradient(135deg, #141009 0%, #2A2215 100%); color:#FAF6EF; padding:1.5rem; border-radius:16px; border:2px solid #C9982A; box-shadow:0 8px 24px rgba(0,0,0,0.25); text-align:center; position:relative; overflow:hidden;">
+          <div style="position:absolute; top:-20px; right:-20px; width:90px; height:90px; background:rgba(201,152,42,0.12); border-radius:50%; pointer-events:none;"></div>
+          
+          <!-- Business Name -->
+          <div id="ty-card-biz-name" style="font-family:'Playfair Display', Georgia, serif; font-size:1.3rem; font-weight:700; color:#C9982A; margin-bottom:0.2rem; letter-spacing:0.5px;">BizTrack Business</div>
+          <div id="ty-card-biz-tag" style="font-size:0.7rem; color:rgba(250,246,239,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem;">Official Customer Appreciation</div>
+          
+          <!-- Heart Icon -->
+          <div style="font-size:2rem; margin-bottom:0.5rem; text-shadow:0 0 10px rgba(201,152,42,0.5);">💌</div>
+
+          <!-- Header Title -->
+          <h3 id="ty-card-header" style="font-family:'Playfair Display', Georgia, serif; font-size:1.1rem; color:#E8BE6A; margin-bottom:0.6rem;">Thank You for Your Patronage!</h3>
+          
+          <!-- Customer Name -->
+          <div style="font-size:0.85rem; color:#FAF6EF; font-weight:600; margin-bottom:0.5rem;">
+            Dear <span id="ty-card-cust-name" style="color:#E8BE6A; text-decoration:underline;">Valued Customer</span>,
+          </div>
+
+          <!-- Message -->
+          <p id="ty-card-msg-text" style="font-size:0.82rem; line-height:1.5; color:rgba(250,246,239,0.9); margin:0 auto 1rem; max-width:420px; font-style:italic;">
+            We truly appreciate your patronizing us! It was a pleasure serving you, and we hope to see you again soon.
+          </p>
+
+          <!-- Footer / Contact -->
+          <div style="border-top:1px solid rgba(201,152,42,0.25); padding-top:0.75rem; margin-top:0.5rem; display:flex; flex-direction:column; gap:0.4rem; font-size:0.7rem; color:rgba(250,246,239,0.65);">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <div id="ty-card-phone">📞 Contact Us</div>
+              <div id="ty-card-date">📅 Date</div>
+            </div>
+            <div id="ty-card-website" style="display:none; text-align:center;"></div>
+            <div id="ty-card-instagram" style="display:none; text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:1.1rem; border-top:1px solid var(--border); padding-top:0.85rem; flex-wrap:wrap;">
+        <button type="button" class="btn-ghost" onclick="closeThankYouModal()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem;">Close</button>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <button type="button" class="btn-save" onclick="downloadThankYouPNG()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:var(--ink); color:var(--gold); border:1px solid var(--gold);">📥 Download PNG</button>
+          <button type="button" class="btn-save" onclick="shareThankYouWhatsApp()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:#25D366; color:#fff; border:none;">📱 Share WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
+  window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
+<!-- app.js linked at bottom (template constraint) -->
+<script src="app.js?v=38"></script>
+
+</body>
+</html>

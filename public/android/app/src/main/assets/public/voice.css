@@ -1,0 +1,404 @@
+/* =========================================================
+   BIZTRACK VOICE ASSISTANT & FLOATING BAR STYLES
+   ========================================================= */
+
+/* Floating Bar Container */
+.voice-fab-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voice-fab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: linear-gradient(135deg, #7B4A1E 0%, #C9982A 100%);
+  color: #FAF6EF;
+  border: 1.5px solid #E8BE6A;
+  padding: 0.75rem 1.25rem;
+  border-radius: 50px;
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(20, 16, 9, 0.35);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  animation: voiceGlowPulse 2.5s infinite ease-in-out;
+}
+
+.voice-fab-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(201, 152, 42, 0.45);
+}
+
+.voice-fab-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.voice-fab-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  stroke: #FAF6EF;
+}
+
+@keyframes voiceGlowPulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(123, 74, 30, 0.35); }
+  50% { box-shadow: 0 8px 28px rgba(201, 152, 42, 0.65); }
+}
+
+/* Voice Assistant Modal Popup Overlay */
+.voice-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(20, 16, 9, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.voice-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.voice-modal-card {
+  background: #FAF6EF;
+  border: 1.5px solid #DDD4BE;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  box-shadow: 0 20px 50px rgba(20, 16, 9, 0.4);
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.voice-modal-overlay.active .voice-modal-card {
+  transform: translateY(0);
+}
+
+/* Modal Header */
+.voice-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #DDD4BE;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.voice-modal-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #141009;
+  margin: 0;
+}
+
+.voice-modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  color: #7A6E58;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.voice-modal-close-btn:hover {
+  background: #EAE1CC;
+  color: #141009;
+}
+
+/* Status Pill */
+.voice-page-status {
+  background: #F3EDE0;
+  border-left: 5px solid #855B0A;
+  color: #2A2215;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 8px rgba(20, 16, 9, 0.05);
+}
+
+.voice-page-status.recording {
+  border-left-color: #1E6641;
+  background: #E4F2EB;
+  color: #1E6641;
+}
+
+.voice-page-status.cmd-active {
+  border-left-color: #C9982A;
+  background: #EAE1CC;
+  color: #141009;
+}
+
+/* Mic Area */
+.voice-page-mic-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.voice-page-mic-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #7B4A1E;
+  border: 3px solid #E8BE6A;
+  color: #FAF6EF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(123, 74, 30, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.voice-page-mic-btn.recording {
+  background: #B53030;
+  border-color: #ef4444;
+  animation: micPulseRed 1.5s infinite;
+}
+
+@keyframes micPulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(181, 48, 48, 0.5); }
+  50% { box-shadow: 0 0 0 16px rgba(181, 48, 48, 0); }
+}
+
+.voice-page-mic-hint {
+  font-size: 0.82rem;
+  color: #7A6E58;
+  margin-top: 0.4rem;
+  font-weight: 500;
+}
+
+/* Live Transcript Section */
+.voice-page-transcript-section {
+  margin-bottom: 1rem;
+}
+
+.voice-page-transcript-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7A6E58;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.voice-page-transcript {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #DDD4BE;
+  border-radius: 12px;
+  padding: 0.85rem;
+  font-size: 0.92rem;
+  color: #141009;
+  resize: vertical;
+  line-height: 1.5;
+  box-shadow: inset 0 2px 6px rgba(20, 16, 9, 0.04);
+}
+
+.voice-page-transcript:focus {
+  border-color: #C9982A;
+  outline: none;
+}
+
+/* Form Grid for Sales Details */
+.voice-sales-form-section {
+  background: #ffffff;
+  border: 1.5px solid #DDD4BE;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.voice-form-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #141009;
+  margin-bottom: 0.15rem;
+}
+
+.voice-form-header p {
+  font-size: 0.78rem;
+  color: #7A6E58;
+}
+
+.voice-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.voice-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.voice-form-group label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #7A6E58;
+}
+
+.voice-form-group input,
+.voice-form-group select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  border: 1px solid #DDD4BE;
+  border-radius: 8px;
+  background: #FAF6EF;
+  color: #141009;
+}
+
+/* Multi-Item Fieldset */
+.voice-items-fieldset {
+  border: 1px solid #DDD4BE;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #FAF6EF;
+}
+
+.voice-items-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.voice-items-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7A6E58;
+}
+
+.voice-btn-add-item {
+  background: #1E6641;
+  color: #ffffff;
+  border: none;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.voice-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.voice-item-row input {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.v-iname { flex: 2; }
+.v-iqty { flex: 0.6; }
+.v-iprice { flex: 1; }
+
+.voice-item-row-total {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #141009;
+  min-width: 70px;
+  text-align: right;
+}
+
+.voice-btn-remove-item {
+  background: transparent;
+  color: #B53030;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+/* Totals Bar */
+.voice-totals-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #141009;
+  color: #FAF6EF;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.voice-totals-breakdown {
+  font-size: 0.78rem;
+  color: #DDD4BE;
+}
+
+.voice-total-main {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #E8BE6A;
+}
+
+.voice-save-btn {
+  width: 100%;
+  background: #1E6641;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(30, 102, 65, 0.3);
+}
+
+/* Modal Bottom Actions */
+.voice-page-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  border-top: 1px solid #DDD4BE;
+  padding-top: 0.85rem;
+}
+
+.voice-page-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #DDD4BE;
+}
+
+.voice-page-btn-stop { background: #FCEAEA; color: #B53030; border-color: #B53030; }
+.voice-page-btn-retry { background: #ffffff; color: #141009; }
+.voice-page-btn-close { background: #141009; color: #FAF6EF; border: none; }
