@@ -1699,7 +1699,7 @@ body.dark-mode #invoice-view * {
       <form id="form-sale" novalidate autocomplete="off">
 
         <!-- Customer & Order Meta Grid -->
-        <div style="display:grid; grid-template-columns: 1fr 1.4fr 1.1fr 1.3fr; gap:0.45rem; margin-bottom:0.35rem;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:0.45rem; margin-bottom:0.35rem;">
           <div class="field" style="margin-bottom:0;">
             <label for="sale-date" style="font-size:0.65rem; margin-bottom:0.15rem;">Date <span class="req-mark" aria-hidden="true">*</span></label>
             <input type="date" id="sale-date" name="sale-date" required aria-required="true" style="height:28px; padding:0.2rem 0.4rem; font-size:0.76rem;"/>
@@ -1719,7 +1719,7 @@ body.dark-mode #invoice-view * {
         </div>
 
         <!-- Delivery, Payment & Financial Options Grid -->
-        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.45rem; margin-bottom:0.35rem;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:0.45rem; margin-bottom:0.35rem;">
           <div class="field" style="margin-bottom:0;">
             <label for="sale-status" style="font-size:0.65rem; margin-bottom:0.15rem;">Delivery Status</label>
             <select id="sale-status" name="sale-status" style="height:28px; padding:0.2rem 0.3rem; font-size:0.76rem;">
@@ -1910,7 +1910,7 @@ body.dark-mode #invoice-view * {
     </div>
 
     <!-- Inventory Dashboard Summary Cards -->
-    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:0.55rem; margin-bottom:0.75rem;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.55rem; margin-bottom:0.75rem;">
       <div style="background:#fff; border:1px solid var(--border); border-radius:var(--r-sm); padding:0.65rem 0.85rem; border-left:3px solid var(--gold);">
         <div style="font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);">Total Products</div>
         <div id="inv-dash-total-products" style="font-family:var(--ff-head); font-size:1.15rem; font-weight:700; color:var(--text); margin-top:0.15rem;">0</div>
