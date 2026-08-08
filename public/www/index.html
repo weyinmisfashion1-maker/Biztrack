@@ -1803,12 +1803,12 @@ body.dark-mode #invoice-view * {
       <div class="field" style="margin-bottom: 0.65rem;">
         <label for="input-search">Search Sales</label>
         <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
-          <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="flex:1 1 150px;"/>
+          <div style="position:relative; flex:1 1 150px; display:flex; align-items:center;">
+            <input type="text" id="input-search" placeholder="Search by customer name, phone, or item..." autocomplete="off" style="width:100%; padding-right:1.8rem; box-sizing:border-box;"/>
+            <span onclick="clearSalesSearch()" title="Clear Search" style="position:absolute; right:0.4rem; width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--cream2); color:var(--text); font-size:0.65rem; cursor:pointer; font-weight:bold;">✕</span>
+          </div>
           <button type="button" id="btn-search-sales" onclick="triggerSalesSearch()" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0 0.85rem; font-size:0.78rem; font-weight:700; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem; flex-shrink:0;">
-             Search
-          </button>
-          <button type="button" id="btn-clear-search" onclick="clearSalesSearch()" style="background:var(--cream2, #F3EDE0); color:var(--muted, #7A6E58); border:1px solid var(--border, #DDD4BE); padding:0 0.65rem; font-size:0.75rem; font-weight:600; border-radius:6px; height:30px; cursor:pointer; display:inline-flex; align-items:center; flex-shrink:0;">
-            ✕ Clear
+              Search
           </button>
         </div>
       </div>
