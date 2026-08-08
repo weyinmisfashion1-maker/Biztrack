@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Android Safe Zone is the center 66% (approx 675px) -->
+  <!-- This is the Foreground Layer only -->
+  
+  <g transform="translate(162, 80) scale(0.7)">
+    <!-- Bars -->
+    <rect x="100" y="600" width="140" height="300" rx="20" fill="#FAF6EF" opacity="0.8"/>
+    <rect x="300" y="450" width="140" height="450" rx="20" fill="#C9982A"/>
+    <rect x="500" y="250" width="140" height="650" rx="20" fill="#FAF6EF"/>
+    
+    <!-- Coins with Black accents -->
+    <circle cx="780" cy="700" r="80" fill="#C9982A"/>
+    <circle cx="780" cy="700" r="60" fill="none" stroke="#141009" stroke-width="12"/>
+    <text x="780" y="730" font-family="Arial" font-size="90" font-weight="bold" fill="#141009" text-anchor="middle">₦</text>
+
+    <circle cx="850" cy="820" r="70" fill="#FAF6EF"/>
+    <circle cx="850" cy="820" r="50" fill="none" stroke="#141009" stroke-width="10"/>
+    <text x="850" y="845" font-family="Arial" font-size="70" font-weight="bold" fill="#141009" text-anchor="middle">₦</text>
+    
+    <!-- Rising Arrow Line -->
+    <path d="M 50 850 L 250 650 L 450 700 L 850 150" fill="none" stroke="#FAF6EF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 750 150 L 850 150 L 850 250" fill="none" stroke="#FAF6EF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Full Text: BIZTRACK.NG -->
+  <text x="512" y="880" font-family="Playfair Display, serif" font-size="100" font-weight="bold" fill="#C9982A" text-anchor="middle" letter-spacing="5">BIZTRACK.NG</text>
+</svg>
