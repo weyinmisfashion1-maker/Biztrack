@@ -1394,11 +1394,23 @@ function viewSaleDetails(id) {
       </div>
     </div>
 
-    <div style="background:rgba(0,0,0,0.03); padding:0.65rem 0.75rem; border-radius:8px; margin-bottom:0.75rem; font-size:0.76rem; display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
-      <div><strong>ž Contact:</strong> ${esc(record.contact || 'N/A')}</div>
-      <div><strong> Address:</strong> ${esc(record.address || 'N/A')}</div>
-      <div><strong> Expected Delivery:</strong> ${esc(record.expected_delivery || record.delivery || 'N/A')}</div>
-      <div><strong>¬ Feedback:</strong> ${esc(record.feedback || 'None')}</div>
+    <div style="background:rgba(0,0,0,0.03); padding:0.65rem 0.75rem; border-radius:8px; margin-bottom:0.75rem; font-size:0.76rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 0.75rem;">
+      <div style="display:flex; align-items:center; gap:0.35rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color:var(--gold, #c9982a);"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>Contact:</strong> ${esc(record.contact || 'N/A')}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.35rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color:var(--gold, #c9982a);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>Address:</strong> ${esc(record.address || 'N/A')}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.35rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color:var(--gold, #c9982a);"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>Expected Delivery:</strong> ${esc(record.expected_delivery || record.delivery || 'N/A')}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.35rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; color:var(--gold, #c9982a);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>Feedback:</strong> ${esc(record.feedback || 'None')}</span>
+      </div>
     </div>
 
     <div style="margin-bottom:0.75rem;">
