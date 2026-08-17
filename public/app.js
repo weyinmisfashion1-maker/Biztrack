@@ -2403,23 +2403,31 @@ async function downloadMonthlySalesAsPNG(month) {
   if (!tableHtml) return toast('No records to download');
   
   try {
-    toast(' Preparing download...');
+    toast('📸 Generating high-quality image...');
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1200px';
+    container.style.background = '#ffffff';
+    container.style.padding = '24px';
+    container.style.boxSizing = 'border-box';
     container.innerHTML = tableHtml;
     document.body.appendChild(container);
     
     const canvas = await html2canvas(container, {
       backgroundColor: '#ffffff',
-      scale: 2,
+      scale: 4,
       logging: false,
-      useCORS: true
+      useCORS: true,
+      allowTaint: true,
+      width: 1200,
+      windowWidth: 1200
     });
     
     document.body.removeChild(container);
     
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
       const { Filesystem, Share } = Capacitor.Plugins;
       const fileName = `biztrack-sales-${month}.png`;
@@ -2433,17 +2441,17 @@ async function downloadMonthlySalesAsPNG(month) {
         title: 'BizTrack Sales Report',
         url: savedFile.uri,
       });
-      toast(' Ready to share!');
+      toast('✅ Ready to share!');
     } else {
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = `biztrack-sales-${month}.png`;
       link.click();
-      toast(' Downloaded as PNG!');
+      toast('✅ Downloaded as PNG!');
     }
   } catch (err) {
     console.error('Download error:', err);
-    toast('   Download failed');
+    toast('❌ Download failed');
   }
 }
 
