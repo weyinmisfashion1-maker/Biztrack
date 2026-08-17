@@ -2576,10 +2576,38 @@ async function handleLogoUpload(event) {
 }
 
 function renderLogoPreview() {
+  // Invoice panel logo preview
   const wrap = getEl('logo-preview-wrap');
-  if (!wrap) return;
-  if (PROFILE?.logo) wrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain" />`;
-  else wrap.innerHTML = `<span style="font-size:.6rem;color:var(--muted)">No Logo</span>`;
+  if (wrap) {
+    if (PROFILE?.logo) wrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain" />`;
+    else wrap.innerHTML = `<span style="font-size:.6rem;color:var(--muted)">No Logo</span>`;
+  }
+  // Profile page logo preview
+  const profileWrap = getEl('profile-logo-preview');
+  if (profileWrap) {
+    if (PROFILE?.logo) profileWrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" />`;
+    else profileWrap.innerHTML = `<span style="font-size:0.65rem;color:var(--muted);text-align:center;padding:0.25rem;">No Logo</span>`;
+  }
+}
+
+async function handleProfileLogoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!PROFILE) PROFILE = { id: user.id };
+      PROFILE.logo = base64;
+      renderLogoPreview();
+      const { error } = await sb.from('profiles').upsert({ id: user.id, logo: base64 });
+      if (error) throw error;
+      toast('✅ Logo saved!');
+      previewInvoice();
+    } catch (err) { toast('❌ Save failed.'); }
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveInvoiceAsImage() {
@@ -3207,7 +3235,7 @@ function wireForms() {
       const { data: { user } } = await sb.auth.getUser();
       const pinVal = getEl('prof-pin').value.trim();
       if (!/^\d{4}$/.test(pinVal)) {
-        return toast('  PIN must be exactly 4 digits');
+        return toast('   PIN must be exactly 4 digits');
       }
       const perms = readStaffPermsFromUI();
       const payload = {
@@ -3220,13 +3248,15 @@ function wireForms() {
         account_name: getEl('prof-acc-name').value.trim(),
         pin: pinVal,
         logo: PROFILE?.logo || null,
-        staff_permissions: perms
-      };
-      if (!payload.business_name) return toast('  Business Name is required');
-      const { error } = await sb.from('profiles').upsert(payload);
-      const extras = {
         instagram: (getEl('prof-instagram')?.value || '').trim(),
         website: (getEl('prof-website')?.value || '').trim(),
+        staff_permissions: perms
+      };
+      if (!payload.business_name) return toast('   Business Name is required');
+      const { error } = await sb.from('profiles').upsert(payload);
+      const extras = {
+        instagram: payload.instagram,
+        website: payload.website,
         qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
       };
       if (user?.id) saveProfileExtras(user.id, extras);
@@ -3972,6 +4002,7 @@ window.calcTotals = calcTotals;
 window.previewInvoice = previewInvoice;
 window.shareMonthlySalesPDF = shareMonthlySalesPDF;
 window.handleLogoUpload = handleLogoUpload;
+window.handleProfileLogoUpload = handleProfileLogoUpload;
 window.toggleInvMode = toggleInvMode;
 window.addManualItemRow = addManualItemRow;
 window.saveInvoiceAsImage = saveInvoiceAsImage;
