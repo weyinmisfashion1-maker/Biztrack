@@ -2374,27 +2374,7 @@ body.dark-mode #invoice-view * {
           </div>
         </div>
 
-        <!-- Business QR Code Upload -->
-        <div class="field" style="margin-top:1rem; border-top:1.5px solid var(--border); padding-top:1rem;">
-          <label style="font-size:0.88rem; font-weight:700; color:var(--text); display:block; margin-bottom:0.25rem;"> Business QR Code (For Instagram & Website)</label>
-          <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.75rem;">Upload your business QR code image for your website or Instagram profile below:</p>
 
-          <div style="display:flex; flex-wrap:wrap; gap:1.25rem; align-items:center;">
-            <div style="flex:1; min-width:220px;">
-              <label for="input-profile-qr" class="btn-ghost" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.55rem 1rem; font-size:0.82rem; font-weight:600; cursor:pointer; width:auto; text-align:center;">
-                 Upload QR Code Image
-              </label>
-              <input type="file" id="input-profile-qr" accept="image/*" style="display:none;" onchange="handleProfileQRUpload(event)" />
-            </div>
-
-            <!-- High-Res Scannable Preview Box -->
-            <div id="profile-qr-preview-box" style="width:220px; height:220px; border:2px solid var(--gold); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ffffff; position:relative; overflow:hidden; padding:0.5rem; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-              <div id="profile-qr-empty" style="font-size:0.8rem; font-weight:600; color:var(--muted); text-align:center; padding:0.5rem;">No QR Code Uploaded</div>
-              <img id="profile-qr-img" src="" alt="Business QR Code" style="display:none; width:100%; height:100%; object-fit:contain; image-rendering:-webkit-optimize-contrast; image-rendering:pixelated;" />
-              <button type="button" id="btn-remove-qr" onclick="removeProfileQR()" style="display:none; position:absolute; top:8px; right:8px; background:rgba(181,48,48,0.95); color:#fff; border:none; border-radius:50%; width:26px; height:26px; font-size:0.8rem; font-weight:700; cursor:pointer; align-items:center; justify-content:center; line-height:1; z-index:5;" title="Remove QR Code">✕</button>
-            </div>
-          </div>
-        </div>
         
         <button type="submit" class="btn-save">Update Business Details</button>
       </form>
