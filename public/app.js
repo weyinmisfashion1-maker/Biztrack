@@ -1,4 +1,4 @@
-/**
+﻿/**
  * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
@@ -2197,7 +2197,7 @@ function showMonthlySalesDetail(month) {
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           ${(!IS_LOCKED || (PROFILE?.staff_permissions?.can_print_report ?? STAFF_PERMS.can_print_report)) ? `
-          <button onclick="shareMonthlySalesPDF('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Print Report</button>
+          <button onclick="shareMonthlySalesPDF('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Download PDF</button>
           <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer"> Download PNG</button>
           ` : ''}
           <button onclick="closeMonthlySalesDetail()" style="display:inline-flex;align-items:center;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">✕ Close</button>
