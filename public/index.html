@@ -1971,7 +1971,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: ADD / EDIT PRODUCT POP-UP -->
-  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeAddProductModal()">
+  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:flex-start; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeAddProductModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:540px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Header -->
       <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2028,7 +2028,7 @@ body.dark-mode #invoice-view * {
   </div>
 
   <!-- MODAL: STOCK LIST POP-UP -->
-  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeStockListModal()">
+  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeStockListModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:680px; width:100%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Header -->
       <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2059,7 +2059,7 @@ body.dark-mode #invoice-view * {
   </div>
 
   <!-- MODAL: INSUFFICIENT STOCK WARNING -->
-  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:1rem;">
+  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:flex-start; justify-content:center; padding:1rem;">
     <div style="background:#fff; border-radius:var(--r, 12px); max-width:440px; width:100%; padding:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:4px solid var(--red, #B53030);">
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
         <span style="font-size:1.5rem;"> </span>
@@ -2115,7 +2115,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: INVOICE POP-UP DIALOG -->
-  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeInvoiceModal()">
+  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:flex-start; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeInvoiceModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:760px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Modal Header -->
       <div style="padding:0.75rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2313,7 +2313,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: MONTHLY SALES DETAIL -->
-  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;overflow-y:auto;padding:2rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
+  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
     <div style="background:var(--cream);border-radius:var(--r);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.15)">
       <div id="monthly-detail-content"></div>
     </div>
@@ -2624,7 +2624,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: SALE DETAILS -->
-<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
+<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
   <div class="card" style="max-width:520px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #1e293b);">Sale Record Details</h2>
@@ -2643,7 +2643,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: EXPENSE DETAILS -->
-<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
+<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
   <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #141009);">Expense Details</h2>
@@ -2665,7 +2665,7 @@ body.dark-mode #invoice-view * {
 
 
 <!-- MODAL: UTILITY FEATURES SELECTOR -->
-<div id="utility-features-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:998; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeUtilityFeaturesModal()">
+<div id="utility-features-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:998; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeUtilityFeaturesModal()">
   <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;"> Utility Features</h2>
@@ -2692,7 +2692,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: THANK YOU CARD GENERATOR -->
-<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeThankYouModal()">
+<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeThankYouModal()">
   <div class="card" style="max-width:540px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;"> Thank You Card Generator</h2>
