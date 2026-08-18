@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "powershell.exe -File server.ps1",
-    "build": "copy index.html www\\index.html && copy login.html www\\login.html && copy app.js www\\app.js && npx cap copy",
+    "build": "copy index.html www\\index.html && copy login.html www\\login.html && copy app.js www\\app.js && copy reset-password.html www\\reset-password.html && npx cap copy",
     "open-android": "npx.cmd cap open android"
   },
   "dependencies": {

@@ -328,7 +328,9 @@ body {
     const email = getEl('forgot-email').value;
 
     try {
-      const { error } = await window.sb.auth.resetPasswordForEmail(email);
+      const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://biztrack-project.vercel.app/reset-password.html'
+      });
       if (error) {
         console.error('Reset error:', error);
         throw new Error(error.message);
