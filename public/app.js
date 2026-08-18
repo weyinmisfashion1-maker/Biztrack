@@ -1,4 +1,4 @@
-﻿/**
+/**
  * app.js — BizTrack frontend logic with Supabase Integration.
  */
 
@@ -138,6 +138,13 @@ async function loadProfile() {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
     const extras = loadProfileExtras(user.id);
+    // Also read instagram/website stored inside staff_permissions JSONB (cloud-persisted)
+    if (data?.staff_permissions?._instagram !== undefined) {
+      extras.instagram = extras.instagram || data.staff_permissions._instagram;
+    }
+    if (data?.staff_permissions?._website !== undefined) {
+      extras.website = extras.website || data.staff_permissions._website;
+    }
     return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
@@ -3246,6 +3253,11 @@ function wireForms() {
         return toast('   PIN must be exactly 4 digits');
       }
       const perms = readStaffPermsFromUI();
+      const instagramVal = (getEl('prof-instagram')?.value || '').trim();
+      const websiteVal   = (getEl('prof-website')?.value || '').trim();
+      // Embed instagram + website inside staff_permissions JSONB (existing Supabase column)
+      // so they survive app reinstalls without needing new DB columns
+      const permsWithExtras = { ...perms, _instagram: instagramVal, _website: websiteVal };
       const payload = {
         id: user.id,
         business_name: getEl('prof-biz-name').value.trim(),
@@ -3256,27 +3268,25 @@ function wireForms() {
         account_name: getEl('prof-acc-name').value.trim(),
         pin: pinVal,
         logo: PROFILE?.logo || null,
-        instagram: (getEl('prof-instagram')?.value || '').trim(),
-        website: (getEl('prof-website')?.value || '').trim(),
-        staff_permissions: perms
+        staff_permissions: permsWithExtras
       };
       if (!payload.business_name) return toast('   Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
       const extras = {
-        instagram: payload.instagram,
-        website: payload.website,
+        instagram: instagramVal,
+        website: websiteVal,
         qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
       };
       if (user?.id) saveProfileExtras(user.id, extras);
 
-      PROFILE = { ...payload, ...extras };
+      PROFILE = { ...payload, instagram: instagramVal, website: websiteVal, ...extras };
       STAFF_PERMS = perms;
       renderProfileBanner(PROFILE);
       toast(' Business details & permissions updated!');
       switchTab('sales');
     } catch (err) { 
       console.error(err);
-      toast('  Update failed: ' + (err.message || 'Unknown error')); 
+      toast('   Update failed: ' + (err.message || 'Unknown error')); 
     }
   });
 
