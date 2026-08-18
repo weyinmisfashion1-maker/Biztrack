@@ -2298,106 +2298,116 @@ function getSpreadsheetHTML(month) {
   const totalExp = monthExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const profit = totalRev - totalExp;
   const bizName = PROFILE?.business_name || 'My Business';
-  
+
+  // Shared cell style — bold, dark, clearly readable
+  const cell = `border: 1.5px solid #222; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 13px; font-weight: 700; color: #111; font-family: Arial, sans-serif;`;
+  const cellR = cell + ' text-align: right;';
+  const cellC = cell + ' text-align: center;';
+
   const salesRows = monthSales.length ? monthSales.map((sale) => {
     const itemsList = (sale.items || []).map(item => `${esc(item.name)} ×${item.qty}`).join(', ');
     const totalQty = (sale.items || []).reduce((sum, item) => sum + Number(item.qty || 1), 0);
     return `
       <tr>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${sale.date}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;"><strong>${esc(sale.customer_name)}</strong></td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(sale.address || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(sale.contact || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(itemsList)}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: top;">${totalQty}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; vertical-align: top; font-weight:bold">${fmt(sale.total)}</td>
+        <td style="${cell}">${sale.date}</td>
+        <td style="${cell}">${esc(sale.customer_name)}</td>
+        <td style="${cell}">${esc(sale.address || '—')}</td>
+        <td style="${cell}">${esc(sale.contact || '—')}</td>
+        <td style="${cell}">${esc(itemsList)}</td>
+        <td style="${cellC}">${totalQty}</td>
+        <td style="${cellR} color: #1a6e1a;">${fmt(sale.total)}</td>
       </tr>
     `;
-  }).join('') : `<tr><td colspan="7" style="border:1px solid #000; padding:12px; text-align:center; color:#666;">No sales recorded for ${getMonthName(month)}</td></tr>`;
+  }).join('') : `<tr><td colspan="7" style="${cellC} color:#555;">No sales recorded for ${getMonthName(month)}</td></tr>`;
 
   const expenseRows = monthExpenses.length ? monthExpenses.map((exp) => {
     return `
       <tr>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${exp.date}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;"><strong>${esc(exp.type)}</strong></td>
-        <td colspan="4" style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(exp.description || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; vertical-align: top; font-weight:bold; color:#B53030;">${fmt(exp.amount)}</td>
+        <td style="${cell}">${exp.date}</td>
+        <td style="${cell}">${esc(exp.type)}</td>
+        <td colspan="4" style="${cell}">${esc(exp.description || '—')}</td>
+        <td style="${cellR} color: #b53030;">${fmt(exp.amount)}</td>
       </tr>
     `;
-  }).join('') : `<tr><td colspan="7" style="border:1px solid #000; padding:12px; text-align:center; color:#666;">No expenses recorded for ${getMonthName(month)}</td></tr>`;
+  }).join('') : `<tr><td colspan="7" style="${cellC} color:#555;">No expenses recorded for ${getMonthName(month)}</td></tr>`;
+
+  // Header cell style — dark background, white text, bold
+  const th = `border: 1.5px solid #222; padding: 9px 10px; font-size: 13px; font-weight: 700; font-family: Arial, sans-serif; background: #222; color: #fff; text-align: left;`;
+  const thC = th + ' text-align: center;';
+  const thR = th + ' text-align: right;';
 
   return `
-    <div style="font-family: Arial, sans-serif; background: white; color: #000; font-size: 11px; padding: 20px; width: 800px; box-sizing: border-box;">
-      <div style="text-align:center; border: 2px solid #000; padding: 15px; margin-bottom: 15px; background:#fafafa;">
-        <h2 style="margin:0 0 5px 0; font-size:22px; text-transform:uppercase; letter-spacing:1px;">${esc(bizName)}</h2>
-        <h3 style="margin:0; font-size:15px; color:#333;">Monthly Sales & Financial Report — <strong>${getMonthName(month)}</strong></h3>
+    <div style="font-family: Arial, sans-serif; background: white; color: #111; font-size: 14px; padding: 24px; box-sizing: border-box;">
+      <div style="text-align:center; border: 2.5px solid #222; padding: 18px; margin-bottom: 18px; background:#f8f8f8;">
+        <h2 style="margin:0 0 6px 0; font-size:26px; text-transform:uppercase; letter-spacing:2px; font-weight:900; color:#111;">${esc(bizName)}</h2>
+        <h3 style="margin:0; font-size:16px; color:#333; font-weight:700;">Monthly Sales &amp; Financial Report — <strong>${getMonthName(month)}</strong></h3>
       </div>
 
-      <!-- Financial Overview for Selected Month -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px;">
+      <!-- Financial Summary -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 18px;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="33%">${getMonthName(month)} Revenue</th>
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="33%">${getMonthName(month)} Expenses</th>
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="34%">${getMonthName(month)} Net Profit</th>
+          <tr>
+            <th style="${thC}">${getMonthName(month)} Revenue</th>
+            <th style="${thC}">${getMonthName(month)} Expenses</th>
+            <th style="${thC}">${getMonthName(month)} Net Profit</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: green;">${fmt(totalRev)}</td>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: red;">${fmt(totalExp)}</td>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: ${profit >= 0 ? 'green' : 'red'};">${fmt(profit)}</td>
+            <td style="${cellC} font-size:16px; color:#1a6e1a;">${fmt(totalRev)}</td>
+            <td style="${cellC} font-size:16px; color:#b53030;">${fmt(totalExp)}</td>
+            <td style="${cellC} font-size:16px; color:${profit >= 0 ? '#1a6e1a' : '#b53030'};">${fmt(profit)}</td>
           </tr>
         </tbody>
       </table>
 
       <!-- Sales Table -->
-      <h4 style="margin:15px 0 5px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Sales Records for ${getMonthName(month)} (${monthSales.length})</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 15px;">
+      <h4 style="margin:18px 0 6px 0; font-size:14px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#111;">Sales Records for ${getMonthName(month)} (${monthSales.length})</h4>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 18px;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="12%">Date</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="18%">Customer Name</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Address</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="13%">Phone</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Items Ordered</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: center;" width="5%">Qty</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: right;" width="12%">Amount (₦)</th>
+          <tr>
+            <th style="${th}" width="12%">Date</th>
+            <th style="${th}" width="18%">Customer Name</th>
+            <th style="${th}" width="18%">Address</th>
+            <th style="${th}" width="13%">Phone</th>
+            <th style="${th}" width="22%">Items Ordered</th>
+            <th style="${thC}" width="5%">Qty</th>
+            <th style="${thR}" width="12%">Amount (₦)</th>
           </tr>
         </thead>
         <tbody>
           ${salesRows}
         </tbody>
         <tfoot>
-          <tr style="background-color: #f9f9f9;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Total Revenue (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 11px; padding: 8px; border: 1px solid #000; color:green">${fmt(totalRev)}</td>
+          <tr style="background:#e8e8e8;">
+            <th colspan="6" style="${thR} background:#e8e8e8; color:#111;">Total Revenue (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:14px; color:#1a6e1a;">${fmt(totalRev)}</td>
           </tr>
         </tfoot>
       </table>
 
       <!-- Expenses Table -->
-      <h4 style="margin:15px 0 5px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Expense Records for ${getMonthName(month)} (${monthExpenses.length})</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+      <h4 style="margin:18px 0 6px 0; font-size:14px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#111;">Expense Records for ${getMonthName(month)} (${monthExpenses.length})</h4>
+      <table style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="12%">Date</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Expense Type</th>
-            <th colspan="4" style="border: 1px solid #000; padding: 6px 8px; text-align: left;">Description</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: right;" width="15%">Amount (₦)</th>
+          <tr>
+            <th style="${th}" width="12%">Date</th>
+            <th style="${th}" width="20%">Expense Type</th>
+            <th colspan="4" style="${th}">Description</th>
+            <th style="${thR}" width="15%">Amount (₦)</th>
           </tr>
         </thead>
         <tbody>
           ${expenseRows}
         </tbody>
         <tfoot>
-          <tr style="background-color: #f9f9f9;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Total Expenses (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 11px; padding: 8px; border: 1px solid #000; color:red">${fmt(totalExp)}</td>
+          <tr style="background:#e8e8e8;">
+            <th colspan="6" style="${thR} background:#e8e8e8; color:#111;">Total Expenses (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:14px; color:#b53030;">${fmt(totalExp)}</td>
           </tr>
-          <tr style="background-color: #eee;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Net Profit (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 12px; padding: 8px; border: 1px solid #000; color:${profit >= 0 ? 'green' : 'red'};">${fmt(profit)}</td>
+          <tr style="background:#d4d4d4;">
+            <th colspan="6" style="${thR} background:#d4d4d4; color:#111;">Net Profit (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:15px; color:${profit >= 0 ? '#1a6e1a' : '#b53030'};">${fmt(profit)}</td>
           </tr>
         </tfoot>
       </table>
@@ -2439,16 +2449,35 @@ async function downloadMonthlySalesAsPNG(month) {
       const { Filesystem, Share } = Capacitor.Plugins;
       const fileName = `biztrack-sales-${month}.png`;
       const base64Data = dataUrl.split(',')[1];
+
+      // Save to CACHE for sharing
       const savedFile = await Filesystem.writeFile({
         path: fileName,
         data: base64Data,
         directory: 'CACHE'
       });
+
+      // Also save to PICTURES so it appears in the phone Gallery
+      try {
+        await Filesystem.writeFile({
+          path: `BizTrack/${fileName}`,
+          data: base64Data,
+          directory: 'EXTERNAL_STORAGE',
+          recursive: true
+        });
+        toast('✅ Saved to Gallery (BizTrack folder)!');
+      } catch (galleryErr) {
+        console.warn('Gallery save failed, falling back to share only:', galleryErr);
+      }
+
+      // Open share sheet so user can also share to WhatsApp etc.
       await Share.share({
         title: 'BizTrack Sales Report',
+        text: 'Monthly Sales Report',
         url: savedFile.uri,
       });
       toast('✅ Ready to share!');
+
     } else {
       const link = document.createElement('a');
       link.href = dataUrl;
