@@ -2408,7 +2408,7 @@ async function downloadMonthlySalesAsPNG(month) {
     container.style.position = 'absolute';
     container.style.left = '-9999px';
     container.style.top = '0';
-    container.style.width = '1200px';
+    container.style.width = '1600px';
     container.style.background = '#ffffff';
     container.style.padding = '24px';
     container.style.boxSizing = 'border-box';
@@ -2417,12 +2417,12 @@ async function downloadMonthlySalesAsPNG(month) {
     
     const canvas = await html2canvas(container, {
       backgroundColor: '#ffffff',
-      scale: 4,
+      scale: 6,
       logging: false,
       useCORS: true,
       allowTaint: true,
-      width: 1200,
-      windowWidth: 1200
+      width: 1600,
+      windowWidth: 1600
     });
     
     document.body.removeChild(container);
