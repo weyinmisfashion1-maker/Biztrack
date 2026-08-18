@@ -2493,58 +2493,105 @@ async function downloadMonthlySalesAsPNG(month) {
 
 async function shareMonthlySalesPDF(month) {
   const tableHtml = getSpreadsheetHTML(month);
-  if (!tableHtml) return toast('No records to print');
-  
+  if (!tableHtml) return toast('No records to export');
+
   try {
-    toast(' Preparing Print Dialog...');
-    
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    document.body.appendChild(iframe);
+    toast('📄 Generating PDF...');
 
-    iframe.contentWindow.document.open();
-    iframe.contentWindow.document.write(`
-      <html>
-        <head>
-          <title>Sales Report - ${month}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            @media print {
-              @page { size: portrait; margin: 10mm; }
-              body { padding: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          ${tableHtml}
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.focus();
-                window.print();
-              }, 300);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    iframe.contentWindow.document.close();
+    // Render the report into an off-screen container
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1200px';
+    container.style.background = '#ffffff';
+    container.style.padding = '24px';
+    container.style.boxSizing = 'border-box';
+    container.innerHTML = tableHtml;
+    document.body.appendChild(container);
 
-    // Clean up iframe after a delay to ensure printing finishes
-    setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
+    const canvas = await html2canvas(container, {
+      backgroundColor: '#ffffff',
+      scale: 3,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+      width: 1200,
+      windowWidth: 1200
+    });
+
+    document.body.removeChild(container);
+
+    // Build PDF with jsPDF
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    // Split across pages if content is taller than one A4 page
+    let position = 0;
+    let heightLeft = imgH;
+    pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH, '', 'FAST');
+    heightLeft -= pageH;
+    while (heightLeft > 0) {
+      position = heightLeft - imgH;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH, '', 'FAST');
+      heightLeft -= pageH;
+    }
+
+    const fileName = `biztrack-sales-${month}.pdf`;
+
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem, Share } = Capacitor.Plugins;
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+      
+      // Save to CACHE for sharing
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: pdfBase64,
+        directory: 'CACHE'
+      });
+
+      // Also save to DOCUMENTS/BizTrack so it's permanently stored/downloaded
+      try {
+        await Filesystem.writeFile({
+          path: `BizTrack/${fileName}`,
+          data: pdfBase64,
+          directory: 'DOCUMENTS',
+          recursive: true
+        });
+        toast('✅ Saved to Documents (BizTrack folder)!');
+      } catch (docErr) {
+        console.warn('Documents save failed, saving to Documents root:', docErr);
+        try {
+          await Filesystem.writeFile({
+            path: fileName,
+            data: pdfBase64,
+            directory: 'DOCUMENTS'
+          });
+          toast('✅ Saved to Documents!');
+        } catch (docErr2) {
+          console.error('All document saving failed:', docErr2);
+        }
       }
-    }, 5000);
+
+      await Share.share({
+        title: 'BizTrack Sales Report',
+        url: savedFile.uri,
+      });
+      toast('✅ PDF ready to share!');
+    } else {
+      pdf.save(fileName);
+      toast('✅ PDF downloaded!');
+    }
 
   } catch (err) {
-    console.error('Print error:', err);
-    toast(' Print preparation failed');
+    console.error('PDF error:', err);
+    toast('❌ PDF generation failed: ' + err.message);
   }
 }
 
