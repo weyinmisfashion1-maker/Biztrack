@@ -138,6 +138,13 @@ async function loadProfile() {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
     const extras = loadProfileExtras(user.id);
+    // Also read instagram/website stored inside staff_permissions JSONB (cloud-persisted)
+    if (data?.staff_permissions?._instagram !== undefined) {
+      extras.instagram = extras.instagram || data.staff_permissions._instagram;
+    }
+    if (data?.staff_permissions?._website !== undefined) {
+      extras.website = extras.website || data.staff_permissions._website;
+    }
     return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
@@ -560,11 +567,11 @@ function buildItemRowHTML(index, item = null) {
 
   return `
     <div class="item-row" data-stock-id="${stockId}" style="display:flex; flex-direction:column; gap:0.15rem; margin-bottom:0.25rem; padding:0.25rem 0.35rem; border:1px solid var(--border); border-radius:6px; background:#fff;">
-      <div style="display:flex; gap:0.3rem; align-items:center;">
-        <input type="text" id="item-name-${index}" class="iname" list="inventory-item-suggestions" placeholder="Type item name or select inventory product." aria-label="Item name" autocomplete="none" value="${nameVal}" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="flex:2.2; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border);" />
-        <input type="number" id="item-qty-${index}" class="iqty" placeholder="1" aria-label="Quantity" min="1" value="${qtyVal}" oninput="calcTotals()" style="flex:0.6; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border);" />
-        <input type="number" id="item-price-${index}" class="iprice" placeholder="0.00" aria-label="Unit price ₦" min="0" step="0.01" value="${priceVal}" oninput="calcTotals()" style="flex:0.9; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border);" />
-        <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0.1rem 0.35rem; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
+      <div style="display:grid; grid-template-columns:1fr 45px 80px 24px; gap:0.3rem; align-items:center;">
+        <input type="text" id="item-name-${index}" class="iname" list="inventory-item-suggestions" placeholder="Item name..." aria-label="Item name" autocomplete="none" value="${nameVal}" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="width:100%; box-sizing:border-box; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border);" />
+        <input type="number" id="item-qty-${index}" class="iqty" placeholder="1" aria-label="Quantity" min="1" value="${qtyVal}" oninput="calcTotals()" style="width:100%; box-sizing:border-box; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border); text-align:center;" />
+        <input type="number" id="item-price-${index}" class="iprice" placeholder="0.00" aria-label="Unit price ₦" min="0" step="0.01" value="${priceVal}" oninput="calcTotals()" style="width:100%; box-sizing:border-box; font-size:0.75rem; padding:0.15rem 0.35rem; height:26px; border-radius:5px; border:1px solid var(--border); text-align:right;" />
+        <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="width:100%; background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
       </div>
       <div class="stock-badge-info" style="font-size:0.66rem; color:var(--muted); padding-left:0.15rem;"></div>
     </div>
@@ -1124,21 +1131,21 @@ function _renderDeletedSalesList() {
     const itemsSummary = (record.items || []).map(item => `${item.name} ×${item.qty}`).join(', ');
     const badgeClass = record.status === 'Delivered' ? 'b-deliv' : record.status === 'Failed' ? 'b-fail' : 'b-pend';
     
-    const actionButtons = `
-      <button type="button" class="btn-ghost" style="margin-left:.75rem;color:var(--gold);border-color:rgba(201,152,42,.2)" onclick="restoreSale('${record.id}')">Restore</button>
-      <button type="button" class="btn-ghost" style="margin-left:.5rem;color:var(--red);border-color:rgba(181,48,48,.2)" onclick="permanentlyDeleteSale('${record.id}')">Delete Permanently</button>
-    `;
-
     return `
-      <li class="li">
-        <div class="li-body">
-          <div class="li-name">${esc(record.customer_name)}</div>
-          <div class="li-sub">${record.date} · ${itemsSummary} (Deleted)</div>
+      <li class="li" style="display:flex; flex-direction:column; gap:0.5rem; padding:0.85rem; border-radius:10px; margin-bottom:0.5rem; border:1px solid var(--border); background:#fff; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem; flex-wrap:wrap;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:0.95rem; font-weight:700; color:var(--text); word-break:break-word;">${esc(record.customer_name)}</div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:0.15rem; word-break:break-word;">${record.date} · ${itemsSummary} (Deleted)</div>
+          </div>
+          <div style="font-size:0.95rem; font-weight:700; color:var(--red); flex-shrink:0;">${fmt(record.total)}</div>
         </div>
-        <div class="li-right">
-          <div class="li-amt">${fmt(record.total)}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.4rem;">
           <span class="badge ${badgeClass}">${esc(record.status)}</span>
-          ${actionButtons}
+          <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <button type="button" class="btn-ghost" style="color:var(--gold);border-color:rgba(201,152,42,.2);padding:0.35rem 0.75rem;font-size:0.8rem;" onclick="restoreSale('${record.id}')">Restore</button>
+            <button type="button" class="btn-ghost" style="color:var(--red);border-color:rgba(181,48,48,.2);padding:0.35rem 0.75rem;font-size:0.8rem;" onclick="permanentlyDeleteSale('${record.id}')">Delete Permanently</button>
+          </div>
         </div>
       </li>`;
   }).join('');
@@ -2197,7 +2204,7 @@ function showMonthlySalesDetail(month) {
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           ${(!IS_LOCKED || (PROFILE?.staff_permissions?.can_print_report ?? STAFF_PERMS.can_print_report)) ? `
-          <button onclick="printMonthlySalesDetail('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer"> Print</button>
+          <button onclick="shareMonthlySalesPDF('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--ink);color:var(--gold);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Download PDF</button>
           <button onclick="downloadMonthlySalesAsPNG('${month}')" style="display:inline-flex;align-items:center;gap:.35rem;background:var(--gold);color:var(--ink);border:none;border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:700;cursor:pointer"> Download PNG</button>
           ` : ''}
           <button onclick="closeMonthlySalesDetail()" style="display:inline-flex;align-items:center;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.45rem .9rem;font-size:.75rem;font-weight:600;cursor:pointer">✕ Close</button>
@@ -2205,25 +2212,25 @@ function showMonthlySalesDetail(month) {
       </div>
 
       <!-- Summary Stat Chips for Selected Month -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.625rem;margin-bottom:1.25rem">
-        <div style="background:var(--green-bg);border-radius:8px;padding:.75rem;border-left:3px solid var(--green)">
+      <div style="display:flex;flex-wrap:wrap;gap:.625rem;margin-bottom:1.25rem">
+        <div style="flex:1 1 130px;background:var(--green-bg);border-radius:8px;padding:.75rem;border-left:3px solid var(--green);box-sizing:border-box">
           <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--green);font-weight:700">${getMonthName(month)} Revenue</div>
-          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--green);margin-top:.15rem">${fmt(totalRev)}</div>
+          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--green);margin-top:.15rem;word-wrap:break-word">${fmt(totalRev)}</div>
         </div>
-        <div style="background:var(--red-bg);border-radius:8px;padding:.75rem;border-left:3px solid var(--red)">
+        <div style="flex:1 1 130px;background:var(--red-bg);border-radius:8px;padding:.75rem;border-left:3px solid var(--red);box-sizing:border-box">
           <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--red);font-weight:700">${getMonthName(month)} Expenses</div>
-          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--red);margin-top:.15rem">${fmt(totalExp)}</div>
+          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:var(--red);margin-top:.15rem;word-wrap:break-word">${fmt(totalExp)}</div>
         </div>
-        <div style="background:${profit >= 0 ? 'var(--green-bg)' : 'var(--red-bg)'};border-radius:8px;padding:.75rem;border-left:3px solid ${profit >= 0 ? 'var(--green)' : 'var(--red)'}">
+        <div style="flex:1 1 130px;background:${profit >= 0 ? 'var(--green-bg)' : 'var(--red-bg)'};border-radius:8px;padding:.75rem;border-left:3px solid ${profit >= 0 ? 'var(--green)' : 'var(--red)'};box-sizing:border-box">
           <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:${profit >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:700">${getMonthName(month)} Net Profit</div>
-          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--red)'};margin-top:.15rem">${fmt(profit)}</div>
+          <div style="font-family:var(--ff-head);font-size:1.05rem;font-weight:700;color:${profit >= 0 ? 'var(--green)' : 'var(--red)'};margin-top:.15rem;word-wrap:break-word">${fmt(profit)}</div>
         </div>
       </div>
 
       <!-- Sales Table for Selected Month -->
       <div style="margin-bottom:.5rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Sales Records for ${getMonthName(month)} (${monthSales.length})</div>
       <div style="overflow-x:auto;border-radius:8px;border:1.5px solid var(--border);margin-bottom:1.5rem">
-        <table style="width:100%;border-collapse:collapse;min-width:100%">
+        <table style="width:100%;border-collapse:collapse;min-width:700px">
           <thead>
             <tr>
               <th style="${thStyle};border-radius:6px 0 0 0">Date</th>
@@ -2249,7 +2256,7 @@ function showMonthlySalesDetail(month) {
       <!-- Expenses Table for Selected Month -->
       <div style="margin-bottom:.5rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Expense Records for ${getMonthName(month)} (${monthExpenses.length})</div>
       <div style="overflow-x:auto;border-radius:8px;border:1.5px solid var(--border)">
-        <table style="width:100%;border-collapse:collapse;min-width:100%">
+        <table style="width:100%;border-collapse:collapse;min-width:600px">
           <thead>
             <tr>
               <th style="${thStyle};border-radius:6px 0 0 0">Date</th>
@@ -2291,106 +2298,116 @@ function getSpreadsheetHTML(month) {
   const totalExp = monthExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const profit = totalRev - totalExp;
   const bizName = PROFILE?.business_name || 'My Business';
-  
+
+  // Shared cell style — bold, dark, clearly readable
+  const cell = `border: 1.5px solid #222; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 13px; font-weight: 700; color: #111; font-family: Arial, sans-serif;`;
+  const cellR = cell + ' text-align: right;';
+  const cellC = cell + ' text-align: center;';
+
   const salesRows = monthSales.length ? monthSales.map((sale) => {
     const itemsList = (sale.items || []).map(item => `${esc(item.name)} ×${item.qty}`).join(', ');
     const totalQty = (sale.items || []).reduce((sum, item) => sum + Number(item.qty || 1), 0);
     return `
       <tr>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${sale.date}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;"><strong>${esc(sale.customer_name)}</strong></td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(sale.address || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(sale.contact || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(itemsList)}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: center; vertical-align: top;">${totalQty}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; vertical-align: top; font-weight:bold">${fmt(sale.total)}</td>
+        <td style="${cell}">${sale.date}</td>
+        <td style="${cell}">${esc(sale.customer_name)}</td>
+        <td style="${cell}">${esc(sale.address || '—')}</td>
+        <td style="${cell}">${esc(sale.contact || '—')}</td>
+        <td style="${cell}">${esc(itemsList)}</td>
+        <td style="${cellC}">${totalQty}</td>
+        <td style="${cellR} color: #1a6e1a;">${fmt(sale.total)}</td>
       </tr>
     `;
-  }).join('') : `<tr><td colspan="7" style="border:1px solid #000; padding:12px; text-align:center; color:#666;">No sales recorded for ${getMonthName(month)}</td></tr>`;
+  }).join('') : `<tr><td colspan="7" style="${cellC} color:#555;">No sales recorded for ${getMonthName(month)}</td></tr>`;
 
   const expenseRows = monthExpenses.length ? monthExpenses.map((exp) => {
     return `
       <tr>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${exp.date}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;"><strong>${esc(exp.type)}</strong></td>
-        <td colspan="4" style="border: 1px solid #000; padding: 6px 8px; text-align: left; vertical-align: top;">${esc(exp.description || '—')}</td>
-        <td style="border: 1px solid #000; padding: 6px 8px; text-align: right; vertical-align: top; font-weight:bold; color:#B53030;">${fmt(exp.amount)}</td>
+        <td style="${cell}">${exp.date}</td>
+        <td style="${cell}">${esc(exp.type)}</td>
+        <td colspan="4" style="${cell}">${esc(exp.description || '—')}</td>
+        <td style="${cellR} color: #b53030;">${fmt(exp.amount)}</td>
       </tr>
     `;
-  }).join('') : `<tr><td colspan="7" style="border:1px solid #000; padding:12px; text-align:center; color:#666;">No expenses recorded for ${getMonthName(month)}</td></tr>`;
+  }).join('') : `<tr><td colspan="7" style="${cellC} color:#555;">No expenses recorded for ${getMonthName(month)}</td></tr>`;
+
+  // Header cell style — dark background, white text, bold
+  const th = `border: 1.5px solid #222; padding: 9px 10px; font-size: 13px; font-weight: 700; font-family: Arial, sans-serif; background: #222; color: #fff; text-align: left;`;
+  const thC = th + ' text-align: center;';
+  const thR = th + ' text-align: right;';
 
   return `
-    <div style="font-family: Arial, sans-serif; background: white; color: #000; font-size: 11px; padding: 20px; width: 800px; box-sizing: border-box;">
-      <div style="text-align:center; border: 2px solid #000; padding: 15px; margin-bottom: 15px; background:#fafafa;">
-        <h2 style="margin:0 0 5px 0; font-size:22px; text-transform:uppercase; letter-spacing:1px;">${esc(bizName)}</h2>
-        <h3 style="margin:0; font-size:15px; color:#333;">Monthly Sales & Financial Report — <strong>${getMonthName(month)}</strong></h3>
+    <div style="font-family: Arial, sans-serif; background: white; color: #111; font-size: 14px; padding: 24px; box-sizing: border-box;">
+      <div style="text-align:center; border: 2.5px solid #222; padding: 18px; margin-bottom: 18px; background:#f8f8f8;">
+        <h2 style="margin:0 0 6px 0; font-size:26px; text-transform:uppercase; letter-spacing:2px; font-weight:900; color:#111;">${esc(bizName)}</h2>
+        <h3 style="margin:0; font-size:16px; color:#333; font-weight:700;">Monthly Sales &amp; Financial Report — <strong>${getMonthName(month)}</strong></h3>
       </div>
 
-      <!-- Financial Overview for Selected Month -->
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px;">
+      <!-- Financial Summary -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 18px;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="33%">${getMonthName(month)} Revenue</th>
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="33%">${getMonthName(month)} Expenses</th>
-            <th style="border: 1px solid #000; padding: 8px; text-align: center;" width="34%">${getMonthName(month)} Net Profit</th>
+          <tr>
+            <th style="${thC}">${getMonthName(month)} Revenue</th>
+            <th style="${thC}">${getMonthName(month)} Expenses</th>
+            <th style="${thC}">${getMonthName(month)} Net Profit</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: green;">${fmt(totalRev)}</td>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: red;">${fmt(totalExp)}</td>
-            <td style="border: 1px solid #000; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: ${profit >= 0 ? 'green' : 'red'};">${fmt(profit)}</td>
+            <td style="${cellC} font-size:16px; color:#1a6e1a;">${fmt(totalRev)}</td>
+            <td style="${cellC} font-size:16px; color:#b53030;">${fmt(totalExp)}</td>
+            <td style="${cellC} font-size:16px; color:${profit >= 0 ? '#1a6e1a' : '#b53030'};">${fmt(profit)}</td>
           </tr>
         </tbody>
       </table>
 
       <!-- Sales Table -->
-      <h4 style="margin:15px 0 5px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Sales Records for ${getMonthName(month)} (${monthSales.length})</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 15px;">
+      <h4 style="margin:18px 0 6px 0; font-size:14px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#111;">Sales Records for ${getMonthName(month)} (${monthSales.length})</h4>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 18px;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="12%">Date</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="18%">Customer Name</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Address</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="13%">Phone</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Items Ordered</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: center;" width="5%">Qty</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: right;" width="12%">Amount (₦)</th>
+          <tr>
+            <th style="${th}" width="12%">Date</th>
+            <th style="${th}" width="18%">Customer Name</th>
+            <th style="${th}" width="18%">Address</th>
+            <th style="${th}" width="13%">Phone</th>
+            <th style="${th}" width="22%">Items Ordered</th>
+            <th style="${thC}" width="5%">Qty</th>
+            <th style="${thR}" width="12%">Amount (₦)</th>
           </tr>
         </thead>
         <tbody>
           ${salesRows}
         </tbody>
         <tfoot>
-          <tr style="background-color: #f9f9f9;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Total Revenue (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 11px; padding: 8px; border: 1px solid #000; color:green">${fmt(totalRev)}</td>
+          <tr style="background:#e8e8e8;">
+            <th colspan="6" style="${thR} background:#e8e8e8; color:#111;">Total Revenue (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:14px; color:#1a6e1a;">${fmt(totalRev)}</td>
           </tr>
         </tfoot>
       </table>
 
       <!-- Expenses Table -->
-      <h4 style="margin:15px 0 5px 0; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Expense Records for ${getMonthName(month)} (${monthExpenses.length})</h4>
-      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+      <h4 style="margin:18px 0 6px 0; font-size:14px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#111;">Expense Records for ${getMonthName(month)} (${monthExpenses.length})</h4>
+      <table style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr style="background-color: #f4f4f4;">
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="12%">Date</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: left;" width="20%">Expense Type</th>
-            <th colspan="4" style="border: 1px solid #000; padding: 6px 8px; text-align: left;">Description</th>
-            <th style="border: 1px solid #000; padding: 6px 8px; text-align: right;" width="15%">Amount (₦)</th>
+          <tr>
+            <th style="${th}" width="12%">Date</th>
+            <th style="${th}" width="20%">Expense Type</th>
+            <th colspan="4" style="${th}">Description</th>
+            <th style="${thR}" width="15%">Amount (₦)</th>
           </tr>
         </thead>
         <tbody>
           ${expenseRows}
         </tbody>
         <tfoot>
-          <tr style="background-color: #f9f9f9;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Total Expenses (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 11px; padding: 8px; border: 1px solid #000; color:red">${fmt(totalExp)}</td>
+          <tr style="background:#e8e8e8;">
+            <th colspan="6" style="${thR} background:#e8e8e8; color:#111;">Total Expenses (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:14px; color:#b53030;">${fmt(totalExp)}</td>
           </tr>
-          <tr style="background-color: #eee;">
-            <th colspan="6" style="text-align: right; font-weight: bold; padding: 8px; border: 1px solid #000;">Net Profit (${getMonthName(month)}):</th>
-            <td style="text-align: right; font-weight: bold; font-size: 12px; padding: 8px; border: 1px solid #000; color:${profit >= 0 ? 'green' : 'red'};">${fmt(profit)}</td>
+          <tr style="background:#d4d4d4;">
+            <th colspan="6" style="${thR} background:#d4d4d4; color:#111;">Net Profit (${getMonthName(month)}):</th>
+            <td style="${cellR} font-size:15px; color:${profit >= 0 ? '#1a6e1a' : '#b53030'};">${fmt(profit)}</td>
           </tr>
         </tfoot>
       </table>
@@ -2403,56 +2420,178 @@ async function downloadMonthlySalesAsPNG(month) {
   if (!tableHtml) return toast('No records to download');
   
   try {
-    toast(' Preparing download...');
+    toast('📸 Generating high-quality image...');
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1600px';
+    container.style.background = '#ffffff';
+    container.style.padding = '24px';
+    container.style.boxSizing = 'border-box';
     container.innerHTML = tableHtml;
     document.body.appendChild(container);
     
     const canvas = await html2canvas(container, {
       backgroundColor: '#ffffff',
-      scale: 2,
+      scale: 6,
       logging: false,
-      useCORS: true
+      useCORS: true,
+      allowTaint: true,
+      width: 1600,
+      windowWidth: 1600
     });
     
     document.body.removeChild(container);
     
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `biztrack-sales-${month}.png`;
-    link.click();
-    toast(' Downloaded as PNG!');
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem, Share } = Capacitor.Plugins;
+      const fileName = `biztrack-sales-${month}.png`;
+      const base64Data = dataUrl.split(',')[1];
+
+      // Save to CACHE for sharing
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: 'CACHE'
+      });
+
+      // Also save to PICTURES so it appears in the phone Gallery
+      try {
+        await Filesystem.writeFile({
+          path: `BizTrack/${fileName}`,
+          data: base64Data,
+          directory: 'EXTERNAL_STORAGE',
+          recursive: true
+        });
+        toast('✅ Saved to Gallery (BizTrack folder)!');
+      } catch (galleryErr) {
+        console.warn('Gallery save failed, falling back to share only:', galleryErr);
+      }
+
+      // Open share sheet so user can also share to WhatsApp etc.
+      await Share.share({
+        title: 'BizTrack Sales Report',
+        text: 'Monthly Sales Report',
+        url: savedFile.uri,
+      });
+      toast('✅ Ready to share!');
+
+    } else {
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `biztrack-sales-${month}.png`;
+      link.click();
+      toast('✅ Downloaded as PNG!');
+    }
   } catch (err) {
     console.error('Download error:', err);
-    toast('  Download failed');
+    toast('❌ Download failed');
   }
 }
 
-function printMonthlySalesDetail(month) {
+async function shareMonthlySalesPDF(month) {
   const tableHtml = getSpreadsheetHTML(month);
-  if (!tableHtml) return toast('No records to print');
+  if (!tableHtml) return toast('No records to export');
+
   try {
-    const printWindow = window.open('', '', 'width=800,height=600');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Sales Report - ${getMonthName(month)}</title>
-        <style>@media print { body { padding: 0; margin: 0; } .no-print { display: none; } }</style>
-      </head>
-      <body style="margin:0; padding:0;">
-        ${tableHtml}
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-    toast(' Opened print preview');
+    toast('📄 Generating PDF...');
+
+    // Render the report into an off-screen container
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '1200px';
+    container.style.background = '#ffffff';
+    container.style.padding = '24px';
+    container.style.boxSizing = 'border-box';
+    container.innerHTML = tableHtml;
+    document.body.appendChild(container);
+
+    const canvas = await html2canvas(container, {
+      backgroundColor: '#ffffff',
+      scale: 3,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+      width: 1200,
+      windowWidth: 1200
+    });
+
+    document.body.removeChild(container);
+
+    // Build PDF with jsPDF
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    // Split across pages if content is taller than one A4 page
+    let position = 0;
+    let heightLeft = imgH;
+    pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH, '', 'FAST');
+    heightLeft -= pageH;
+    while (heightLeft > 0) {
+      position = heightLeft - imgH;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgW, imgH, '', 'FAST');
+      heightLeft -= pageH;
+    }
+
+    const fileName = `biztrack-sales-${month}.pdf`;
+
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem, Share } = Capacitor.Plugins;
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+      
+      // Save to CACHE for sharing
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: pdfBase64,
+        directory: 'CACHE'
+      });
+
+      // Also save to DOCUMENTS/BizTrack so it's permanently stored/downloaded
+      try {
+        await Filesystem.writeFile({
+          path: `BizTrack/${fileName}`,
+          data: pdfBase64,
+          directory: 'DOCUMENTS',
+          recursive: true
+        });
+        toast('✅ Saved to Documents (BizTrack folder)!');
+      } catch (docErr) {
+        console.warn('Documents save failed, saving to Documents root:', docErr);
+        try {
+          await Filesystem.writeFile({
+            path: fileName,
+            data: pdfBase64,
+            directory: 'DOCUMENTS'
+          });
+          toast('✅ Saved to Documents!');
+        } catch (docErr2) {
+          console.error('All document saving failed:', docErr2);
+        }
+      }
+
+      await Share.share({
+        title: 'BizTrack Sales Report',
+        url: savedFile.uri,
+      });
+      toast('✅ PDF ready to share!');
+    } else {
+      pdf.save(fileName);
+      toast('✅ PDF downloaded!');
+    }
+
   } catch (err) {
-    console.error('Print error:', err);
-    toast('  Print failed');
+    console.error('PDF error:', err);
+    toast('❌ PDF generation failed: ' + err.message);
   }
 }
 
@@ -2484,13 +2623,14 @@ function toggleInvMode(mode) {
 function addManualItemRow() {
   const div = document.createElement('div');
   div.className = 'item-row';
-  div.style.display = 'flex';
+  div.style.display = 'grid';
+  div.style.gridTemplateColumns = '1fr 56px 90px';
   div.style.gap = '0.4rem';
   div.style.marginBottom = '0.4rem';
   div.innerHTML = `
-    <input type="text" class="m-iname" placeholder="e.g. Pillows" oninput="previewInvoice()" style="flex:2; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px;" />
-    <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="flex:0.6; padding:0.4rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:center;" />
-    <input type="number" class="m-iprice" placeholder="0" oninput="previewInvoice()" style="flex:1; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:right;" />
+    <input type="text" class="m-iname" placeholder="e.g. Pillows" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.5rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border);" />
+    <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.3rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); text-align:center;" />
+    <input type="number" class="m-iprice" placeholder="0" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.5rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); text-align:right;" />
   `;
   getEl('man-items-rows')?.appendChild(div);
 }
@@ -2527,10 +2667,38 @@ async function handleLogoUpload(event) {
 }
 
 function renderLogoPreview() {
+  // Invoice panel logo preview
   const wrap = getEl('logo-preview-wrap');
-  if (!wrap) return;
-  if (PROFILE?.logo) wrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain" />`;
-  else wrap.innerHTML = `<span style="font-size:.6rem;color:var(--muted)">No Logo</span>`;
+  if (wrap) {
+    if (PROFILE?.logo) wrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain" />`;
+    else wrap.innerHTML = `<span style="font-size:.6rem;color:var(--muted)">No Logo</span>`;
+  }
+  // Profile page logo preview
+  const profileWrap = getEl('profile-logo-preview');
+  if (profileWrap) {
+    if (PROFILE?.logo) profileWrap.innerHTML = `<img src="${PROFILE.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;" />`;
+    else profileWrap.innerHTML = `<span style="font-size:0.65rem;color:var(--muted);text-align:center;padding:0.25rem;">No Logo</span>`;
+  }
+}
+
+async function handleProfileLogoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result;
+    try {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!PROFILE) PROFILE = { id: user.id };
+      PROFILE.logo = base64;
+      renderLogoPreview();
+      const { error } = await sb.from('profiles').upsert({ id: user.id, logo: base64 });
+      if (error) throw error;
+      toast('✅ Logo saved!');
+      previewInvoice();
+    } catch (err) { toast('❌ Save failed.'); }
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveInvoiceAsImage() {
@@ -2665,14 +2833,28 @@ async function saveManualInvoice() {
     getEl('man-discount').value = 0;
     const rows = getEl('man-items-rows');
     if (rows) {
-      rows.innerHTML = `
-        <div class="item-row">
-          <input type="text" class="m-iname" placeholder="Item name" oninput="previewInvoice()" />
-          <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" />
-          <input type="number" class="m-iprice" placeholder="0.00" oninput="previewInvoice()" />
-        </div>
-      `;
+      rows.innerHTML = '';
+      if (window.addManualItemRow) window.addManualItemRow();
     }
+    
+    // Switch to preview mode
+    const manualContainer = getEl('inv-mode-manual');
+    if (manualContainer) manualContainer.style.display = 'none';
+    const invoiceViewWrapper = getEl('invoice-view-wrapper');
+    if (invoiceViewWrapper) invoiceViewWrapper.style.display = 'block';
+    
+    const footerActions = getEl('invoice-footer-actions');
+    if (footerActions) footerActions.style.display = 'flex';
+    const invoiceActions = getEl('invoice-actions');
+    if (invoiceActions) invoiceActions.style.display = 'flex';
+    
+    const saveManualBtn = getEl('btn-save-manual-invoice');
+    if (saveManualBtn) saveManualBtn.style.display = 'none';
+    const cancelManualBtn = getEl('btn-cancel-manual-invoice');
+    if (cancelManualBtn) cancelManualBtn.style.display = 'none';
+    
+    const closeBtn = getEl('btn-close-invoice');
+    if (closeBtn) closeBtn.style.display = 'inline-flex';
     
     await loadData();
     renderAll();
@@ -2735,76 +2917,221 @@ function previewInvoice() {
   const logoHtml = PROFILE?.logo ? `<img src="${PROFILE.logo}" class="inv-logo-img" alt="Logo">` : `<div class="inv-logo-placeholder">YOURLOGO</div>`;
   const customerPhone = data.contact ? `<div><span style="color:var(--gold);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px">Phone:</span> ${esc(data.contact)}</div>` : '';
   const customerAddress = data.address ? `<div><span style="color:var(--gold);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px">Address:</span> ${esc(data.address)}</div>` : '';
-  const userEmail = getEl('user-display')?.textContent || 'sales@biztrack.ng';
+  let contactFieldHtml = '';
+  const dispEmail = getEl('user-display')?.textContent;
+  if (PROFILE?.instagram) {
+    contactFieldHtml = `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></div>
+            <div>@${esc(PROFILE.instagram)}</div>
+          </div>`;
+  } else if (PROFILE?.website) {
+    contactFieldHtml = `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+            <div>${esc(PROFILE.website)}</div>
+          </div>`;
+  } else if (PROFILE?.email && PROFILE.email !== 'sales@biztrack.ng') {
+    contactFieldHtml = `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
+            <div>${esc(PROFILE.email)}</div>
+          </div>`;
+  } else if (dispEmail && dispEmail !== 'sales@biztrack.ng') {
+    contactFieldHtml = `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
+            <div>${esc(dispEmail)}</div>
+          </div>`;
+  }
 
-  const rows = data.items.map((item, idx) => `<tr><td style="width:8%">${idx + 1}</td><td><strong>${esc(item.name)}</strong></td><td style="width:12%">${item.qty}</td><td style="width:18%">${fmt(item.price)}</td><td style="width:20%">${fmt(item.qty * item.price)}</td></tr>`).join('');
+  const rows = data.items.map((item) => `
+    <tr>
+      <td><div class="inv-new-item-desc">${esc(item.name)}</div></td>
+      <td class="center">${fmt(item.price)}</td>
+      <td class="center">${item.qty}</td>
+      <td class="right">${fmt(item.qty * item.price)}</td>
+    </tr>
+  `).join('');
+  
+  const invoiceId = data.id.toString().slice(-6).toUpperCase();
 
   view.innerHTML = `
-    <div class="inv-header-flex">
-      <div class="inv-biz-info">
-        <div class="inv-inv-to-name" style="font-family:var(--ff-head);font-size:1.4rem;font-weight:700;color:var(--ink);margin-bottom:0.25rem">${esc(bizName)}</div>
-        <div class="inv-biz-details">
-          ${bizAddr ? `<div><span style="color:var(--gold);font-weight:600;text-transform:uppercase;font-size:0.65rem;letter-spacing:0.5px">Address:</span> ${esc(bizAddr)}</div>` : ''}
-          ${bizPhone ? `<div><span style="color:var(--gold);font-weight:600;text-transform:uppercase;font-size:0.65rem;letter-spacing:0.5px">Phone:</span> ${esc(bizPhone)}</div>` : ''}
-          <div><span style="color:var(--gold);font-weight:600;text-transform:uppercase;font-size:0.65rem;letter-spacing:0.5px">Email:</span> ${esc(userEmail)}</div>
+    <div class="inv-new-wrapper">
+      <style>
+        .inv-gold-wrapper { font-family: 'Inter', sans-serif; background: #fff; color: #111; line-height: 1.3; margin: 0 auto; padding: 1rem; max-width: 800px; font-size: 0.75rem; box-sizing: border-box; border-top: 6px solid var(--gold); }
+        .inv-gold-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .inv-gold-logo-area { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .inv-gold-logo-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .inv-gold-logo-placeholder { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; }
+        .inv-gold-title-area { display: flex; align-items: center; gap: 0.8rem; }
+        .inv-gold-title-divider { width: 2px; height: 30px; background: #111; }
+        .inv-gold-title { font-size: 1.5rem; font-family: 'Times New Roman', Times, serif; font-weight: 400; color: #111; letter-spacing: 1px; margin: 0; text-transform: uppercase; }
+        
+        .inv-gold-meta { display: flex; justify-content: space-between; margin-bottom: 0.5rem; gap: 0.5rem; }
+        .inv-gold-col { flex: 1; }
+        .inv-gold-meta-block { margin-bottom: 0.5rem; }
+        .inv-gold-meta-title { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.2rem; }
+        .inv-gold-icon-circle { width: 18px; height: 18px; border: 1.2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gold); }
+        .inv-gold-meta-label { color: var(--gold); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; }
+        .inv-gold-meta-value { font-size: 0.8rem; color: #111; font-weight: 500; margin: 0 0 0.1rem 22px; line-height: 1.2; }
+        
+        .inv-gold-divider { height: 1.2px; background: var(--gold); margin: 0 0 0.5rem 0; width: 100%; }
+        
+        .inv-gold-table-wrapper { width: 100%; overflow-x: auto; margin-bottom: 0.5rem; }
+        .inv-gold-table { width: 100%; border-collapse: collapse; min-width: 350px; }
+        .inv-gold-table th { background: #111; color: var(--gold); padding: 0.4rem; text-align: left; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; }
+        .inv-gold-table td { border-bottom: 1.2px solid #ddd; padding: 0.4rem; color: #111; font-size: 0.75rem; font-weight: 500; }
+        .inv-gold-table th.center, .inv-gold-table td.center { text-align: center; }
+        .inv-gold-table th.right, .inv-gold-table td.right { text-align: right; }
+        
+        .inv-gold-totals-wrap { display: flex; justify-content: flex-end; margin-bottom: 0.5rem; }
+        .inv-gold-totals { width: 180px; }
+        .inv-gold-tot-row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.8rem; font-weight: 700; color: #111; align-items: center; }
+        .inv-gold-tot-row.grand { background: #111; border-radius: 4px; padding: 0.4rem 0.6rem; margin-top: 0.2rem; }
+        .inv-gold-tot-row.grand .lbl { color: var(--gold); font-size: 0.85rem; text-transform: uppercase; }
+        .inv-gold-tot-row.grand .val { color: #fff; font-size: 1rem; }
+        
+
+        .inv-gold-footer { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.5rem; }
+        .inv-gold-footer-left { flex: 1; padding-right: 0.5rem; border-right: 1.2px solid var(--gold); }
+        .inv-gold-footer-right { flex: 1; padding-left: 0.2rem; }
+        .inv-gold-footer-title { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; }
+        .inv-gold-footer-icon { width: 20px; height: 20px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .inv-gold-footer-icon svg { width: 12px; height: 12px; }
+        .inv-gold-footer-label { font-weight: 700; color: #111; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .inv-gold-info-line { display: flex; gap: 0.4rem; margin-bottom: 0.2rem; align-items: flex-start; font-size: 0.7rem; color: #111; }
+        .inv-gold-info-line-icon { color: var(--gold); margin-top: 0.1rem; width: 12px; height: 12px; }
+        .inv-gold-info-line-icon svg { width: 12px; height: 12px; }
+        .inv-gold-info-p { font-size: 0.7rem; color: #111; margin: 0 0 0.1rem 0; line-height: 1.2; }
+        .inv-gold-info-lbl { font-weight: 700; margin-right: 0.2rem; }
+        
+        .inv-gold-bottom { border-top: 1.2px solid var(--gold); text-align: center; padding-top: 0.3rem; font-style: italic; font-size: 0.65rem; color: #444; }
+        
+        @media (max-width: 600px) {
+          .inv-gold-wrapper { padding: 0.8rem 0.5rem; }
+          .inv-gold-meta { flex-direction: row; gap: 0.5rem; }
+          .inv-gold-footer { flex-direction: row; gap: 0.5rem; }
+          .inv-gold-footer-left { padding-right: 0.2rem; }
+        }
+      </style>
+
+      <div class="inv-gold-header">
+        <div class="inv-gold-logo-area">
+          ${PROFILE?.logo ? `<img src="${PROFILE.logo}" class="inv-gold-logo-img" alt="Logo">` : `<div class="inv-gold-logo-placeholder">${bizName.charAt(0).toUpperCase()}</div>`}
+        </div>
+        <div class="inv-gold-title-area">
+          <div class="inv-gold-title-divider"></div>
+          <h1 class="inv-gold-title">Invoice</h1>
         </div>
       </div>
-      <div class="inv-logo-wrap">
-        ${logoHtml}
-      </div>
-    </div>
 
-    <div class="inv-mid-sec">
-      <div class="inv-bill-to">
-        <h3>Bill To</h3>
-        <div class="inv-bill-name">${esc(data.customer_name)}</div>
-        <div class="inv-bill-details">
-          ${customerPhone}
-          ${customerAddress}
+      <div class="inv-gold-meta">
+        <div class="inv-gold-col">
+          <div class="inv-gold-meta-block">
+            <div class="inv-gold-meta-title">
+              <div class="inv-gold-icon-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+              <div class="inv-gold-meta-label">Billed To:</div>
+            </div>
+            <p class="inv-gold-meta-value" style="font-weight: 700;">${esc(data.customer_name)}</p>
+            ${data.address ? `<p class="inv-gold-meta-value">${esc(data.address)}</p>` : ''}
+            ${data.contact ? `<p class="inv-gold-meta-value">${esc(data.contact)}</p>` : ''}
+          </div>
+        </div>
+        <div class="inv-gold-col">
+          <div class="inv-gold-meta-block">
+            <div class="inv-gold-meta-title">
+              <div class="inv-gold-icon-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+              <div class="inv-gold-meta-label">Invoice No.</div>
+            </div>
+            <p class="inv-gold-meta-value">#${invoiceId}</p>
+          </div>
+          <div class="inv-gold-meta-block">
+            <div class="inv-gold-meta-title">
+              <div class="inv-gold-icon-circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+              <div class="inv-gold-meta-label">Date</div>
+            </div>
+            <p class="inv-gold-meta-value">${data.date}</p>
+          </div>
         </div>
       </div>
-      <div class="inv-meta-sec">
-        <div class="inv-large-title">Invoice</div>
-        <div class="inv-meta-table">
-          <div class="inv-meta-row"><span class="inv-meta-label">Invoice No:</span> <span class="inv-meta-val">#${data.id.toString().slice(-6).toUpperCase()}</span></div>
-          <div class="inv-meta-row"><span class="inv-meta-label">Date:</span> <span class="inv-meta-val">${data.date}</span></div>
-          <div class="inv-meta-row"><span class="inv-meta-label">Terms:</span> <span class="inv-meta-val" style="color:var(--gold)">Due on Receipt</span></div>
+      
+      <div class="inv-gold-divider"></div>
+
+      <div class="inv-gold-table-wrapper">
+        <table class="inv-gold-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th class="center">Quantity</th>
+              <th class="center">Unit Price</th>
+              <th class="right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.items.map((item) => `
+              <tr>
+                <td>${esc(item.name)}</td>
+                <td class="center">${item.qty}</td>
+                <td class="center">${fmt(item.price)}</td>
+                <td class="right">${fmt(item.qty * item.price)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inv-gold-totals-wrap">
+        <div class="inv-gold-totals">
+          <div class="inv-gold-tot-row"><span>SUBTOTAL</span><span>${fmt(subtotalNoFee)}</span></div>
+          ${deliveryFee > 0 ? `<div class="inv-gold-tot-row"><span>DELIVERY</span><span>${fmt(deliveryFee)}</span></div>` : ''}
+          ${discountAmt > 0 ? `<div class="inv-gold-tot-row"><span>DISCOUNT</span><span>-${fmt(discountAmt)}</span></div>` : ''}
+          <div class="inv-gold-tot-row grand"><span class="lbl">TOTAL</span><span class="val">${fmt(data.total)}</span></div>
         </div>
       </div>
-    </div>
 
-    <table class="inv-tbl">
-      <thead>
-        <tr>
-          <th style="width:8%">No.</th>
-          <th>Description</th>
-          <th style="width:12%;text-align:right">Qty</th>
-          <th style="width:18%;text-align:right">Unit Price</th>
-          <th style="width:20%;text-align:right">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
 
-    <div class="inv-bottom-sec">
-      <div class="inv-bank-box">
-        <div class="inv-bank-title">Bank Transfer Details</div>
-        <div class="inv-bank-row"><span class="inv-bank-label">Bank:</span> <span style="font-weight:600">${esc(bizBank || '—')}</span></div>
-        <div class="inv-bank-row"><span class="inv-bank-label">Account Name:</span> <span style="font-weight:600">${esc(bizAccName || '—')}</span></div>
-        <div class="inv-bank-row"><span class="inv-bank-label">Account No:</span> <span style="font-weight:700;color:var(--gold);letter-spacing:0.5px">${esc(bizAccNum || '—')}</span></div>
+      <div class="inv-gold-footer">
+        <div class="inv-gold-footer-left">
+          <div class="inv-gold-footer-title">
+            <div class="inv-gold-footer-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="20" width="20" height="2"></rect><path d="M2 14h20"></path><path d="M4 14v6"></path><path d="M8 14v6"></path><path d="M12 14v6"></path><path d="M16 14v6"></path><path d="M20 14v6"></path><polygon points="12 2 2 8 22 8 12 2"></polygon></svg>
+            </div>
+            <div class="inv-gold-footer-label">Payment Information</div>
+          </div>
+          <p class="inv-gold-info-p">${esc(bizBank || 'Bank not provided')}</p>
+          <p class="inv-gold-info-p"><span class="inv-gold-info-lbl">Account Name:</span> <br/>${esc(bizAccName || '—')}</p>
+          <p class="inv-gold-info-p"><span class="inv-gold-info-lbl">Account No:</span> <br/>${esc(bizAccNum || '—')}</p>
+        </div>
+        
+        <div class="inv-gold-footer-right">
+          <div class="inv-gold-footer-title">
+            <div class="inv-gold-footer-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </div>
+            <div class="inv-gold-footer-label">${esc(bizName)}</div>
+          </div>
+          
+          ${bizAddr ? `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+            <div>${esc(bizAddr)}</div>
+          </div>` : ''}
+          
+          ${bizPhone ? `
+          <div class="inv-gold-info-line">
+            <div class="inv-gold-info-line-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+            <div>${esc(bizPhone)}</div>
+          </div>` : ''}
+          
+          ${contactFieldHtml}
+        </div>
       </div>
-      <div class="inv-totals-sec">
-        <div class="inv-tot-row"><span>Sub Total</span><span>${fmt(subtotalNoFee)}</span></div>
-        ${deliveryFee > 0 ? `<div class="inv-tot-row"><span>Delivery</span><span>${fmt(deliveryFee)}</span></div>` : ''}
-        ${discountAmt > 0 ? `<div class="inv-tot-row" style="color:var(--red)"><span>Discount (${discount}%)</span><span>-${fmt(discountAmt)}</span></div>` : ''}
-        <div class="inv-tot-bar"><span>Total</span><span>${fmt(data.total)}</span></div>
+      
+      <div class="inv-gold-bottom">
+        Thank you for your patronage
       </div>
-    </div>
-
-    <div class="inv-thanks-banner" style="margin-bottom:0;">
-      Thank you for choosing us!
     </div>
   `;
   view.style.display = 'block';
@@ -2874,19 +3201,21 @@ function _renderInvoiceSalesPicker() {
     const itemsSummary = (sale.items || []).map(i => `${i.qty}x ${i.name}`).join(', ');
 
     return `
-      <li class="li" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; padding:0.65rem 0.85rem; border-radius:8px; margin-bottom:0.4rem; border:1px solid var(--border); background:#fff; cursor:pointer;" onclick="openInvoiceModalForSale('${sale.id}')" title="Click to pop up invoice on screen">
-        <div class="li-body" style="flex:1; min-width:0; padding-right:0.5rem;">
-          <div class="li-name" style="font-size:0.88rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:0.4rem;">
+      <li class="li" style="display:flex; flex-direction:column; gap:0.4rem; padding:0.75rem 0.85rem; border-radius:8px; margin-bottom:0.5rem; border:1px solid var(--border); background:#fff; cursor:pointer;" onclick="openInvoiceModalForSale('${sale.id}')" title="Click to pop up invoice on screen">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+          <div style="font-size:0.95rem; font-weight:700; color:var(--text); word-break:break-word; white-space:normal; line-height:1.2;">
             ${esc(custName)}
-            <span class="badge" style="font-size:0.65rem; padding:0.1rem 0.4rem; ${payBadgeStyle}">${esc(payStatus)}</span>
           </div>
-          <div class="li-sub" style="font-size:0.72rem; color:var(--muted); margin-top:0.15rem;">
-             ${sale.date} · ${esc(itemsSummary)}
+          <div style="font-size:0.95rem; font-weight:700; color:var(--green); flex-shrink:0;">
+            ${fmt(sale.total)}
           </div>
         </div>
-        <div class="li-right" style="display:flex; align-items:center; gap:0.6rem; flex-shrink:0;">
-          <div style="font-size:0.92rem; font-weight:700; color:var(--green);">${fmt(sale.total)}</div>
-          <button type="button" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.35rem 0.85rem; font-size:0.76rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;">
+        <div style="font-size:0.75rem; color:var(--muted); line-height:1.3; white-space:normal; word-break:break-word;">
+           ${sale.date} · ${esc(itemsSummary)}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.2rem;">
+          <span class="badge" style="font-size:0.65rem; padding:0.15rem 0.5rem; ${payBadgeStyle}">${esc(payStatus)}</span>
+          <button type="button" style="background:linear-gradient(135deg, var(--gold, #C9982A) 0%, #B8851E 100%); color:var(--ink, #141009); border:1px solid var(--gold-lt, #E8BE6A); padding:0.4rem 0.9rem; font-size:0.78rem; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center;">
              Generate Invoice
           </button>
         </div>
@@ -2904,6 +3233,12 @@ function openInvoiceModalForSale(saleId) {
   if (selEl) selEl.value = saleId;
   const manualContainer = getEl('inv-mode-manual');
   if (manualContainer) manualContainer.style.display = 'none';
+  const invoiceViewWrapper = getEl('invoice-view-wrapper');
+  if (invoiceViewWrapper) invoiceViewWrapper.style.display = 'block';
+  const footerActions = getEl('invoice-footer-actions');
+  if (footerActions) footerActions.style.display = 'flex';
+  const invoiceActions = getEl('invoice-actions');
+  if (invoiceActions) invoiceActions.style.display = 'flex';
   const saveManualBtn = getEl('btn-save-manual-invoice');
   if (saveManualBtn) saveManualBtn.style.display = 'none';
   const cancelManualBtn = getEl('btn-cancel-manual-invoice');
@@ -2926,6 +3261,12 @@ function openInvoiceModalManual() {
   INVOICE_MODE = 'manual';
   const manualContainer = getEl('inv-mode-manual');
   if (manualContainer) manualContainer.style.display = 'block';
+  const invoiceViewWrapper = getEl('invoice-view-wrapper');
+  if (invoiceViewWrapper) invoiceViewWrapper.style.display = 'none';
+  const footerActions = getEl('invoice-footer-actions');
+  if (footerActions) footerActions.style.display = 'none';
+  const invoiceActions = getEl('invoice-actions');
+  if (invoiceActions) invoiceActions.style.display = 'none';
   const saveManualBtn = getEl('btn-save-manual-invoice');
   if (saveManualBtn) saveManualBtn.style.display = 'inline-flex';
   const cancelManualBtn = getEl('btn-cancel-manual-invoice');
@@ -2985,9 +3326,14 @@ function wireForms() {
       const { data: { user } } = await sb.auth.getUser();
       const pinVal = getEl('prof-pin').value.trim();
       if (!/^\d{4}$/.test(pinVal)) {
-        return toast('  PIN must be exactly 4 digits');
+        return toast('   PIN must be exactly 4 digits');
       }
       const perms = readStaffPermsFromUI();
+      const instagramVal = (getEl('prof-instagram')?.value || '').trim();
+      const websiteVal   = (getEl('prof-website')?.value || '').trim();
+      // Embed instagram + website inside staff_permissions JSONB (existing Supabase column)
+      // so they survive app reinstalls without needing new DB columns
+      const permsWithExtras = { ...perms, _instagram: instagramVal, _website: websiteVal };
       const payload = {
         id: user.id,
         business_name: getEl('prof-biz-name').value.trim(),
@@ -2998,25 +3344,25 @@ function wireForms() {
         account_name: getEl('prof-acc-name').value.trim(),
         pin: pinVal,
         logo: PROFILE?.logo || null,
-        staff_permissions: perms
+        staff_permissions: permsWithExtras
       };
-      if (!payload.business_name) return toast('  Business Name is required');
+      if (!payload.business_name) return toast('   Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
       const extras = {
-        instagram: (getEl('prof-instagram')?.value || '').trim(),
-        website: (getEl('prof-website')?.value || '').trim(),
+        instagram: instagramVal,
+        website: websiteVal,
         qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
       };
       if (user?.id) saveProfileExtras(user.id, extras);
 
-      PROFILE = { ...payload, ...extras };
+      PROFILE = { ...payload, instagram: instagramVal, website: websiteVal, ...extras };
       STAFF_PERMS = perms;
       renderProfileBanner(PROFILE);
       toast(' Business details & permissions updated!');
       switchTab('sales');
     } catch (err) { 
       console.error(err);
-      toast('  Update failed: ' + (err.message || 'Unknown error')); 
+      toast('   Update failed: ' + (err.message || 'Unknown error')); 
     }
   });
 
@@ -3074,7 +3420,7 @@ function wireForms() {
       renderAll();
       event.target.reset();
       resetItemRows();
-      const message = SALE_EDIT_ID ? ' Sale updated!' : ' Sale recorded & inventory updated!';
+      const message = SALE_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!';
       clearSaleEditMode();
       toast(message);
     } catch (err) { 
@@ -3105,7 +3451,7 @@ function wireForms() {
         if (insertError) throw insertError;
       }
       await loadData(); renderAll(); event.target.reset();
-      const message = EXPENSE_EDIT_ID ? ' Expense updated!' : ' Expense saved!';
+      const message = EXPENSE_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!';
       clearExpenseEditMode();
       toast(message);
     } catch (err) { toast('  Error saving expense'); }
@@ -3162,7 +3508,7 @@ function wireForms() {
       await loadData(); 
       renderAll(); 
       closeAddProductModal(); 
-      toast(STOCK_EDIT_ID ? ' Stock updated!' : ' Stock added to inventory!'); 
+      toast(STOCK_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!'); 
     } catch (err) { 
       console.error(err);
       toast('  Error saving inventory'); 
@@ -3748,7 +4094,9 @@ window.closeExpenseDetailModal = closeExpenseDetailModal;
 window.toggleExpensesAccordion = toggleExpensesAccordion;
 window.calcTotals = calcTotals;
 window.previewInvoice = previewInvoice;
+window.shareMonthlySalesPDF = shareMonthlySalesPDF;
 window.handleLogoUpload = handleLogoUpload;
+window.handleProfileLogoUpload = handleProfileLogoUpload;
 window.toggleInvMode = toggleInvMode;
 window.addManualItemRow = addManualItemRow;
 window.saveInvoiceAsImage = saveInvoiceAsImage;
@@ -4022,11 +4370,28 @@ async function downloadThankYouPNG() {
     toast(' Generating Thank You Card image...');
     const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, backgroundColor: null });
     const custName = (getEl('ty-cust-name')?.value || 'customer').toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const link = document.createElement('a');
-    link.download = `thank-you-card-${custName}-${todayISO()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    toast(' Thank You Card downloaded!');
+    const dataUrl = canvas.toDataURL('image/png');
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const { Filesystem, Share } = Capacitor.Plugins;
+      const fileName = `thank-you-card-${custName}-${todayISO()}.png`;
+      const base64Data = dataUrl.split(',')[1];
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: 'CACHE'
+      });
+      await Share.share({
+        title: 'Thank You Card',
+        url: savedFile.uri,
+      });
+      toast(' Ready to share!');
+    } else {
+      const link = document.createElement('a');
+      link.download = `thank-you-card-${custName}-${todayISO()}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast(' Thank You Card downloaded!');
+    }
   } catch (err) {
     console.error('Download error:', err);
     toast(' Image Download Failed');

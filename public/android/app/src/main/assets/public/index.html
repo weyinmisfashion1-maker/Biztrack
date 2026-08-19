@@ -684,15 +684,16 @@ flex-wrap:wrap;gap:0.5rem;
 
 /* == TOAST == */
 #toast{
-  position:fixed;bottom:1.25rem;left:50%;
-  transform:translateX(-50%) translateY(20px);
+  position:fixed;top:2.5rem;left:50%;
+  transform:translateX(-50%) translateY(-20px);
   background:var(--ink);color:var(--gold);
   padding:.6rem 1.25rem;border-radius:999px;
   font-size:.83rem;font-weight:var(--fw-semi);
   border:1px solid rgba(201,152,42,.25);
-  pointer-events:none;opacity:0;z-index:999;
+  pointer-events:none;opacity:0;z-index:9999;
   transition:opacity .25s,transform .25s;
   white-space:nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -1129,7 +1130,7 @@ body.dark-mode #invoice-view * {
 #panel-recent-sales {
   max-width: 650px;
   margin: 0 auto;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 #panel-recent-sales .page-header {
@@ -1290,7 +1291,7 @@ body.dark-mode #invoice-view * {
 #panel-sales {
   max-width: 780px;
   margin: 0 auto;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 #panel-sales .row3 {
@@ -1445,7 +1446,7 @@ body.dark-mode #invoice-view * {
 #panel-expense {
   max-width: 780px;
   margin: 0 auto;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 #panel-expense .row2 {
@@ -1759,11 +1760,11 @@ body.dark-mode #invoice-view * {
           <legend class="items-legend" style="font-size:0.65rem; font-weight:700; padding:0 0.2rem;">Items Purchased <span class="req-mark" aria-hidden="true">*</span></legend>
           <div id="items-rows">
             <div class="item-row" style="display:flex; flex-direction:column; gap:0.15rem; margin-bottom:0.25rem; padding:0.25rem 0.35rem; border:1px solid var(--border); border-radius:6px; background:#fff;">
-              <div style="display:flex; gap:0.3rem; align-items:center;">
-                <input type="text"   id="item-name-0"  name="item-name-0"  class="iname" list="inventory-item-suggestions" placeholder="Type item name or select inventory product…" aria-label="Item name" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="flex:2.2; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
-                <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1" oninput="calcTotals()" style="flex:0.6; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
-                <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01" oninput="calcTotals()" style="flex:0.9; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
-                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0.1rem 0.35rem; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
+              <div style="display:grid; grid-template-columns:1fr 45px 80px 24px; gap:0.3rem; align-items:center;">
+                <input type="text"   id="item-name-0"  name="item-name-0"  class="iname" list="inventory-item-suggestions" placeholder="Item name..." aria-label="Item name" oninput="onItemNameInput(this)" onchange="onItemNameInput(this)" style="width:100%; box-sizing:border-box; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border);"/>
+                <input type="number" id="item-qty-0"   name="item-qty-0"   class="iqty"   placeholder="1"          aria-label="Quantity" min="1" value="1" oninput="calcTotals()" style="width:100%; box-sizing:border-box; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border); text-align:center;"/>
+                <input type="number" id="item-price-0" name="item-price-0" class="iprice" placeholder="0.00"       aria-label="Unit price ₦" min="0" step="0.01" oninput="calcTotals()" style="width:100%; box-sizing:border-box; height:26px; padding:0.15rem 0.4rem; font-size:0.75rem; border-radius:5px; border:1px solid var(--border); text-align:right;"/>
+                <button type="button" class="btn-remove-item" onclick="removeItemRow(this)" title="Remove item" aria-label="Remove item" style="width:100%; background:transparent; border:1px solid rgba(220,38,38,0.3); color:#dc2626; padding:0; font-size:0.7rem; border-radius:4px; cursor:pointer; height:24px; display:inline-flex; align-items:center; justify-content:center;">✕</button>
               </div>
               <div class="stock-badge-info" style="font-size:0.66rem; color:var(--muted); padding-left:0.15rem;"></div>
             </div>
@@ -1970,7 +1971,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: ADD / EDIT PRODUCT POP-UP -->
-  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeAddProductModal()">
+  <div id="add-product-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:210; align-items:flex-start; justify-content:center; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeAddProductModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:540px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Header -->
       <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2027,7 +2028,7 @@ body.dark-mode #invoice-view * {
   </div>
 
   <!-- MODAL: STOCK LIST POP-UP -->
-  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeStockListModal()">
+  <div id="stock-list-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeStockListModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:680px; width:100%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Header -->
       <div style="padding:0.85rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2058,7 +2059,7 @@ body.dark-mode #invoice-view * {
   </div>
 
   <!-- MODAL: INSUFFICIENT STOCK WARNING -->
-  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; padding:1rem;">
+  <div id="stock-warning-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:300; align-items:flex-start; justify-content:center; padding:1rem 1rem 6rem 1rem;">
     <div style="background:#fff; border-radius:var(--r, 12px); max-width:440px; width:100%; padding:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,0.3); border-top:4px solid var(--red, #B53030);">
       <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
         <span style="font-size:1.5rem;"> </span>
@@ -2114,7 +2115,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: INVOICE POP-UP DIALOG -->
-  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target === this) closeInvoiceModal()">
+  <div id="invoice-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:220; align-items:flex-start; justify-content:center; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeInvoiceModal()">
     <div style="background:var(--cream, #FAF6EF); border-radius:var(--r, 12px); max-width:760px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; border:1px solid var(--border);">
       <!-- Modal Header -->
       <div style="padding:0.75rem 1.15rem; background:var(--ink); color:var(--gold); display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(201,152,42,0.2);">
@@ -2129,54 +2130,67 @@ body.dark-mode #invoice-view * {
       <select id="inv-sale-sel" style="display:none;" onchange="previewInvoice()"></select>
 
       <!-- Manual Inputs Container (if manual mode) -->
-      <div id="inv-mode-manual" style="display:none; padding:0.85rem 1.15rem; background:var(--cream2); border-bottom:1px solid var(--border);">
-        <div class="row2" style="margin-bottom:0.8rem;">
-          <div class="field" style="margin-bottom:0;">
-            <label for="man-cust-name" style="font-size:0.68rem;">Customer Name</label>
-            <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()" style="padding:0.4rem 0.6rem; height:auto; font-size:0.78rem; border-radius:6px;"/>
-          </div>
-          <div class="field" style="margin-bottom:0;">
-            <label for="man-cust-addr" style="font-size:0.68rem;">Customer Address (Optional)</label>
-            <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()" style="padding:0.4rem 0.6rem; height:auto; font-size:0.78rem; border-radius:6px;"/>
-          </div>
+      <div id="inv-mode-manual" style="display:none; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0.75rem 1rem 5rem 1rem; background:var(--cream2); border-bottom:1px solid var(--border);">
+
+        <!-- Customer Name - full width -->
+        <div class="field" style="margin-bottom:0.6rem;">
+          <label for="man-cust-name" style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted);">Customer Name</label>
+          <input type="text" id="man-cust-name" placeholder="Customer Name" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.5rem 0.7rem; height:auto; font-size:0.82rem; border-radius:6px; border:1px solid var(--border); background:#fff;"/>
         </div>
 
-        <fieldset style="border:1px solid var(--border); padding:0.4rem 0.6rem; margin-bottom:0.4rem; border-radius:6px; background:#fff;">
+        <!-- Customer Address - full width -->
+        <div class="field" style="margin-bottom:0.75rem;">
+          <label for="man-cust-addr" style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted);">Customer Address <span style="font-weight:400;">(Optional)</span></label>
+          <input type="text" id="man-cust-addr" placeholder="Customer Address" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.5rem 0.7rem; height:auto; font-size:0.82rem; border-radius:6px; border:1px solid var(--border); background:#fff;"/>
+        </div>
 
-          <div style="display:flex; gap:0.4rem; margin-bottom:0.3rem; padding: 0 0.2rem;">
-            <div style="flex:2; font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em;">ITEM NAME</div>
-            <div style="flex:0.6; font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em; text-align:center;">QTY</div>
-            <div style="flex:1; font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em; text-align:right;">PRICE</div>
+        <!-- Items fieldset -->
+        <fieldset style="border:1px solid var(--border); padding:0.55rem 0.65rem; margin-bottom:0.65rem; border-radius:8px; background:#fff; overflow:hidden;">
+
+          <!-- Column headers -->
+          <div style="display:grid; grid-template-columns:1fr 56px 90px; gap:0.4rem; margin-bottom:0.3rem; padding:0 0.1rem;">
+            <div style="font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em;">ITEM NAME</div>
+            <div style="font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em; text-align:center;">QTY</div>
+            <div style="font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.03em; text-align:right;">PRICE (₦)</div>
           </div>
+
+          <!-- Item rows -->
           <div id="man-items-rows">
-            <div class="item-row" style="display:flex; gap:0.4rem; margin-bottom:0.4rem;">
-              <input type="text" class="m-iname" placeholder="e.g. Pillows" oninput="previewInvoice()" style="flex:2; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px;"/>
-              <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="flex:0.6; padding:0.4rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:center;"/>
-              <input type="number" class="m-iprice" placeholder="0" oninput="previewInvoice()" style="flex:1; padding:0.4rem 0.6rem; height:auto; font-size:0.75rem; border-radius:6px; text-align:right;"/>
+            <div class="item-row" style="display:grid; grid-template-columns:1fr 56px 90px; gap:0.4rem; margin-bottom:0.4rem;">
+              <input type="text" class="m-iname" placeholder="e.g. Pillows" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.5rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border);"/>
+              <input type="number" class="m-iqty" placeholder="1" value="1" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.3rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); text-align:center;"/>
+              <input type="number" class="m-iprice" placeholder="0" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.45rem 0.5rem; height:auto; font-size:0.78rem; border-radius:6px; border:1px solid var(--border); text-align:right;"/>
             </div>
           </div>
-          <button type="button" class="add-row" onclick="window.addManualItemRow()" style="padding:0.4rem; font-size:0.75rem; font-weight:600; cursor:pointer;">+ Add Another Item</button>
+
+          <button type="button" class="add-row" onclick="window.addManualItemRow()" style="width:100%; margin-top:0.1rem; padding:0.45rem; font-size:0.78rem; font-weight:600; cursor:pointer; border-radius:6px;">+ Add Another Item</button>
         </fieldset>
 
-        <div class="row2">
+        <!-- Delivery Fee and Discount - side by side (they are short numbers so fine) -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
           <div class="field" style="margin-bottom:0;">
-            <label for="man-delivery" style="font-size:0.68rem;">Delivery Fee (₦)</label>
-            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()" style="padding:0.4rem 0.6rem; height:auto; font-size:0.78rem; border-radius:6px;"/>
+            <label for="man-delivery" style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted);">Delivery Fee (₦)</label>
+            <input type="number" id="man-delivery" value="0" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.5rem 0.6rem; height:auto; font-size:0.82rem; border-radius:6px; border:1px solid var(--border); background:#fff;"/>
           </div>
           <div class="field" style="margin-bottom:0;">
-            <label for="man-discount" style="font-size:0.68rem;">Discount (%)</label>
-            <input type="number" id="man-discount" value="0" oninput="previewInvoice()" style="padding:0.4rem 0.6rem; height:auto; font-size:0.78rem; border-radius:6px;"/>
+            <label for="man-discount" style="font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted);">Discount (%)</label>
+            <input type="number" id="man-discount" value="0" oninput="previewInvoice()" style="width:100%; box-sizing:border-box; padding:0.5rem 0.6rem; height:auto; font-size:0.82rem; border-radius:6px; border:1px solid var(--border); background:#fff;"/>
           </div>
+        </div>
+        
+        <div style="display:flex; gap:0.5rem; width:100%; margin-top:1.5rem;">
+          <button class="btn-save" id="btn-save-manual-invoice" style="display:none; flex:1; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:700; margin:0; width:auto;" onclick="window.saveManualInvoice()">Save to Sales</button>
+          <button type="button" id="btn-cancel-manual-invoice" onclick="window.cancelManualInvoice()" style="display:none; flex:1; background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:700; cursor:pointer; width:auto;">Cancel</button>
         </div>
       </div>
 
       <!-- Scrollable Invoice Document View -->
-      <div style="flex:1; overflow-y:auto; padding:0.5rem 0.75rem; -webkit-overflow-scrolling:touch;">
+      <div id="invoice-view-wrapper" style="flex:1; overflow-y:auto; padding:0.5rem 0.75rem; -webkit-overflow-scrolling:touch;">
         <div id="invoice-view" aria-live="polite" aria-label="Invoice preview"></div>
       </div>
 
       <!-- Action Buttons Footer -->
-      <div style="padding:0.85rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; flex-direction:column; gap:0.6rem; padding-bottom: 5rem;">
+      <div id="invoice-footer-actions" style="padding:0.85rem 1.15rem; background:var(--cream2); border-top:1px solid var(--border); display:flex; flex-direction:column; gap:0.6rem; padding-bottom: 5rem;">
         
         <div id="invoice-actions" style="display:flex; gap:0.5rem; width:100%;">
           <button class="btn-print" style="flex:1; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:700; margin:0; width:auto;" onclick="window.shareInvoicePDF()">Share PDF</button>
@@ -2184,9 +2198,7 @@ body.dark-mode #invoice-view * {
         </div>
         
         <div style="display:flex; gap:0.5rem; width:100%;">
-          <button class="btn-save" id="btn-save-manual-invoice" style="display:none; flex:1; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:700; margin:0; width:auto;" onclick="window.saveManualInvoice()">Save to Sales</button>
           <button class="btn-save" id="btn-edit-invoice" style="display:none; flex:1; background:var(--cream); color:var(--text); border:1px solid var(--border); padding:0.6rem 0.2rem; font-size:0.82rem; margin:0; width:auto;" onclick="window.editInvoiceSale()">Edit Sale</button>
-          <button type="button" id="btn-cancel-manual-invoice" onclick="window.cancelManualInvoice()" style="display:none; flex:1; background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:700; cursor:pointer; width:auto;">Cancel</button>
           <button type="button" id="btn-close-invoice" onclick="window.closeInvoiceModal()" style="flex:1; background:var(--ink); color:var(--cream); border:none; border-radius:6px; padding:0.6rem 0.2rem; font-size:0.82rem; font-weight:600; cursor:pointer; width:auto;">Close</button>
         </div>
       </div>
@@ -2301,7 +2313,7 @@ body.dark-mode #invoice-view * {
   </section>
 
   <!-- MODAL: MONTHLY SALES DETAIL -->
-  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;overflow-y:auto;padding:2rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
+  <div id="monthly-detail-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem 6rem 1rem" onclick="if(event.target === this) closeMonthlySalesDetail()">
     <div style="background:var(--cream);border-radius:var(--r);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.15)">
       <div id="monthly-detail-content"></div>
     </div>
@@ -2316,6 +2328,22 @@ body.dark-mode #invoice-view * {
     <div class="card">
       <h2 class="card-h">Business Details</h2>
       <form id="form-profile" novalidate>
+
+        <!-- Business Logo Upload -->
+        <div style="margin-bottom:1.25rem; padding-bottom:1.25rem; border-bottom:1.5px solid var(--border);">
+          <label style="font-size:0.88rem; font-weight:700; color:var(--text); display:block; margin-bottom:0.5rem;">Business Logo</label>
+          <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div id="profile-logo-preview" style="width:80px; height:80px; border:2px solid var(--gold); border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--cream); overflow:hidden; flex-shrink:0;">
+              <span style="font-size:0.65rem; color:var(--muted); text-align:center; padding:0.25rem;">No Logo</span>
+            </div>
+            <div>
+              <input type="file" id="profile-logo-input" accept="image/*" style="display:none;" onchange="handleProfileLogoUpload(event)" />
+              <label for="profile-logo-input" class="btn-ghost" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; font-size:0.82rem; cursor:pointer; width:auto;">📷 Upload Logo</label>
+              <p style="font-size:0.72rem; color:var(--muted); margin-top:0.4rem;">Your logo appears on invoices and thank-you cards.</p>
+            </div>
+          </div>
+        </div>
+
         <div class="field">
           <label for="prof-biz-name">Business Name <span class="req-mark" aria-hidden="true">*</span></label>
           <input type="text" id="prof-biz-name" required />
@@ -2362,27 +2390,7 @@ body.dark-mode #invoice-view * {
           </div>
         </div>
 
-        <!-- Business QR Code Upload -->
-        <div class="field" style="margin-top:1rem; border-top:1.5px solid var(--border); padding-top:1rem;">
-          <label style="font-size:0.88rem; font-weight:700; color:var(--text); display:block; margin-bottom:0.25rem;"> Business QR Code (For Instagram & Website)</label>
-          <p style="font-size:0.78rem; color:var(--muted); margin-bottom:0.75rem;">Upload your business QR code image for your website or Instagram profile below:</p>
 
-          <div style="display:flex; flex-wrap:wrap; gap:1.25rem; align-items:center;">
-            <div style="flex:1; min-width:220px;">
-              <label for="input-profile-qr" class="btn-ghost" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.55rem 1rem; font-size:0.82rem; font-weight:600; cursor:pointer; width:auto; text-align:center;">
-                 Upload QR Code Image
-              </label>
-              <input type="file" id="input-profile-qr" accept="image/*" style="display:none;" onchange="handleProfileQRUpload(event)" />
-            </div>
-
-            <!-- High-Res Scannable Preview Box -->
-            <div id="profile-qr-preview-box" style="width:220px; height:220px; border:2px solid var(--gold); border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#ffffff; position:relative; overflow:hidden; padding:0.5rem; box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-              <div id="profile-qr-empty" style="font-size:0.8rem; font-weight:600; color:var(--muted); text-align:center; padding:0.5rem;">No QR Code Uploaded</div>
-              <img id="profile-qr-img" src="" alt="Business QR Code" style="display:none; width:100%; height:100%; object-fit:contain; image-rendering:-webkit-optimize-contrast; image-rendering:pixelated;" />
-              <button type="button" id="btn-remove-qr" onclick="removeProfileQR()" style="display:none; position:absolute; top:8px; right:8px; background:rgba(181,48,48,0.95); color:#fff; border:none; border-radius:50%; width:26px; height:26px; font-size:0.8rem; font-weight:700; cursor:pointer; align-items:center; justify-content:center; line-height:1; z-index:5;" title="Remove QR Code">✕</button>
-            </div>
-          </div>
-        </div>
         
         <button type="submit" class="btn-save">Update Business Details</button>
       </form>
@@ -2612,7 +2620,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: SALE DETAILS -->
-<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
+<div id="sale-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeSaleDetailModal()">
   <div class="card" style="max-width:520px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #1e293b);">Sale Record Details</h2>
@@ -2631,7 +2639,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: EXPENSE DETAILS -->
-<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
+<div id="expense-detail-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeExpenseDetailModal()">
   <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:12px; position:relative; background:var(--bg-surface, #ffffff); box-shadow:0 10px 30px rgba(0,0,0,0.25); border:1px solid rgba(0,0,0,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.1rem; font-weight:700; margin:0; color:var(--ink, #141009);">Expense Details</h2>
@@ -2653,7 +2661,7 @@ body.dark-mode #invoice-view * {
 
 
 <!-- MODAL: UTILITY FEATURES SELECTOR -->
-<div id="utility-features-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:998; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeUtilityFeaturesModal()">
+<div id="utility-features-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:998; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeUtilityFeaturesModal()">
   <div class="card" style="max-width:480px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;"> Utility Features</h2>
@@ -2680,7 +2688,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- MODAL: THANK YOU CARD GENERATOR -->
-<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;" onclick="if(event.target === this) closeThankYouModal()">
+<div id="thank-you-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:999; align-items:flex-start; justify-content:center; overflow-y:auto; padding:1rem 1rem 6rem 1rem;" onclick="if(event.target === this) closeThankYouModal()">
   <div class="card" style="max-width:540px; width:100%; padding:1.25rem; border-radius:16px; position:relative; background:var(--cream, #faf6ef); box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1px solid var(--border);">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:0.65rem; margin-bottom:0.85rem;">
       <h2 style="font-size:1.15rem; font-weight:700; margin:0; color:var(--ink); display:flex; align-items:center; gap:0.4rem;"> Thank You Card Generator</h2>
@@ -2802,7 +2810,6 @@ body.dark-mode #invoice-view * {
         <button type="button" class="btn-ghost" onclick="closeThankYouModal()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem;">Close</button>
         <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
           <button type="button" class="btn-save" onclick="downloadThankYouPNG()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:var(--ink); color:var(--gold); border:1px solid var(--gold);"> Download PNG</button>
-          <button type="button" class="btn-save" onclick="shareThankYouWhatsApp()" style="width:auto; padding:0.4rem 0.85rem; font-size:0.8rem; background:#25D366; color:#fff; border:none;"> Share WhatsApp</button>
         </div>
       </div>
     </div>
