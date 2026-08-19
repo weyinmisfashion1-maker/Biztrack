@@ -314,6 +314,9 @@ body {
         throw new Error(error.message);
       }
 
+      // Explicitly sign out right after registration so Supabase DOES NOT auto-login
+      await window.sb.auth.signOut();
+
       // Always show the "check your email" message.
       // Do NOT redirect to dashboard — the user must confirm their email first.
       showStatus('Account created. Please check your email to confirm your account.', true);

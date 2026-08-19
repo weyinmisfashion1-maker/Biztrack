@@ -2864,6 +2864,13 @@ body.dark-mode #invoice-view * {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+  // Intercept email confirmation links that incorrectly landed on the dashboard
+  if (window.location.hash.includes('type=signup') || window.location.search.includes('type=signup') ||
+      window.location.hash.includes('type=email') || window.location.search.includes('type=email')) {
+      window.location.href = 'confirm.html' + window.location.search + window.location.hash;
+  }
+</script>
+<script>
   const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
   window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
