@@ -305,18 +305,20 @@ body {
         email, 
         password,
         options: { 
-          data: { business_name: businessName }
+          data: { business_name: businessName },
+          emailRedirectTo: 'https://biztrack-ng.vercel.app/confirm.html'
         }
       });
       if (error) {
         console.error('Signup error:', error);
         throw new Error(error.message);
       }
-      
-      if (data.user) {
-        showStatus('Account created! Redirecting...', true);
-        setTimeout(() => window.location.href = '/', 800);
-      }
+
+      // Always show the "check your email" message.
+      // Do NOT redirect to dashboard — the user must confirm their email first.
+      showStatus('Account created. Please check your email to confirm your account.', true);
+      // Clear the form so the user does not accidentally submit again
+      getEl('signup-form').reset();
     } catch (err) {
       showStatus('Registration Failed: ' + err.message);
     }
