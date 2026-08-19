@@ -3531,7 +3531,18 @@ async function init() {
   renderProfileBanner(PROFILE);
   loadSettings(user.id);
   renderLogoPreview();
-  
+
+  // --- FIRST LOGIN REDIRECT ---
+  // If this user has no business name set yet, they are a new user who just
+  // confirmed their email and logged in for the first time.
+  // Send them directly to the Business Profile setup tab.
+  // Existing users (who already have a business_name) go to the dashboard as normal.
+  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+  if (isNewUser) {
+    switchTab('profile');
+  }
+  // --- END FIRST LOGIN REDIRECT ---
+
   // Set and apply lock state
   IS_LOCKED = localStorage.getItem('biztrack_locked') !== 'false';
   applyLockUIState();
