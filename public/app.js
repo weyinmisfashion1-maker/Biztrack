@@ -139,11 +139,16 @@ async function loadProfile() {
     }
     const extras = loadProfileExtras(user.id);
     // Also read instagram/website stored inside staff_permissions JSONB (cloud-persisted)
-    if (data?.staff_permissions?._instagram !== undefined) {
-      extras.instagram = extras.instagram || data.staff_permissions._instagram;
-    }
-    if (data?.staff_permissions?._website !== undefined) {
-      extras.website = extras.website || data.staff_permissions._website;
+    if (data?.staff_permissions) {
+      if (data?.staff_permissions?._instagram !== undefined) {
+        extras.instagram = extras.instagram || data.staff_permissions._instagram;
+      }
+      if (data?.staff_permissions?._website !== undefined) {
+        extras.website = extras.website || data.staff_permissions._website;
+      }
+      if (data?.staff_permissions?._staff_mode_enabled !== undefined) {
+        extras.staff_mode_enabled = data.staff_permissions._staff_mode_enabled;
+      }
     }
     return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
@@ -430,6 +435,12 @@ function populateProfileForm() {
 
   if (getEl('prof-instagram')) getEl('prof-instagram').value = PROFILE.instagram || '';
   if (getEl('prof-website')) getEl('prof-website').value = PROFILE.website || '';
+
+  const hasStaff = PROFILE.staff_mode_enabled === true;
+  const radioYes = document.querySelector('input[name="prof-has-staff"][value="yes"]');
+  const radioNo = document.querySelector('input[name="prof-has-staff"][value="no"]');
+  if (hasStaff && radioYes) radioYes.checked = true;
+  else if (radioNo) radioNo.checked = true;
 
   if (PROFILE.qr_code_url) {
     PROFILE_QR_DATA_URL = PROFILE.qr_code_url;
@@ -3331,9 +3342,16 @@ function wireForms() {
       const perms = readStaffPermsFromUI();
       const instagramVal = (getEl('prof-instagram')?.value || '').trim();
       const websiteVal   = (getEl('prof-website')?.value || '').trim();
-      // Embed instagram + website inside staff_permissions JSONB (existing Supabase column)
+      const hasStaff     = document.querySelector('input[name="prof-has-staff"]:checked')?.value === 'yes';
+      
+      // Embed extras inside staff_permissions JSONB (existing Supabase column)
       // so they survive app reinstalls without needing new DB columns
-      const permsWithExtras = { ...perms, _instagram: instagramVal, _website: websiteVal };
+      const permsWithExtras = { 
+        ...perms, 
+        _instagram: instagramVal, 
+        _website: websiteVal,
+        _staff_mode_enabled: hasStaff 
+      };
       const payload = {
         id: user.id,
         business_name: getEl('prof-biz-name').value.trim(),
@@ -3351,11 +3369,12 @@ function wireForms() {
       const extras = {
         instagram: instagramVal,
         website: websiteVal,
+        staff_mode_enabled: hasStaff,
         qr_code_url: PROFILE_QR_DATA_URL || PROFILE?.qr_code_url || null
       };
       if (user?.id) saveProfileExtras(user.id, extras);
 
-      PROFILE = { ...payload, instagram: instagramVal, website: websiteVal, ...extras };
+      PROFILE = { ...payload, instagram: instagramVal, website: websiteVal, staff_mode_enabled: hasStaff, ...extras };
       STAFF_PERMS = perms;
       renderProfileBanner(PROFILE);
       toast(' Business details & permissions updated!');
