@@ -2864,10 +2864,15 @@ body.dark-mode #invoice-view * {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Intercept email confirmation links that incorrectly landed on the dashboard
-  if (window.location.hash.includes('type=signup') || window.location.search.includes('type=signup') ||
-      window.location.hash.includes('type=email') || window.location.search.includes('type=email')) {
-      window.location.href = 'confirm.html' + window.location.search + window.location.hash;
+  // Intercept any email confirmation / verification tokens that landed on index.html
+  var _h = window.location.hash || '';
+  var _s = window.location.search || '';
+  if (_h.includes('type=signup') || _s.includes('type=signup') ||
+      _h.includes('type=email') || _s.includes('type=email') ||
+      _h.includes('type=invite') || _s.includes('type=invite') ||
+      (_h.includes('access_token=') && !_h.includes('type=recovery')) ||
+      (_s.includes('token_hash=') && !_s.includes('type=recovery'))) {
+      window.location.replace('confirm.html' + _s + _h);
   }
 </script>
 <script>

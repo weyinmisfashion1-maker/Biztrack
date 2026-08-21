@@ -234,6 +234,17 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function() {
+  var _h = window.location.hash || '';
+  var _s = window.location.search || '';
+  if (_h.includes('type=signup') || _s.includes('type=signup') ||
+      _h.includes('type=email') || _s.includes('type=email') ||
+      _h.includes('type=invite') || _s.includes('type=invite') ||
+      (_h.includes('access_token=') && !_h.includes('type=recovery')) ||
+      (_s.includes('token_hash=') && !_s.includes('type=recovery'))) {
+      window.location.replace('confirm.html' + _s + _h);
+      return;
+  }
+
   const SUPABASE_URL = 'https://zczxusyfepcblgelzmep.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_-onWuTJWF5CB1VClm3Uexg_3TszdyOQ';
   window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);

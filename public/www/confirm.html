@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -39,8 +39,8 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
 <body>
 <div class="auth-card">
   <div class="auth-header">
-    <a href="/login.html" class="brand">BizTrack.ng</a>
-    <h1 class="auth-h1" id="auth-title">Confirming your email&hellip;</h1>
+    <span class="brand">BizTrack.ng</span>
+    <h1 class="auth-h1" id="auth-title">Email Verification</h1>
   </div>
   <div class="auth-body">
     <div class="spinner-wrap" id="spinner-state">
@@ -52,9 +52,9 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
       <h2 class="result-title">Email Confirmed!</h2>
       <p class="result-msg">
         Your email address has been confirmed successfully.<br><br>
-        <strong>Please return to BizTrack.ng and log in</strong> with your email and password to access your account.
+        <strong>Please return to the BizTrack.ng app and log in</strong> with your email and password to access your account.<br><br>
+        <span style="font-size:0.85rem;color:var(--muted);">(You can now close this browser tab.)</span>
       </p>
-      <a href="/login.html" class="btn-login">Go to Login</a>
     </div>
     <div class="result-card error" id="error-card">
       <div class="result-icon">&#x274C;</div>
@@ -63,7 +63,6 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
         This confirmation link is invalid or has already been used.<br><br>
         Please try registering again or contact support.
       </p>
-      <a href="/login.html" class="btn-login">Back to Login</a>
     </div>
   </div>
 </div>
@@ -79,6 +78,23 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
   var errorEl     = document.getElementById('error-card');
   var errorMsgEl  = document.getElementById('error-msg');
   var authTitleEl = document.getElementById('auth-title');
+
+  async function clearSessionCompletely() {
+    try {
+      await sb.auth.signOut();
+    } catch (e) {}
+    try {
+      for (var k in localStorage) {
+        if (k.startsWith('sb-') || k.includes('supabase')) {
+          localStorage.removeItem(k);
+        }
+      }
+      sessionStorage.clear();
+    } catch (e) {}
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }
 
   function showSuccess() {
     spinnerEl.style.display = 'none';
@@ -97,7 +113,7 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
   // Sign the user back out immediately — confirmation only, no dashboard access.
   sb.auth.onAuthStateChange(async function (event, session) {
     if (event === 'SIGNED_IN' && session) {
-      await sb.auth.signOut();
+      await clearSessionCompletely();
       showSuccess();
     }
   });
@@ -117,16 +133,16 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
         var otpType = (type === 'email_change') ? 'email_change' : (type === 'email' ? 'email' : 'signup');
         var res = await sb.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
         if (res.error) throw res.error;
-        await sb.auth.signOut();
+        await clearSessionCompletely();
         showSuccess();
         return;
       }
 
       // Legacy implicit-flow access_token in URL hash
-      if (type === 'signup' && accessToken) {
+      if (accessToken) {
         var res2 = await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
         if (res2.error) throw res2.error;
-        await sb.auth.signOut();
+        await clearSessionCompletely();
         showSuccess();
         return;
       }
@@ -134,7 +150,7 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
       // If there is already an active session (onAuthStateChange fired first)
       var sd = await sb.auth.getSession();
       if (sd.data && sd.data.session) {
-        await sb.auth.signOut();
+        await clearSessionCompletely();
         showSuccess();
         return;
       }
