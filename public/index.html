@@ -1534,12 +1534,12 @@ body.dark-mode #invoice-view * {
   left: 0;
   right: 0;
   background: var(--ink2);
-  border-top: 1px solid rgba(201, 152, 42, 0.2);
+  border-top: 1.5px solid rgba(201, 152, 42, 0.25);
   display: flex;
   justify-content: space-around;
   padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
-  z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 9500;
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.6);
 }
 .bottom-nav .nav-item {
   display: flex;
@@ -1548,21 +1548,21 @@ body.dark-mode #invoice-view * {
   gap: 0.25rem;
   background: transparent;
   border: none;
-  color: rgba(250, 246, 239, 0.5);
+  color: rgba(250, 246, 239, 0.55);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.45rem 0.5rem;
   min-width: 60px;
-  transition: color 0.2s, transform 0.2s;
+  transition: color 0.2s, transform 0.15s;
 }
 .bottom-nav .nav-item svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   stroke-width: 2;
   transition: stroke 0.2s;
 }
 .bottom-nav .nav-item span {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1573,7 +1573,7 @@ body.dark-mode #invoice-view * {
   stroke: var(--gold);
 }
 .bottom-nav .nav-item:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
 }
 </style>
 <script>
@@ -2601,9 +2601,6 @@ body.dark-mode #invoice-view * {
       </ul>
     </div>
   </section>
-
-
-</main>
 
 <!-- FOOTER SECTION -->
 <footer id="site-footer" role="contentinfo">

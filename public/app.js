@@ -314,7 +314,10 @@ function switchTab(name) {
   
   // Update Bottom Nav if exists
   document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.toggle('active', item.dataset.tab === name);
+    const isTabActive = item.dataset.tab === name || 
+      (item.dataset.tab === 'sales' && (name === 'recent-sales' || name === 'sales')) ||
+      (item.dataset.tab === 'dashboard' && name === 'transactions');
+    item.classList.toggle('active', isTabActive);
   });
 
   if (name === 'transactions') renderLatestTransactions();
