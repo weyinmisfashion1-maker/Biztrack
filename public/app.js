@@ -441,6 +441,7 @@ function populateProfileForm() {
   const radioNo = document.querySelector('input[name="prof-has-staff"][value="no"]');
   if (hasStaff && radioYes) radioYes.checked = true;
   else if (radioNo) radioNo.checked = true;
+  if (typeof toggleStaffPinUI === 'function') toggleStaffPinUI();
 
   if (PROFILE.qr_code_url) {
     PROFILE_QR_DATA_URL = PROFILE.qr_code_url;
@@ -867,33 +868,151 @@ async function deleteSale(id) {
   }
 }
 
+function toggleStaffPinUI() {
+  const hasStaff = document.querySelector('input[name="prof-has-staff"]:checked')?.value === 'yes';
+  const soloNotice = getEl('prof-solo-notice');
+  const pinBox = getEl('prof-staff-pin-box');
+  const pinInput = getEl('prof-pin');
+
+  if (hasStaff) {
+    if (soloNotice) soloNotice.style.display = 'none';
+    if (pinBox) pinBox.style.display = 'block';
+    if (pinInput) pinInput.required = true;
+  } else {
+    if (soloNotice) soloNotice.style.display = 'block';
+    if (pinBox) pinBox.style.display = 'none';
+    if (pinInput) {
+      pinInput.required = false;
+    }
+  }
+}
+window.toggleStaffPinUI = toggleStaffPinUI;
+
 function lockApp() {
+  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  if (!hasStaff) {
+    toast('💡 Staff Mode is not enabled. Go to Business Details if you have staff.');
+    return;
+  }
   IS_LOCKED = true;
   localStorage.setItem('biztrack_locked', 'true');
   applyLockUIState();
-  toast('’ App locked in Staff Mode');
+  toast('🔒 App locked in Staff Mode');
 }
 
 function unlockApp() {
-  const pin = prompt('Enter 4-digit Owner PIN to unlock Admin Mode:');
-  if (pin === null) return;
-  
+  const modal = getEl('modal-admin-unlock');
+  if (modal) {
+    const input = getEl('input-unlock-pin');
+    if (input) input.value = '';
+    modal.style.display = 'flex';
+    if (input) input.focus();
+  } else {
+    const pin = prompt('Enter 4-digit Owner PIN to unlock Admin Mode:');
+    if (pin === null) return;
+    const correctPin = (PROFILE && PROFILE.pin) || '1234';
+    if (pin === correctPin) {
+      IS_LOCKED = false;
+      localStorage.setItem('biztrack_locked', 'false');
+      applyLockUIState();
+      toast('✅ Admin Mode unlocked');
+    } else {
+      alert('Incorrect PIN! Access denied.');
+    }
+  }
+}
+
+function closeAdminUnlockModal() {
+  const modal = getEl('modal-admin-unlock');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitAdminUnlock() {
+  const input = getEl('input-unlock-pin');
+  const pin = input ? input.value.trim() : '';
   const correctPin = (PROFILE && PROFILE.pin) || '1234';
+
   if (pin === correctPin) {
+    closeAdminUnlockModal();
     IS_LOCKED = false;
     localStorage.setItem('biztrack_locked', 'false');
     applyLockUIState();
-    toast(' Admin Mode unlocked');
+    toast('✅ Admin Mode unlocked');
   } else {
-    alert('Incorrect PIN! Access denied.');
+    alert('Incorrect PIN! Access denied.\n\nIf you forgot your PIN, tap "Forgot your Admin PIN?" below to log out and view your Business Details.');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
   }
 }
+
+function showForgotPinPrompt() {
+  closeAdminUnlockModal();
+  const modal = getEl('modal-forgot-pin');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    if (confirm('Forgot your Admin PIN?\n\nTo view and reset your Admin PIN, please log out and sign back in using your master account email and password.\n\nWould you like to log out now?')) {
+      signOut();
+    }
+  }
+}
+
+window.closeAdminUnlockModal = closeAdminUnlockModal;
+window.submitAdminUnlock = submitAdminUnlock;
+window.showForgotPinPrompt = showForgotPinPrompt;
 
 function applyLockUIState() {
   const profileTab = getEl('tab-profile');
   const unlockTab = getEl('tab-unlock-admin');
   const lockBtn = getEl('btn-staff-lock');
   const deletedSalesSection = getEl('deleted-sales-hd')?.closest('section');
+  const hasStaff = PROFILE?.staff_mode_enabled === true;
+
+  if (!hasStaff) {
+    // Solo business: ALWAYS full Admin Mode, hide staff lock/unlock controls
+    IS_LOCKED = false;
+    localStorage.setItem('biztrack_locked', 'false');
+
+    if (profileTab) profileTab.style.display = 'block';
+    if (deletedSalesSection) deletedSalesSection.style.display = 'block';
+    if (unlockTab) unlockTab.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
+
+    const btnUnlock = getEl('btn-staff-unlock');
+    if (btnUnlock) btnUnlock.style.display = 'none';
+    
+    const dashLock = getEl('dash-btn-staff-lock');
+    if (dashLock) dashLock.style.display = 'none';
+    const dashUnlock = getEl('dash-btn-staff-unlock');
+    if (dashUnlock) dashUnlock.style.display = 'none';
+
+    const staffSettingsCard = getEl('settings-staff-card');
+    if (staffSettingsCard) staffSettingsCard.style.display = 'none';
+
+    // Restore all tabs
+    ['tab-sales','tab-recent-sales','tab-expense','tab-inventory','tab-invoice','tab-report','tab-settings','tab-admin','tab-transactions','tab-utilities','tab-profile'].forEach(id => {
+      const el = getEl(id);
+      if (el) el.style.display = '';
+    });
+
+    // Restore all Quick Actions and FAB buttons
+    ['qa-sales-card','qa-recent-sales-card','qa-expense-card','qa-inventory-card','qa-invoice-card','qa-report-card','qa-profile-card','qa-settings-card','qa-admin-card','qa-transactions-card','qa-utilities-card'].forEach(id => {
+      const el = getEl(id);
+      if (el) el.style.display = '';
+    });
+
+    ['fab-action-sale','fab-action-expense','fab-action-stock','fab-action-invoice'].forEach(id => {
+      const el = getEl(id);
+      if (el) el.style.display = 'flex';
+    });
+
+    document.querySelectorAll('.li-amt, #hm-rev, #hm-profit, .trans-amt').forEach(el => {
+      el.style.display = '';
+    });
+    return;
+  }
 
   // Load saved permissions from profile if available
   const perms = (PROFILE && PROFILE.staff_permissions)
@@ -3335,14 +3454,22 @@ function wireForms() {
     event.preventDefault();
     try {
       const { data: { user } } = await sb.auth.getUser();
-      const pinVal = getEl('prof-pin').value.trim();
-      if (!/^\d{4}$/.test(pinVal)) {
-        return toast('   PIN must be exactly 4 digits');
+      const hasStaff     = document.querySelector('input[name="prof-has-staff"]:checked')?.value === 'yes';
+      let pinVal         = (getEl('prof-pin')?.value || '').trim();
+
+      if (hasStaff) {
+        if (!/^\d{4}$/.test(pinVal)) {
+          return toast('⚠️ Please enter a valid 4-digit Admin PIN');
+        }
+      } else {
+        if (!pinVal || !/^\d{4}$/.test(pinVal)) {
+          pinVal = (PROFILE && PROFILE.pin) || '1234';
+        }
       }
+
       const perms = readStaffPermsFromUI();
       const instagramVal = (getEl('prof-instagram')?.value || '').trim();
       const websiteVal   = (getEl('prof-website')?.value || '').trim();
-      const hasStaff     = document.querySelector('input[name="prof-has-staff"]:checked')?.value === 'yes';
       
       // Embed extras inside staff_permissions JSONB (existing Supabase column)
       // so they survive app reinstalls without needing new DB columns
@@ -3364,8 +3491,10 @@ function wireForms() {
         logo: PROFILE?.logo || null,
         staff_permissions: permsWithExtras
       };
-      if (!payload.business_name) return toast('   Business Name is required');
+      if (!payload.business_name) return toast('⚠️ Business Name is required');
       const { error } = await sb.from('profiles').upsert(payload);
+      if (error) throw error;
+
       const extras = {
         instagram: instagramVal,
         website: websiteVal,
@@ -3376,12 +3505,13 @@ function wireForms() {
 
       PROFILE = { ...payload, instagram: instagramVal, website: websiteVal, staff_mode_enabled: hasStaff, ...extras };
       STAFF_PERMS = perms;
+      applyLockUIState();
       renderProfileBanner(PROFILE);
-      toast(' Business details & permissions updated!');
+      toast('✅ Business details updated successfully!');
       switchTab('sales');
     } catch (err) { 
       console.error(err);
-      toast('   Update failed: ' + (err.message || 'Unknown error')); 
+      toast('⚠️ Update failed: ' + (err.message || 'Unknown error')); 
     }
   });
 
@@ -3551,19 +3681,25 @@ async function init() {
   loadSettings(user.id);
   renderLogoPreview();
 
-  // --- FIRST LOGIN REDIRECT ---
-  // If this user has no business name set yet, they are a new user who just
-  // confirmed their email and logged in for the first time.
-  // Send them directly to the Business Profile setup tab.
-  // Existing users (who already have a business_name) go to the dashboard as normal.
-  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-  if (isNewUser) {
-    switchTab('profile');
-  }
-  // --- END FIRST LOGIN REDIRECT ---
+  // --- ALWAYS LAND ON BUSINESS DETAILS FOR ALL USERS ---
+  switchTab('profile');
+  populateProfileForm();
 
-  // Set and apply lock state
-  IS_LOCKED = localStorage.getItem('biztrack_locked') !== 'false';
+  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+  if (!isNewUser) {
+    setTimeout(() => {
+      toast('👋 Welcome back! These are your business details. Would you like to review or update anything?', 5000);
+    }, 600);
+  }
+
+  // Set and apply lock state based on staff_mode_enabled
+  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  if (!hasStaff) {
+    IS_LOCKED = false;
+    localStorage.setItem('biztrack_locked', 'false');
+  } else {
+    IS_LOCKED = localStorage.getItem('biztrack_locked') === 'true';
+  }
   applyLockUIState();
 
   renderAll();

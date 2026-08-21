@@ -2373,21 +2373,36 @@ body.dark-mode #invoice-view * {
             <label for="prof-acc-name">Account Name</label>
             <input type="text" id="prof-acc-name" />
           </div>
-          <div class="field">
-            <label for="prof-pin">Owner PIN (4 Digits) <span class="req-mark" aria-hidden="true">*</span></label>
-            <input type="text" id="prof-pin" required pattern="\d{4}" maxlength="4" placeholder="1234" />
-          </div>
         </div>
 
-        <div class="field" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border);">
-          <label style="font-size:0.88rem; font-weight:700; color:var(--text); display:block; margin-bottom:0.5rem;">Does your business have staff who will use BizTrack.ng?</label>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-              <input type="radio" name="prof-has-staff" value="no" checked> No, I don't have staff
+        <!-- STAFF & ADMIN PIN INTERACTIVE SECTION -->
+        <div style="margin-top: 1.2rem; margin-bottom: 1.2rem; padding: 1.2rem; background: var(--cream2); border-radius: var(--r); border: 1.5px solid var(--border);">
+          <label style="font-size:0.92rem; font-weight:700; color:var(--ink); display:block; margin-bottom:0.6rem;">
+            👥 Does your business have staff who will use BizTrack.ng?
+          </label>
+          <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer; font-weight:500; font-size:0.9rem;">
+              <input type="radio" name="prof-has-staff" value="no" checked onchange="toggleStaffPinUI()"> No, I don't have staff
             </label>
-            <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
-              <input type="radio" name="prof-has-staff" value="yes"> Yes, I have staff
+            <label style="display:flex; align-items:center; gap:0.45rem; cursor:pointer; font-weight:500; font-size:0.9rem;">
+              <input type="radio" name="prof-has-staff" value="yes" onchange="toggleStaffPinUI()"> Yes, I have staff
             </label>
+          </div>
+
+          <!-- Solo business notice -->
+          <div id="prof-solo-notice" style="display:block; font-size:0.84rem; color:var(--muted); line-height:1.4; background:#fff; padding:0.75rem 1rem; border-radius:var(--r-xs); border:1px solid var(--border);">
+            💡 <strong>No PIN needed!</strong> As a solo business owner, you will always remain in <strong>Admin Mode</strong> with full access to all features.
+          </div>
+
+          <!-- Staff enabled PIN input -->
+          <div id="prof-staff-pin-box" style="display:none; margin-top:0.8rem;">
+            <label for="prof-pin" style="font-size:0.84rem; font-weight:700; color:var(--ink); display:block; margin-bottom:0.35rem;">
+              Enter 4-Digit Admin PIN <span class="req-mark" aria-hidden="true">*</span>
+            </label>
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+              <input type="text" id="prof-pin" pattern="\d{4}" maxlength="4" placeholder="1234" style="max-width:180px; letter-spacing:0.15em; font-weight:700;" />
+              <span style="font-size:0.78rem; color:var(--muted);">(Used to switch between Staff Mode and Admin Mode)</span>
+            </div>
           </div>
         </div>
 
@@ -2826,6 +2841,41 @@ body.dark-mode #invoice-view * {
       </div>
     </div>
 
+<!-- ADMIN PIN UNLOCK MODAL -->
+<div id="modal-admin-unlock" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:9999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+  <div class="modal-card" style="background:#fff; border-radius:var(--r); max-width:380px; width:100%; padding:1.75rem 1.5rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1.5px solid var(--border);">
+    <div style="font-size:2.4rem; margin-bottom:0.4rem;">🔐</div>
+    <h3 style="font-family:var(--ff-head); font-size:1.35rem; margin-bottom:0.4rem; color:var(--ink);">Unlock Admin Mode</h3>
+    <p style="font-size:0.86rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.4;">Enter your 4-digit Admin PIN to access full business controls and settings.</p>
+    
+    <div style="margin-bottom:1.25rem;">
+      <input type="password" id="input-unlock-pin" maxlength="4" pattern="\d{4}" placeholder="••••" style="width:160px; text-align:center; font-size:1.8rem; letter-spacing:0.35em; padding:0.6rem; border:2px solid var(--border); border-radius:12px; font-weight:800; background:var(--cream);" />
+    </div>
+
+    <div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1.25rem;">
+      <button type="button" class="btn-ghost" onclick="closeAdminUnlockModal()" style="padding:0.6rem 1.2rem; font-size:0.9rem;">Cancel</button>
+      <button type="button" class="btn-save" onclick="submitAdminUnlock()" style="padding:0.6rem 1.5rem; font-size:0.9rem;">Unlock</button>
+    </div>
+
+    <div style="border-top:1px dashed var(--border); padding-top:0.85rem;">
+      <a href="javascript:void(0)" onclick="showForgotPinPrompt()" style="font-size:0.84rem; color:var(--gold); font-weight:700; text-decoration:none; cursor:pointer;">Forgot your Admin PIN?</a>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PIN MODAL -->
+<div id="modal-forgot-pin" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:10000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+  <div class="modal-card" style="background:#fff; border-radius:var(--r); max-width:400px; width:100%; padding:1.75rem 1.5rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1.5px solid var(--border);">
+    <div style="font-size:2.4rem; margin-bottom:0.4rem;">🔑</div>
+    <h3 style="font-family:var(--ff-head); font-size:1.35rem; margin-bottom:0.5rem; color:var(--ink);">Forgot Admin PIN?</h3>
+    <p style="font-size:0.9rem; color:var(--text); line-height:1.5; margin-bottom:1.25rem;">
+      To view or reset your 4-digit Admin PIN, please <strong>log out</strong> and sign back in using your <strong>account email and password</strong>.<br><br>
+      Logging in with your account password will open your <strong>Business Details</strong> where your PIN is displayed.
+    </p>
+    <div style="display:flex; gap:0.5rem; justify-content:center;">
+      <button type="button" class="btn-ghost" onclick="getEl('modal-forgot-pin').style.display='none'" style="padding:0.6rem 1.2rem; font-size:0.9rem;">Cancel</button>
+      <button type="button" class="btn-save" onclick="signOut()" style="padding:0.6rem 1.4rem; font-size:0.9rem; background:#B53030; color:#fff; border:none;">Log Out Now</button>
+    </div>
   </div>
 </div>
 
