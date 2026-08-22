@@ -3684,7 +3684,12 @@ async function init() {
   loadSettings(user.id);
   renderLogoPreview();
 
-  // --- ALWAYS LAND ON BUSINESS DETAILS FOR ALL USERS ---
+  // Reset lock state on master account login so owner always has full admin access to Business Details
+  IS_LOCKED = false;
+  localStorage.setItem('biztrack_locked', 'false');
+  applyLockUIState();
+
+  // --- ALWAYS LAND ON BUSINESS DETAILS FOR BOTH OLD AND NEW USERS ---
   switchTab('profile');
   populateProfileForm();
 
@@ -3692,18 +3697,8 @@ async function init() {
   if (!isNewUser) {
     setTimeout(() => {
       toast('👋 Welcome back! These are your business details. Would you like to review or update anything?', 5000);
-    }, 600);
+    }, 500);
   }
-
-  // Set and apply lock state based on staff_mode_enabled
-  const hasStaff = PROFILE?.staff_mode_enabled === true;
-  if (!hasStaff) {
-    IS_LOCKED = false;
-    localStorage.setItem('biztrack_locked', 'false');
-  } else {
-    IS_LOCKED = localStorage.getItem('biztrack_locked') === 'true';
-  }
-  applyLockUIState();
 
   renderAll();
   calcTotals();
