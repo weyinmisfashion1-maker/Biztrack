@@ -3511,7 +3511,7 @@ function wireForms() {
       applyLockUIState();
       renderProfileBanner(PROFILE);
       toast('✅ Business details updated successfully!');
-      switchTab('sales');
+      switchTab('dashboard');
     } catch (err) { 
       console.error(err);
       toast('⚠️ Update failed: ' + (err.message || 'Unknown error')); 
