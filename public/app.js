@@ -4315,6 +4315,9 @@ window.openInvoiceModalManual = openInvoiceModalManual;
 window.closeInvoiceModal = closeInvoiceModal;
 window.cancelManualInvoice = cancelManualInvoice;
 window.filterInvoiceSalesPicker = filterInvoiceSalesPicker;
+window.closeAdminUnlockModal = closeAdminUnlockModal;
+window.submitAdminUnlock = submitAdminUnlock;
+window.showForgotPinPrompt = showForgotPinPrompt;
 
 
 

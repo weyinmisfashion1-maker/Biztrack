@@ -2837,16 +2837,20 @@ body.dark-mode #invoice-view * {
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+</main>
 
 <!-- ADMIN PIN UNLOCK MODAL -->
-<div id="modal-admin-unlock" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:9999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+<div id="modal-admin-unlock" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:99999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
   <div class="modal-card" style="background:#fff; border-radius:var(--r); max-width:380px; width:100%; padding:1.75rem 1.5rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1.5px solid var(--border);">
     <div style="font-size:2.4rem; margin-bottom:0.4rem;">🔐</div>
     <h3 style="font-family:var(--ff-head); font-size:1.35rem; margin-bottom:0.4rem; color:var(--ink);">Unlock Admin Mode</h3>
     <p style="font-size:0.86rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.4;">Enter your 4-digit Admin PIN to access full business controls and settings.</p>
     
     <div style="margin-bottom:1.25rem;">
-      <input type="password" id="input-unlock-pin" maxlength="4" pattern="\d{4}" placeholder="••••" style="width:160px; text-align:center; font-size:1.8rem; letter-spacing:0.35em; padding:0.6rem; border:2px solid var(--border); border-radius:12px; font-weight:800; background:var(--cream);" />
+      <input type="password" id="input-unlock-pin" maxlength="4" pattern="\d{4}" placeholder="••••" style="width:160px; text-align:center; font-size:1.8rem; letter-spacing:0.35em; padding:0.6rem; border:2px solid var(--border); border-radius:12px; font-weight:800; background:var(--cream);" onkeyup="if(event.key==='Enter') submitAdminUnlock()" />
     </div>
 
     <div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1.25rem;">
@@ -2861,7 +2865,7 @@ body.dark-mode #invoice-view * {
 </div>
 
 <!-- FORGOT PIN MODAL -->
-<div id="modal-forgot-pin" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:10000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
+<div id="modal-forgot-pin" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(20,16,9,0.75); z-index:100000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(3px);">
   <div class="modal-card" style="background:#fff; border-radius:var(--r); max-width:400px; width:100%; padding:1.75rem 1.5rem; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.3); border:1.5px solid var(--border);">
     <div style="font-size:2.4rem; margin-bottom:0.4rem;">🔑</div>
     <h3 style="font-family:var(--ff-head); font-size:1.35rem; margin-bottom:0.5rem; color:var(--ink);">Forgot Admin PIN?</h3>
@@ -2875,8 +2879,6 @@ body.dark-mode #invoice-view * {
     </div>
   </div>
 </div>
-
-</main>
 
 <!-- BOTTOM NAVIGATION BAR -->
 <nav class="bottom-nav">
