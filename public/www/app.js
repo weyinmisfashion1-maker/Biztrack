@@ -3758,6 +3758,14 @@ async function init() {
     populateProfileForm();
   }
 
+  // Smoothly hide loading screen overlay now that correct tab is active
+  const loader = getEl('app-loading-screen');
+  if (loader) {
+    loader.style.opacity = '0';
+    loader.style.pointerEvents = 'none';
+    setTimeout(() => { loader.style.display = 'none'; }, 250);
+  }
+
   renderAll();
   calcTotals();
   wireForms();
