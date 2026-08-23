@@ -472,21 +472,6 @@ function readStaffPermsFromUI() {
   return result;
 }
 
-async function saveStaffPermissions() {
-  try {
-    const perms = readStaffPermsFromUI();
-    const { data: { user } } = await sb.auth.getUser();
-    const payload = { id: user.id, staff_permissions: perms };
-    const { error } = await sb.from('profiles').upsert(payload);
-    if (error) throw error;
-    STAFF_PERMS = perms;
-    if (PROFILE) PROFILE.staff_permissions = perms;
-    toast(' Staff permissions saved!');
-  } catch (err) {
-    console.error(err);
-    toast('  Could not save permissions');
-  }
-}
 
 /* --- SALES & INVENTORY INTEGRATION --- */
 function populateStockDropdowns() {
@@ -4105,6 +4090,14 @@ async function saveStaffPermissions() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     const perms = readStaffPermsFromUI();
+    
+    // Preserve internal extras (_staff_mode_enabled, _instagram, _website)
+    const existingPerms = PROFILE?.staff_permissions || {};
+    const mergedPerms = { ...perms };
+    Object.keys(existingPerms).forEach(k => {
+      if (k.startsWith('_')) mergedPerms[k] = existingPerms[k];
+    });
+
     const payload = {
       id: user.id,
       business_name: PROFILE?.business_name || 'My Business',
@@ -4114,7 +4107,7 @@ async function saveStaffPermissions() {
       account_number: PROFILE?.account_number || '',
       account_name: PROFILE?.account_name || '',
       pin: PROFILE?.pin || '1234',
-      staff_permissions: perms,
+      staff_permissions: mergedPerms,
       logo: PROFILE?.logo || ''
     };
     const { error } = await sb.from('profiles').upsert(payload);
