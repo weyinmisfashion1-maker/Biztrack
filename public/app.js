@@ -3984,37 +3984,6 @@ function toggleTheme(isDark) {
   });
 }
 
-async function changeAdminPin() {
-  const pinInput = getEl('admin-new-pin');
-  const pinVal = pinInput ? pinInput.value.trim() : '';
-  if (!/^\d{4}$/.test(pinVal)) {
-    return toast('  PIN must be exactly 4 digits');
-  }
-  try {
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) return;
-    
-    const payload = {
-      ...PROFILE,
-      id: user.id,
-      pin: pinVal
-    };
-    const { error } = await sb.from('profiles').upsert(payload);
-    if (error) throw error;
-    
-    PROFILE = payload;
-    
-    const detailsPin = getEl('prof-pin');
-    if (detailsPin) detailsPin.value = pinVal;
-    
-    pinInput.value = '';
-    toast(' Owner PIN updated successfully!');
-  } catch (err) {
-    console.error(err);
-    toast('  Failed to update PIN');
-  }
-}
-
 async function exportDatabase() {
   try {
     toast(' Generating backup...');
@@ -4289,7 +4258,6 @@ window.goToLandingPage = goToLandingPage;
 window.toggleTheme = toggleTheme;
 window.saveSettings = saveSettings;
 window.saveInventoryControl = saveInventoryControl;
-window.changeAdminPin = changeAdminPin;
 window.exportDatabase = exportDatabase;
 window.importDatabase = importDatabase;
 window.resetDatabase = resetDatabase;
