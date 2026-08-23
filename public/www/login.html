@@ -288,8 +288,13 @@ body {
   getEl('login-form').onsubmit = async e => {
     e.preventDefault();
     statusEl.style.display = 'none';
-    const email = getEl('login-email').value;
+    const email = getEl('login-email').value.trim();
     const password = getEl('login-pass').value;
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    // Show loading state
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
+    showStatus('Signing in, please wait...', true);
 
     try {
       const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
@@ -297,10 +302,12 @@ body {
         console.error('Login error:', error);
         throw new Error(error.message || 'Invalid login credentials');
       }
-      showStatus('Success! Redirecting...', true);
-      setTimeout(() => window.location.href = '/', 800);
+      showStatus('✅ Success! Redirecting...', true);
+      // Use index.html explicitly — '/' can hang in Android Capacitor APKs
+      setTimeout(() => { window.location.replace('index.html'); }, 800);
     } catch (err) {
       showStatus('Login Failed: ' + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In to Dashboard'; }
     }
   };
 
@@ -362,11 +369,11 @@ body {
     try {
       const { data } = await window.sb.auth.getSession();
       if (data?.session) {
-        window.location.href = '/';
+        window.location.replace('index.html');
         return;
       }
       if (!localStorage.getItem('biztrack_has_seen_onboarding')) {
-        window.location.href = '/onboarding.html';
+        window.location.replace('onboarding.html');
       }
     } catch (e) {}
   })();

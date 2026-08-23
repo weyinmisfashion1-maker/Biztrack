@@ -75,9 +75,9 @@ async function checkAuth() {
     const { data: { session }, error } = await sb.auth.getSession();
     if (error || !session) {
       if (!localStorage.getItem('biztrack_has_seen_onboarding')) {
-        window.location.assign('/onboarding.html');
+        window.location.replace('onboarding.html');
       } else {
-        window.location.assign('/login.html');
+        window.location.replace('login.html');
       }
       return null;
     }
@@ -86,7 +86,7 @@ async function checkAuth() {
     document.body.style.opacity = '1';
     return session.user;
   } catch (e) {
-    window.location.assign('/onboarding.html');
+    window.location.replace('login.html');
     return null;
   }
 }
@@ -108,7 +108,7 @@ async function signOut() {
   } catch (e) {
     console.error('Sign out exception:', e);
   }
-  window.location.assign('/login.html');
+  window.location.replace('login.html');
 }
 
 /* --- SUPABASE DATA LAYER --- */
