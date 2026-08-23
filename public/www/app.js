@@ -116,16 +116,19 @@ async function loadProfile() {
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return null;
-    const { data, error } = await sb
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      console.error('Profile load error:', error);
-      return null;
+
+    const cacheKey = 'biztrack_profile_cache_' + user.id;
+    const cached = localStorage.getItem(cacheKey);
+
+    let profileData = null;
+    if (cached) {
+      try {
+        profileData = JSON.parse(cached);
+      } catch (e) {
+        console.error('Profile cache error', e);
+      }
     }
+
     // Load inventory control settings from localStorage
     const localInv = localStorage.getItem('biztrack_inventory_control_' + user.id);
     if (localInv) {
@@ -137,20 +140,50 @@ async function loadProfile() {
     } else {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
-    const extras = loadProfileExtras(user.id);
-    // Also read instagram/website stored inside staff_permissions JSONB (cloud-persisted)
-    if (data?.staff_permissions) {
-      if (data?.staff_permissions?._instagram !== undefined) {
-        extras.instagram = extras.instagram || data.staff_permissions._instagram;
+
+    const fetchFresh = async () => {
+      try {
+        const { data, error } = await sb
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('Profile load error:', error);
+          return null;
+        }
+
+        const extras = loadProfileExtras(user.id);
+        if (data?.staff_permissions) {
+          if (data?.staff_permissions?._instagram !== undefined) extras.instagram = extras.instagram || data.staff_permissions._instagram;
+          if (data?.staff_permissions?._website !== undefined) extras.website = extras.website || data.staff_permissions._website;
+          if (data?.staff_permissions?._staff_mode_enabled !== undefined) extras.staff_mode_enabled = data.staff_permissions._staff_mode_enabled;
+        }
+        
+        const freshProfile = data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
+        
+        if (freshProfile) {
+          localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
+          // If we returned cached data initially, quietly update the live object
+          if (cached && typeof renderProfileBanner === 'function') {
+            PROFILE = freshProfile;
+            renderProfileBanner(PROFILE);
+          }
+        }
+        return freshProfile;
+      } catch (err) {
+        console.error('Background profile fetch error:', err);
+        return null;
       }
-      if (data?.staff_permissions?._website !== undefined) {
-        extras.website = extras.website || data.staff_permissions._website;
-      }
-      if (data?.staff_permissions?._staff_mode_enabled !== undefined) {
-        extras.staff_mode_enabled = data.staff_permissions._staff_mode_enabled;
-      }
+    };
+
+    if (cached) {
+      fetchFresh(); // Run in background
+      return profileData;
+    } else {
+      return await fetchFresh(); // Wait if no cache
     }
-    return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
     return null;
