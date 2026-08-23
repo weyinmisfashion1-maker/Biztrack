@@ -162,25 +162,59 @@ async function loadData() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
 
-    // Fetch user's records strictly
-    const [sales, expenses, stock] = await Promise.all([
-      sb.from('sales').select('*').eq('user_id', user.id).order('date', { ascending: false }),
-      sb.from('expenses').select('*').eq('user_id', user.id).order('date', { ascending: false }),
-      sb.from('stock').select('*').eq('user_id', user.id).order('name', { ascending: true })
-    ]);
+    const cacheKey = 'biztrack_data_' + user.id;
+    const cached = localStorage.getItem(cacheKey);
 
-    if (sales.error) console.error('Sales error', sales.error);
-    if (expenses.error) console.error('Expenses error', expenses.error);
-    if (stock.error) console.error('Stock error', stock.error);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        S.sales = parsed.sales || [];
+        S.deletedSales = parsed.deletedSales || [];
+        S.expenses = parsed.expenses || [];
+        S.stock = parsed.stock || [];
+      } catch (e) {
+        console.error('Cache read error', e);
+      }
+    }
 
-    let allSales = sales.data || [];
-    let allExpenses = expenses.data || [];
-    let allStock = stock.data || [];
+    const fetchFresh = async () => {
+      try {
+        const [sales, expenses, stock] = await Promise.all([
+          sb.from('sales').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+          sb.from('expenses').select('*').eq('user_id', user.id).order('date', { ascending: false }),
+          sb.from('stock').select('*').eq('user_id', user.id).order('name', { ascending: true })
+        ]);
 
-    S.sales = allSales.filter(sale => !sale.is_deleted);
-    S.deletedSales = allSales.filter(sale => sale.is_deleted);
-    S.expenses = allExpenses;
-    S.stock = allStock;
+        let allSales = sales.data || [];
+        let allExpenses = expenses.data || [];
+        let allStock = stock.data || [];
+
+        S.sales = allSales.filter(sale => !sale.is_deleted);
+        S.deletedSales = allSales.filter(sale => sale.is_deleted);
+        S.expenses = allExpenses;
+        S.stock = allStock;
+
+        localStorage.setItem(cacheKey, JSON.stringify({
+          sales: S.sales,
+          deletedSales: S.deletedSales,
+          expenses: S.expenses,
+          stock: S.stock
+        }));
+
+        if (cached && typeof renderAll === 'function') {
+          renderAll();
+          calcTotals();
+        }
+      } catch (err) {
+        console.error('Background fetch error:', err);
+      }
+    };
+
+    if (cached) {
+      fetchFresh(); // run in background
+    } else {
+      await fetchFresh(); // block if no cache
+    }
   } catch (e) {
     console.error('Data load exception:', e);
   }
@@ -3674,15 +3708,14 @@ async function init() {
   localStorage.setItem('biztrack_locked', 'false');
   applyLockUIState();
 
-  // --- ALWAYS LAND ON BUSINESS DETAILS FOR BOTH OLD AND NEW USERS ---
-  switchTab('profile');
-  populateProfileForm();
-
   const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-  if (!isNewUser) {
-    setTimeout(() => {
-      toast('👋 Welcome back! These are your business details. Would you like to review or update anything?', 5000);
-    }, 500);
+  
+  if (isNewUser) {
+    switchTab('profile');
+    populateProfileForm();
+  } else {
+    switchTab('dashboard');
+    populateProfileForm();
   }
 
   renderAll();
