@@ -439,7 +439,7 @@ function populateProfileForm() {
   if (getEl('prof-instagram')) getEl('prof-instagram').value = PROFILE.instagram || '';
   if (getEl('prof-website')) getEl('prof-website').value = PROFILE.website || '';
 
-  const hasStaff = PROFILE.staff_mode_enabled === true;
+  const hasStaff = PROFILE.staff_mode_enabled === true || (PROFILE.staff_permissions && PROFILE.staff_permissions._staff_mode_enabled === true);
   const radioYes = document.querySelector('input[name="prof-has-staff"][value="yes"]');
   const radioNo = document.querySelector('input[name="prof-has-staff"][value="no"]');
   if (hasStaff && radioYes) radioYes.checked = true;
@@ -4097,6 +4097,10 @@ async function saveStaffPermissions() {
     Object.keys(existingPerms).forEach(k => {
       if (k.startsWith('_')) mergedPerms[k] = existingPerms[k];
     });
+    // Explicitly guarantee staff_mode_enabled isn't lost if it was in PROFILE but not inside existingPerms
+    if (PROFILE && PROFILE.staff_mode_enabled !== undefined) {
+      mergedPerms._staff_mode_enabled = PROFILE.staff_mode_enabled;
+    }
 
     const payload = {
       id: user.id,
@@ -4112,7 +4116,7 @@ async function saveStaffPermissions() {
     };
     const { error } = await sb.from('profiles').upsert(payload);
     if (error) throw error;
-    PROFILE = payload;
+    PROFILE = { ...PROFILE, ...payload };
     STAFF_PERMS = perms;
     toast(' Settings & staff permissions saved!');
   } catch (err) {
