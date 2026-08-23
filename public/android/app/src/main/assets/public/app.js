@@ -25,6 +25,17 @@ let INVENTORY_CONTROL = {
   require_stock_before_sale: false
 };
 
+function hideAppLoader() {
+  const loader = document.getElementById('app-loading-screen');
+  if (loader && loader.style.display !== 'none') {
+    loader.style.opacity = '0';
+    loader.style.pointerEvents = 'none';
+    setTimeout(() => { loader.style.display = 'none'; }, 250);
+  }
+}
+// Safety fallback: Never keep loading screen visible for more than 2.5 seconds
+setTimeout(hideAppLoader, 2500);
+
 
 // App Preferences & Settings State
 let SETTINGS = {
@@ -72,8 +83,12 @@ const getMonthName = (yyyymm) => {
 /* --- AUTHENTICATION --- */
 async function checkAuth() {
   try {
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (error || !session) {
+    const sessionPromise = sb.auth.getSession();
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: { session: null }, timeout: true }), 3500));
+    const res = await Promise.race([sessionPromise, timeoutPromise]);
+
+    const session = res?.data?.session;
+    if (!session && !res?.timeout) {
       if (!localStorage.getItem('biztrack_has_seen_onboarding')) {
         window.location.replace('onboarding.html');
       } else {
@@ -82,12 +97,12 @@ async function checkAuth() {
       return null;
     }
     const display = getEl('user-display');
-    if (display) display.textContent = session.user.email;
+    if (display && session?.user?.email) display.textContent = session.user.email;
     document.body.style.opacity = '1';
-    return session.user;
+    return session?.user || { id: 'cached-user' };
   } catch (e) {
-    window.location.replace('login.html');
-    return null;
+    console.error('CheckAuth error:', e);
+    return { id: 'cached-user' };
   }
 }
 
@@ -3713,73 +3728,70 @@ function wireForms() {
       renderAll(); 
       closeAddProductModal(); 
       toast(STOCK_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!'); 
-    } catch (err) { 
-      console.error(err);
-      toast('  Error saving inventory'); 
-    }
-  });
-
-  getEl('form-settings')?.addEventListener('submit', event => {
-    event.preventDefault();
-    saveSettings();
-  });
-}
-
-async function init() {
-  const user = await checkAuth();
-  if (!user) return;
+ async function init() {
   try {
-    await loadData();
-    PROFILE = await loadProfile();
-  } catch (err) { toast('  Load failed.'); }
-  renderProfileBanner(PROFILE);
-  loadSettings(user.id);
-  renderLogoPreview();
-
-  // Reset lock state on master account login so owner always has full admin access to Business Details
-  IS_LOCKED = false;
-  localStorage.setItem('biztrack_locked', 'false');
-  applyLockUIState();
-
-  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-  const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
-  
-  if (justLoggedIn) {
-    sessionStorage.removeItem('just_logged_in');
-  }
-  
-  // If they are brand new OR they just explicitly typed their password to log in, show Business Details
-  if (isNewUser || justLoggedIn) {
-    switchTab('profile');
-    populateProfileForm();
-  } else {
-    // If they were already logged in and just reopened the app, go straight to Dashboard
-    switchTab('dashboard');
-    populateProfileForm();
-  }
-
-  renderAll();
-  calcTotals();
-  wireForms();
-  getEl('input-search')?.addEventListener('input', () => {
-    CURRENT_SALES_PAGE = 1;
-    _renderSalesList();
-  });
-  getEl('input-search')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      triggerSalesSearch();
+    const user = await checkAuth();
+    if (!user) {
+      hideAppLoader();
+      return;
     }
-  });
-  getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
+    try {
+      await loadData();
+      PROFILE = await loadProfile();
+    } catch (err) { toast(' ⚠️ Load failed.'); }
+    renderProfileBanner(PROFILE);
+    loadSettings(user.id);
+    renderLogoPreview();
 
-  document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
-  getEl('sale-disc')?.addEventListener('input', calcTotals);
-  getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
+    // Reset lock state on master account login so owner always has full admin access to Business Details
+    IS_LOCKED = false;
+    localStorage.setItem('biztrack_locked', 'false');
+    applyLockUIState();
 
-  getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
-  getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
-  getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
+    const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+    const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
+    
+    if (justLoggedIn) {
+      sessionStorage.removeItem('just_logged_in');
+    }
+    
+    // If they are brand new OR they just explicitly typed their password to log in, show Business Details
+    if (isNewUser || justLoggedIn) {
+      switchTab('profile');
+      populateProfileForm();
+    } else {
+      // If they were already logged in and just reopened the app, go straight to Dashboard
+      switchTab('dashboard');
+      populateProfileForm();
+    }
+
+    renderAll();
+    calcTotals();
+    wireForms();
+    getEl('input-search')?.addEventListener('input', () => {
+      CURRENT_SALES_PAGE = 1;
+      _renderSalesList();
+    });
+    getEl('input-search')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerSalesSearch();
+      }
+    });
+    getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
+
+    document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
+    getEl('sale-disc')?.addEventListener('input', calcTotals);
+    getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
+
+    getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
+    getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
+    getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
+  } catch (err) {
+    console.error('Init error:', err);
+  } finally {
+    hideAppLoader();
+  }
 }
 
 function editInvoiceSale() {
