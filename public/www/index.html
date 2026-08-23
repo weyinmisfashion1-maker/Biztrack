@@ -687,13 +687,18 @@ flex-wrap:wrap;gap:0.5rem;
   position:fixed;top:2.5rem;left:50%;
   transform:translateX(-50%) translateY(-20px);
   background:var(--ink);color:var(--gold);
-  padding:.6rem 1.25rem;border-radius:999px;
-  font-size:.83rem;font-weight:var(--fw-semi);
+  padding:.65rem 1.1rem;border-radius:14px;
+  font-size:.82rem;font-weight:var(--fw-semi);
   border:1px solid rgba(201,152,42,.25);
   pointer-events:none;opacity:0;z-index:9999;
   transition:opacity .25s,transform .25s;
-  white-space:nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  white-space:normal;
+  word-break:break-word;
+  width:max-content;
+  max-width:calc(100vw - 2rem);
+  text-align:center;
+  line-height:1.45;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -2400,7 +2405,12 @@ body.dark-mode #invoice-view * {
               Enter 4-Digit Admin PIN <span class="req-mark" aria-hidden="true">*</span>
             </label>
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-              <input type="text" id="prof-pin" pattern="\d{4}" maxlength="4" placeholder="1234" style="max-width:180px; letter-spacing:0.15em; font-weight:700;" />
+              <div style="position:relative; display:inline-flex; align-items:center;">
+                <input type="password" id="prof-pin" pattern="\d{4}" maxlength="4" placeholder="••••" style="max-width:180px; letter-spacing:0.2em; font-weight:700; padding-right:2.4rem;" />
+                <button type="button" onclick="(function(){var i=document.getElementById('prof-pin');var b=this;i.type=i.type==='password'?'text':'password';b.innerHTML=i.type==='password'?'<svg width=&quot;16&quot; height=&quot;16&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;><path d=&quot;M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z&quot;/><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/></svg>':'<svg width=&quot;16&quot; height=&quot;16&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;><path d=&quot;M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24&quot;/><line x1=&quot;1&quot; y1=&quot;1&quot; x2=&quot;23&quot; y2=&quot;23&quot;/></svg>'}).call(this)" aria-label="Toggle PIN visibility" style="position:absolute;right:0.45rem;background:none;border:none;cursor:pointer;padding:0.25rem;color:var(--muted);display:flex;align-items:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
               <span style="font-size:0.78rem; color:var(--muted);">(Used to switch between Staff Mode and Admin Mode)</span>
             </div>
           </div>
