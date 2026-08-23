@@ -3742,11 +3742,18 @@ async function init() {
   applyLockUIState();
 
   const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+  const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
   
-  if (isNewUser) {
+  if (justLoggedIn) {
+    sessionStorage.removeItem('just_logged_in');
+  }
+  
+  // If they are brand new OR they just explicitly typed their password to log in, show Business Details
+  if (isNewUser || justLoggedIn) {
     switchTab('profile');
     populateProfileForm();
   } else {
+    // If they were already logged in and just reopened the app, go straight to Dashboard
     switchTab('dashboard');
     populateProfileForm();
   }
