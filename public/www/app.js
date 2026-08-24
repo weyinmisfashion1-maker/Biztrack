@@ -25,16 +25,7 @@ let INVENTORY_CONTROL = {
   require_stock_before_sale: false
 };
 
-function hideAppLoader() {
-  const loader = document.getElementById('app-loading-screen');
-  if (loader && loader.style.display !== 'none') {
-    loader.style.opacity = '0';
-    loader.style.pointerEvents = 'none';
-    setTimeout(() => { loader.style.display = 'none'; }, 250);
-  }
-}
-// Safety fallback: Never keep loading screen visible for more than 2.5 seconds
-setTimeout(hideAppLoader, 2500);
+
 
 
 // App Preferences & Settings State
@@ -3729,69 +3720,62 @@ function wireForms() {
       closeAddProductModal(); 
       toast(STOCK_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!'); 
  async function init() {
+  const user = await checkAuth();
+  if (!user) return;
+
   try {
-    const user = await checkAuth();
-    if (!user) {
-      hideAppLoader();
-      return;
-    }
-    try {
-      await loadData();
-      PROFILE = await loadProfile();
-    } catch (err) { toast(' ⚠️ Load failed.'); }
-    renderProfileBanner(PROFILE);
-    loadSettings(user.id);
-    renderLogoPreview();
+    await loadData();
+    PROFILE = await loadProfile();
+  } catch (err) { toast(' ⚠️ Load failed.'); }
 
-    // Reset lock state on master account login so owner always has full admin access to Business Details
-    IS_LOCKED = false;
-    localStorage.setItem('biztrack_locked', 'false');
-    applyLockUIState();
+  renderProfileBanner(PROFILE);
+  loadSettings(user.id);
+  renderLogoPreview();
 
-    const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-    const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
-    
-    if (justLoggedIn) {
-      sessionStorage.removeItem('just_logged_in');
-    }
-    
-    // If they are brand new OR they just explicitly typed their password to log in, show Business Details
-    if (isNewUser || justLoggedIn) {
-      switchTab('profile');
-      populateProfileForm();
-    } else {
-      // If they were already logged in and just reopened the app, go straight to Dashboard
-      switchTab('dashboard');
-      populateProfileForm();
-    }
+  // Reset lock state on master account login so owner always has full admin access to Business Details
+  IS_LOCKED = false;
+  localStorage.setItem('biztrack_locked', 'false');
+  applyLockUIState();
 
-    renderAll();
-    calcTotals();
-    wireForms();
-    getEl('input-search')?.addEventListener('input', () => {
-      CURRENT_SALES_PAGE = 1;
-      _renderSalesList();
-    });
-    getEl('input-search')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        triggerSalesSearch();
-      }
-    });
-    getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
-
-    document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
-    getEl('sale-disc')?.addEventListener('input', calcTotals);
-    getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
-
-    getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
-    getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
-    getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
-  } catch (err) {
-    console.error('Init error:', err);
-  } finally {
-    hideAppLoader();
+  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+  const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
+  
+  if (justLoggedIn) {
+    sessionStorage.removeItem('just_logged_in');
   }
+  
+  // If they are brand new OR they just explicitly typed their password to log in, show Business Details
+  if (isNewUser || justLoggedIn) {
+    switchTab('profile');
+    populateProfileForm();
+  } else {
+    // If they were already logged in and just reopened the app, go straight to Dashboard
+    switchTab('dashboard');
+    populateProfileForm();
+  }
+
+  renderAll();
+  calcTotals();
+  wireForms();
+  getEl('input-search')?.addEventListener('input', () => {
+    CURRENT_SALES_PAGE = 1;
+    _renderSalesList();
+  });
+  getEl('input-search')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      triggerSalesSearch();
+    }
+  });
+  getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
+
+  document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
+  getEl('sale-disc')?.addEventListener('input', calcTotals);
+  getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
+
+  getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
+  getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
+  getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
 }
 
 function editInvoiceSale() {
