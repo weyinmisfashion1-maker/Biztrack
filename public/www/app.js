@@ -26,8 +26,6 @@ let INVENTORY_CONTROL = {
 };
 
 
-
-
 // App Preferences & Settings State
 let SETTINGS = {
   currency: '₦',
@@ -74,12 +72,8 @@ const getMonthName = (yyyymm) => {
 /* --- AUTHENTICATION --- */
 async function checkAuth() {
   try {
-    const sessionPromise = sb.auth.getSession();
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: { session: null }, timeout: true }), 3500));
-    const res = await Promise.race([sessionPromise, timeoutPromise]);
-
-    const session = res?.data?.session;
-    if (!session && !res?.timeout) {
+    const { data: { session }, error } = await sb.auth.getSession();
+    if (error || !session) {
       if (!localStorage.getItem('biztrack_has_seen_onboarding')) {
         window.location.replace('onboarding.html');
       } else {
@@ -88,12 +82,12 @@ async function checkAuth() {
       return null;
     }
     const display = getEl('user-display');
-    if (display && session?.user?.email) display.textContent = session.user.email;
+    if (display) display.textContent = session.user.email;
     document.body.style.opacity = '1';
-    return session?.user || { id: 'cached-user' };
+    return session.user;
   } catch (e) {
-    console.error('CheckAuth error:', e);
-    return { id: 'cached-user' };
+    window.location.replace('login.html');
+    return null;
   }
 }
 
@@ -122,19 +116,16 @@ async function loadProfile() {
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return null;
-
-    const cacheKey = 'biztrack_profile_cache_' + user.id;
-    const cached = localStorage.getItem(cacheKey);
-
-    let profileData = null;
-    if (cached) {
-      try {
-        profileData = JSON.parse(cached);
-      } catch (e) {
-        console.error('Profile cache error', e);
-      }
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Profile load error:', error);
+      return null;
     }
-
     // Load inventory control settings from localStorage
     const localInv = localStorage.getItem('biztrack_inventory_control_' + user.id);
     if (localInv) {
@@ -146,50 +137,20 @@ async function loadProfile() {
     } else {
       INVENTORY_CONTROL = { require_stock_before_sale: false };
     }
-
-    const fetchFresh = async () => {
-      try {
-        const { data, error } = await sb
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (error && error.code !== 'PGRST116') {
-          console.error('Profile load error:', error);
-          return null;
-        }
-
-        const extras = loadProfileExtras(user.id);
-        if (data?.staff_permissions) {
-          if (data?.staff_permissions?._instagram !== undefined) extras.instagram = extras.instagram || data.staff_permissions._instagram;
-          if (data?.staff_permissions?._website !== undefined) extras.website = extras.website || data.staff_permissions._website;
-          if (data?.staff_permissions?._staff_mode_enabled !== undefined) extras.staff_mode_enabled = data.staff_permissions._staff_mode_enabled;
-        }
-        
-        const freshProfile = data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
-        
-        if (freshProfile) {
-          localStorage.setItem(cacheKey, JSON.stringify(freshProfile));
-          // If we returned cached data initially, quietly update the live object
-          if (cached && typeof renderProfileBanner === 'function') {
-            PROFILE = freshProfile;
-            renderProfileBanner(PROFILE);
-          }
-        }
-        return freshProfile;
-      } catch (err) {
-        console.error('Background profile fetch error:', err);
-        return null;
+    const extras = loadProfileExtras(user.id);
+    // Also read instagram/website stored inside staff_permissions JSONB (cloud-persisted)
+    if (data?.staff_permissions) {
+      if (data?.staff_permissions?._instagram !== undefined) {
+        extras.instagram = extras.instagram || data.staff_permissions._instagram;
       }
-    };
-
-    if (cached) {
-      fetchFresh(); // Run in background
-      return profileData;
-    } else {
-      return await fetchFresh(); // Wait if no cache
+      if (data?.staff_permissions?._website !== undefined) {
+        extras.website = extras.website || data.staff_permissions._website;
+      }
+      if (data?.staff_permissions?._staff_mode_enabled !== undefined) {
+        extras.staff_mode_enabled = data.staff_permissions._staff_mode_enabled;
+      }
     }
+    return data ? { ...data, ...extras } : (Object.keys(extras).length ? extras : null);
   } catch (e) {
     console.error('Profile fetch exception:', e);
     return null;
@@ -3719,15 +3680,25 @@ function wireForms() {
       renderAll(); 
       closeAddProductModal(); 
       toast(STOCK_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!'); 
- async function init() {
+    } catch (err) { 
+      console.error(err);
+      toast('  Error saving inventory'); 
+    }
+  });
+
+  getEl('form-settings')?.addEventListener('submit', event => {
+    event.preventDefault();
+    saveSettings();
+  });
+}
+
+async function init() {
   const user = await checkAuth();
   if (!user) return;
-
   try {
     await loadData();
     PROFILE = await loadProfile();
-  } catch (err) { toast(' ⚠️ Load failed.'); }
-
+  } catch (err) { toast('  Load failed.'); }
   renderProfileBanner(PROFILE);
   loadSettings(user.id);
   renderLogoPreview();
@@ -3738,18 +3709,11 @@ function wireForms() {
   applyLockUIState();
 
   const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-  const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
   
-  if (justLoggedIn) {
-    sessionStorage.removeItem('just_logged_in');
-  }
-  
-  // If they are brand new OR they just explicitly typed their password to log in, show Business Details
-  if (isNewUser || justLoggedIn) {
+  if (isNewUser) {
     switchTab('profile');
     populateProfileForm();
   } else {
-    // If they were already logged in and just reopened the app, go straight to Dashboard
     switchTab('dashboard');
     populateProfileForm();
   }
