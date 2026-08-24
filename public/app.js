@@ -3692,6 +3692,51 @@ function wireForms() {
   });
 }
 
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+function checkInactivityLock(fromVisibility = false) {
+  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  if (!hasStaff) {
+    localStorage.setItem('biztrack_last_active', Date.now().toString());
+    return;
+  }
+
+  const lastActiveStr = localStorage.getItem('biztrack_last_active');
+  const now = Date.now();
+  if (lastActiveStr) {
+    const lastActive = parseInt(lastActiveStr, 10);
+    if (now - lastActive > INACTIVITY_TIMEOUT_MS) {
+      if (!IS_LOCKED) {
+        IS_LOCKED = true;
+        localStorage.setItem('biztrack_locked', 'true');
+        applyLockUIState();
+        toast('🔒 App locked due to inactivity.');
+        if (fromVisibility) switchTab('dashboard');
+      }
+    } else {
+      if (!fromVisibility) {
+        IS_LOCKED = localStorage.getItem('biztrack_locked') === 'true';
+        applyLockUIState();
+      }
+    }
+  } else {
+    if (!fromVisibility) {
+      IS_LOCKED = localStorage.getItem('biztrack_locked') === 'true';
+      applyLockUIState();
+    }
+  }
+  
+  localStorage.setItem('biztrack_last_active', now.toString());
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    localStorage.setItem('biztrack_last_active', Date.now().toString());
+  } else if (document.visibilityState === 'visible') {
+    if (PROFILE) checkInactivityLock(true);
+  }
+});
+
 async function init() {
   try {
     const user = await checkAuth();
@@ -3706,15 +3751,19 @@ async function init() {
     loadSettings(user.id);
     renderLogoPreview();
 
-    // Reset lock state on master account login so owner always has full admin access to Business Details
-    IS_LOCKED = false;
-    localStorage.setItem('biztrack_locked', 'false');
-    applyLockUIState();
-
     const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
     const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
     if (justLoggedIn) {
       sessionStorage.removeItem('just_logged_in');
+    }
+
+    if (justLoggedIn) {
+      IS_LOCKED = false;
+      localStorage.setItem('biztrack_locked', 'false');
+      localStorage.setItem('biztrack_last_active', Date.now().toString());
+      applyLockUIState();
+    } else {
+      checkInactivityLock(false);
     }
     
     if (isNewUser || justLoggedIn) {
