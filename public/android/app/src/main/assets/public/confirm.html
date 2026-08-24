@@ -52,8 +52,8 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
       <h2 class="result-title">Email Confirmed!</h2>
       <p class="result-msg">
         Your email address has been confirmed successfully.<br><br>
-        <strong>Please return to the BizTrack.ng app and log in</strong> with your email and password to access your account.<br><br>
-        <span style="font-size:0.85rem;color:var(--muted);">(You can now close this browser tab.)</span>
+        Your account is active. Opening your business workspace...<br><br>
+        <a href="index.html" class="btn-login" style="margin-top:0.5rem;">Continue to BizTrack.ng</a>
       </p>
     </div>
     <div class="result-card error" id="error-card">
@@ -79,27 +79,18 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
   var errorMsgEl  = document.getElementById('error-msg');
   var authTitleEl = document.getElementById('auth-title');
 
-  async function clearSessionCompletely() {
-    try {
-      await sb.auth.signOut();
-    } catch (e) {}
-    try {
-      for (var k in localStorage) {
-        if (k.startsWith('sb-') || k.includes('supabase')) {
-          localStorage.removeItem(k);
-        }
-      }
-      sessionStorage.clear();
-    } catch (e) {}
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  }
-
   function showSuccess() {
     spinnerEl.style.display = 'none';
     successEl.style.display = 'block';
     authTitleEl.textContent = 'Email Confirmed';
+    try {
+      localStorage.setItem('just_logged_in', 'true');
+      sessionStorage.setItem('just_logged_in', 'true');
+    } catch (e) {}
+    // Automatically open app / index.html after 1.5 seconds
+    setTimeout(function() {
+      window.location.replace('index.html');
+    }, 1500);
   }
 
   function showError(msg) {
@@ -110,10 +101,8 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
   }
 
   // Intercept any SIGNED_IN event that Supabase fires from the URL token.
-  // Sign the user back out immediately — confirmation only, no dashboard access.
-  sb.auth.onAuthStateChange(async function (event, session) {
+  sb.auth.onAuthStateChange(function (event, session) {
     if (event === 'SIGNED_IN' && session) {
-      await clearSessionCompletely();
       showSuccess();
     }
   });
@@ -133,7 +122,6 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
         var otpType = (type === 'email_change') ? 'email_change' : (type === 'email' ? 'email' : 'signup');
         var res = await sb.auth.verifyOtp({ token_hash: tokenHash, type: otpType });
         if (res.error) throw res.error;
-        await clearSessionCompletely();
         showSuccess();
         return;
       }
@@ -142,15 +130,13 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
       if (accessToken) {
         var res2 = await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
         if (res2.error) throw res2.error;
-        await clearSessionCompletely();
         showSuccess();
         return;
       }
 
-      // If there is already an active session (onAuthStateChange fired first)
+      // If there is already an active session
       var sd = await sb.auth.getSession();
       if (sd.data && sd.data.session) {
-        await clearSessionCompletely();
         showSuccess();
         return;
       }
