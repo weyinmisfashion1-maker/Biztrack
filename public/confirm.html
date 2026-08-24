@@ -52,8 +52,7 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
       <h2 class="result-title">Email Confirmed!</h2>
       <p class="result-msg">
         Your email address has been confirmed successfully.<br><br>
-        Your account is active. Opening your business workspace...<br><br>
-        <a href="index.html" class="btn-login" style="margin-top:0.5rem;">Continue to BizTrack.ng</a>
+        Please go back to the app and log in manually.
       </p>
     </div>
     <div class="result-card error" id="error-card">
@@ -84,13 +83,8 @@ body{width:100%;min-height:100vh;font-family:var(--ff-body);background:var(--cre
     successEl.style.display = 'block';
     authTitleEl.textContent = 'Email Confirmed';
     try {
-      localStorage.setItem('just_logged_in', 'true');
-      sessionStorage.setItem('just_logged_in', 'true');
+      sb.auth.signOut();
     } catch (e) {}
-    // Automatically open app / index.html after 1.5 seconds
-    setTimeout(function() {
-      window.location.replace('index.html');
-    }, 1500);
   }
 
   function showError(msg) {
