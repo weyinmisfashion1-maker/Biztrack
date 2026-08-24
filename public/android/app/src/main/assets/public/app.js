@@ -3682,7 +3682,7 @@ function wireForms() {
       toast(STOCK_EDIT_ID ? '✅ Updated successfully!' : '✅ Saved successfully!'); 
     } catch (err) { 
       console.error(err);
-      toast('  Error saving inventory'); 
+      toast('   Error saving inventory'); 
     }
   });
 
@@ -3693,53 +3693,63 @@ function wireForms() {
 }
 
 async function init() {
-  const user = await checkAuth();
-  if (!user) return;
   try {
-    await loadData();
-    PROFILE = await loadProfile();
-  } catch (err) { toast('  Load failed.'); }
-  renderProfileBanner(PROFILE);
-  loadSettings(user.id);
-  renderLogoPreview();
+    const user = await checkAuth();
+    if (!user) return;
+    
+    try {
+      await loadData();
+      PROFILE = await loadProfile();
+    } catch (err) { toast('   Load failed.'); }
+    
+    renderProfileBanner(PROFILE);
+    loadSettings(user.id);
+    renderLogoPreview();
 
-  // Reset lock state on master account login so owner always has full admin access to Business Details
-  IS_LOCKED = false;
-  localStorage.setItem('biztrack_locked', 'false');
-  applyLockUIState();
+    // Reset lock state on master account login so owner always has full admin access to Business Details
+    IS_LOCKED = false;
+    localStorage.setItem('biztrack_locked', 'false');
+    applyLockUIState();
 
-  const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
-  
-  if (isNewUser) {
-    switchTab('profile');
-    populateProfileForm();
-  } else {
-    switchTab('dashboard');
-    populateProfileForm();
-  }
-
-  renderAll();
-  calcTotals();
-  wireForms();
-  getEl('input-search')?.addEventListener('input', () => {
-    CURRENT_SALES_PAGE = 1;
-    _renderSalesList();
-  });
-  getEl('input-search')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      triggerSalesSearch();
+    const isNewUser = !PROFILE || !PROFILE.business_name || PROFILE.business_name.trim() === '';
+    const justLoggedIn = sessionStorage.getItem('just_logged_in') === 'true';
+    if (justLoggedIn) {
+      sessionStorage.removeItem('just_logged_in');
     }
-  });
-  getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
+    
+    if (isNewUser || justLoggedIn) {
+      switchTab('profile');
+      populateProfileForm();
+    } else {
+      switchTab('dashboard');
+      populateProfileForm();
+    }
 
-  document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
-  getEl('sale-disc')?.addEventListener('input', calcTotals);
-  getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
+    renderAll();
+    calcTotals();
+    wireForms();
+    getEl('input-search')?.addEventListener('input', () => {
+      CURRENT_SALES_PAGE = 1;
+      _renderSalesList();
+    });
+    getEl('input-search')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerSalesSearch();
+      }
+    });
+    getEl('input-filter-status')?.addEventListener('change', _renderSalesList);
 
-  getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
-  getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
-  getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
+    document.querySelectorAll('.iname, .iqty, .iprice').forEach(el => el.addEventListener('input', calcTotals));
+    getEl('sale-disc')?.addEventListener('input', calcTotals);
+    getEl('sale-delivery-fee')?.addEventListener('input', calcTotals);
+
+    getEl('sale-cancel-btn')?.addEventListener('click', clearSaleEditMode);
+    getEl('expense-cancel-btn')?.addEventListener('click', clearExpenseEditMode);
+    getEl('inventory-cancel-btn')?.addEventListener('click', clearStockEditMode);
+  } finally {
+    if (window.hideGlobalLoader) window.hideGlobalLoader();
+  }
 }
 
 function editInvoiceSale() {
