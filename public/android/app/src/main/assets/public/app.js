@@ -3693,8 +3693,22 @@ function wireForms() {
 }
 
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+const LOGOUT_TIMEOUT_MS = 4 * 24 * 60 * 60 * 1000; // 4 days
 
 function checkInactivityLock(fromVisibility = false) {
+  const lastActiveStr = localStorage.getItem('biztrack_last_active');
+  const now = Date.now();
+  
+  if (lastActiveStr) {
+    const lastActive = parseInt(lastActiveStr, 10);
+    // 4 Days Logout Check (applies to ALL users)
+    if (now - lastActive > LOGOUT_TIMEOUT_MS) {
+      toast('Session expired due to 4 days of inactivity.');
+      setTimeout(() => signOut(), 1500);
+      return;
+    }
+  }
+
   const hasStaff = PROFILE?.staff_mode_enabled === true || (PROFILE?.staff_permissions && PROFILE.staff_permissions._staff_mode_enabled === true);
   
   if (!hasStaff) {
@@ -3707,8 +3721,6 @@ function checkInactivityLock(fromVisibility = false) {
     return;
   }
 
-  const lastActiveStr = localStorage.getItem('biztrack_last_active');
-  const now = Date.now();
   if (lastActiveStr) {
     const lastActive = parseInt(lastActiveStr, 10);
     if (now - lastActive > INACTIVITY_TIMEOUT_MS) {
