@@ -3695,8 +3695,14 @@ function wireForms() {
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 function checkInactivityLock(fromVisibility = false) {
-  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  const hasStaff = PROFILE?.staff_mode_enabled === true || (PROFILE?.staff_permissions && PROFILE.staff_permissions._staff_mode_enabled === true);
+  
   if (!hasStaff) {
+    if (!fromVisibility) {
+      IS_LOCKED = false;
+      localStorage.setItem('biztrack_locked', 'false');
+      applyLockUIState();
+    }
     localStorage.setItem('biztrack_last_active', Date.now().toString());
     return;
   }
