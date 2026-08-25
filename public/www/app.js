@@ -911,7 +911,7 @@ function toggleStaffPinUI() {
 window.toggleStaffPinUI = toggleStaffPinUI;
 
 function lockApp() {
-  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  const hasStaff = PROFILE?.staff_mode_enabled === true || (PROFILE?.staff_permissions && PROFILE.staff_permissions._staff_mode_enabled === true);
   if (!hasStaff) {
     toast('💡 Staff Mode is not enabled. Go to Business Details if you have staff.');
     return;
@@ -990,7 +990,7 @@ function applyLockUIState() {
   const unlockTab = getEl('tab-unlock-admin');
   const lockBtn = getEl('btn-staff-lock');
   const deletedSalesSection = getEl('deleted-sales-hd')?.closest('section');
-  const hasStaff = PROFILE?.staff_mode_enabled === true;
+  const hasStaff = PROFILE?.staff_mode_enabled === true || (PROFILE?.staff_permissions && PROFILE.staff_permissions._staff_mode_enabled === true);
 
   if (!hasStaff) {
     // Solo business: ALWAYS full Admin Mode, hide staff lock/unlock controls
@@ -3742,6 +3742,16 @@ document.addEventListener('visibilitychange', () => {
     if (PROFILE) checkInactivityLock(true);
   }
 });
+
+// Update activity timer on user interactions to prevent locking while actively using the app
+let lastInteractionUpdate = Date.now();
+document.addEventListener('click', () => {
+  const now = Date.now();
+  if (now - lastInteractionUpdate > 10000) { // Throttle to max once per 10 seconds
+    localStorage.setItem('biztrack_last_active', now.toString());
+    lastInteractionUpdate = now;
+  }
+}, { passive: true });
 
 async function init() {
   try {
